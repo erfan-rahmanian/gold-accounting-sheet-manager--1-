@@ -3,6 +3,17 @@ import { Plus, Search, Filter, Coins, CheckCircle2, AlertTriangle, Tag, Trash2 }
 import { AppSettings, Transaction, TRANSACTION_TYPES } from "../types";
 import { calculateTransactionFields, formatCurrency, formatWeight, getTodayJalali, toPersianDigits, formatInputWithCommas } from "../utils";
 
+declare global {
+  interface Window {
+    jalaliDatepicker: {
+      startWatch: (options?: Record<string, unknown>) => void;
+      show: (input: HTMLElement) => void;
+      hide: () => void;
+      updateOptions: (options: Record<string, unknown>) => void;
+    };
+  }
+}
+
 interface TransactionsTabProps {
   settings: AppSettings;
   transactions: Transaction[];
@@ -47,6 +58,32 @@ export default function TransactionsTab({
     if (settings.shops.length && !txShop) setTxShop(settings.shops[0].name);
     if (settings.persons.length && !txPerson) setTxPerson(settings.persons[0]);
   }, [settings]);
+
+  const dateRef = React.useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (window.jalaliDatepicker) {
+      window.jalaliDatepicker.startWatch({
+        persianDigits: false,
+        separatorChars: { date: "/" },
+        autoShow: true,
+        autoHide: true,
+        hideAfterChange: true,
+        date: true,
+        time: false
+      });
+    }
+  }, []);
+
+  useEffect(() => {
+    const input = dateRef.current;
+    if (!input) return;
+    const handler = () => {
+      if (input.value) setTxDate(input.value);
+    };
+    input.addEventListener("change", handler);
+    return () => input.removeEventListener("change", handler);
+  }, [showAddForm]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -146,10 +183,13 @@ export default function TransactionsTab({
             <div className="space-y-1.5">
               <label className="text-slate-600 font-bold">تاریخ معامله (جلالی)</label>
               <input
+                ref={dateRef}
                 type="text"
+                data-jdp
+                data-jdp-only-date
+                readOnly
                 value={txDate}
-                onChange={(e) => setTxDate(e.target.value)}
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-3 text-slate-900 text-left font-mono font-medium focus:outline-none focus:border-amber-500 text-xs"
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-3 text-slate-900 text-left font-mono font-medium focus:outline-none focus:border-amber-500 text-xs cursor-pointer"
               />
             </div>
 

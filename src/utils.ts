@@ -142,17 +142,16 @@ export function formatInputWithCommas(val: string | number): string {
   return formattedInteger;
 }
 
-// Format dates in simple Jalali structure if preferred, or returns standard representation
+// Format dates in simple Jalali structure (English digits, YYYY/MM/DD)
 export function getTodayJalali(): string {
-  // Simple Jalali date estimator for 2026/06/17 (which is 1405/03/27)
-  // Let's calculate exactly based on today's year
   const today = new Date();
   const options = { calendar: "persian", year: "numeric", month: "2-digit", day: "2-digit" } as any;
   try {
     const formatted = new Intl.DateTimeFormat("fa-IR-u-ca-persian", options).format(today);
-    // clean formatting from non-breaking spaces or characters
-    return formatted.replace(/[\u200E\u200F]/g, "").trim();
+    const cleaned = formatted.replace(/[\u200E\u200F\u200C\u200D\u00A0]/g, "").trim();
+    // Convert Persian digits to English digits
+    return cleaned.replace(/[۰-۹]/g, (d) => String("۰۱۲۳۴۵۶۷۸۹".indexOf(d)));
   } catch (e) {
-    return "۱۴۰۵/۰۳/۲۷";
+    return "1405/03/27";
   }
 }

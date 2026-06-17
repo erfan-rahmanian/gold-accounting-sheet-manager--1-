@@ -186,11 +186,11 @@ export default function App() {
   }
 
   const navItems = [
-    { key: "dashboard", label: "موجودی و داشبورد", icon: LayoutDashboard },
-    { key: "transactions", label: "دفتر ثبت سند جدید", icon: Coins },
-    { key: "reports", label: "تراز و صورت‌حساب‌ها", icon: LineChart },
-    { key: "settings", label: "دفاتر و کالیبراسیون", icon: Settings },
-    { key: "backup", label: "پشتیبان‌گیری و بازیابی", icon: Database },
+    { key: "dashboard", label: "داشبورد", icon: LayoutDashboard },
+    { key: "transactions", label: "ثبت سند", icon: Coins },
+    { key: "reports", label: "صورتحساب موجودی", icon: LineChart },
+    { key: "settings", label: "ثبت مغازه و شخص", icon: Settings },
+    { key: "backup", label: "بکاپ و بازیابی", icon: Database },
   ] as const;
 
   return (

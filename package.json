@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@google/genai": "^2.4.0",
+    "@majidh1/jalalidatepicker": "^0.9.12",
     "@vitejs/plugin-react": "^4.7.0",
     "dotenv": "^17.2.3",
     "express": "^4.21.2",
