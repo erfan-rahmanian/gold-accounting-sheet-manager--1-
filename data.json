@@ -1,0 +1,16 @@
+{
+  "settings": {
+    "shops": [],
+    "persons": [],
+    "coins": [
+      { "name": "سکه بهار آزادی (امامی)", "weight": 8.133 },
+      { "name": "نیم سکه بهار آزادی", "weight": 4.066 },
+      { "name": "ربع سکه بهار آزادی", "weight": 2.033 },
+      { "name": "سکه گرمی", "weight": 1.012 },
+      { "name": "سکه پارسیان", "weight": 1.000 }
+    ],
+    "currentGoldPrice": 35000000,
+    "spreadsheetId": ""
+  },
+  "transactions": []
+}

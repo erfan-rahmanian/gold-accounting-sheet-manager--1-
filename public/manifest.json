@@ -1,0 +1,21 @@
+{
+  "short_name": "حسابداری طلا",
+  "name": "سیستم پیشرفته حسابداری طلا",
+  "icons": [
+    {
+      "src": "https://img.icons8.com/color/192/gold-bars.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "https://img.icons8.com/color/512/gold-bars.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#ffffff",
+  "theme_color": "#f59e0b",
+  "display": "standalone",
+  "orientation": "portrait"
+}

@@ -1,0 +1,6 @@
+{
+  "name": "Gold Accounting Sheet Manager",
+  "description": "Manage gold accounting transactions, shops, coins, and customers, and sync automatically with structured Google Sheets using advanced calculations.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
