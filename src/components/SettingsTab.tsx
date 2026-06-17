@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Settings, Plus, Trash2, Save, ShoppingBag, Users, Coins as CoinIcon, DollarSign, RefreshCw, CheckCircle2 } from "lucide-react";
+import { Settings, Plus, Trash2, ShoppingBag, Users, Coins as CoinIcon, CheckCircle2 } from "lucide-react";
 import { AppSettings, Shop, Coin } from "../types";
 import { formatCurrency, formatWeight, toPersianDigits, formatInputWithCommas } from "../utils";
 
@@ -13,8 +13,21 @@ export default function SettingsTab({ settings, onUpdateSettings }: SettingsTabP
   const [shops, setShops] = useState<Shop[]>(settings.shops);
   const [persons, setPersons] = useState<string[]>(settings.persons);
   const [coins, setCoins] = useState<Coin[]>(settings.coins);
-  const [saving, setSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
+
+  const persistSettings = async (patch: Partial<AppSettings>) => {
+    const updated = {
+      shops,
+      persons,
+      coins,
+      currentGoldPrice: Number(currentGoldPrice) || 0,
+      spreadsheetId: settings.spreadsheetId,
+      ...patch
+    };
+    await onUpdateSettings(updated);
+    setSaveSuccess(true);
+    setTimeout(() => setSaveSuccess(false), 2000);
+  };
 
   // New item draft states (use string for easy decimal input)
   const [newShopName, setNewShopName] = useState("");
@@ -24,7 +37,7 @@ export default function SettingsTab({ settings, onUpdateSettings }: SettingsTabP
 
   const [newPersonName, setNewPersonName] = useState("");
 
-  const handleAddShop = () => {
+  const handleAddShop = async () => {
     if (!newShopName.trim()) return;
     const newShop: Shop = {
       id: Math.random().toString(),
@@ -33,52 +46,46 @@ export default function SettingsTab({ settings, onUpdateSettings }: SettingsTabP
       initialIRR: Number(newShopIrr) || 0,
       note: newShopNote.trim()
     };
-    setShops([...shops, newShop]);
+    const updated = [...shops, newShop];
+    setShops(updated);
     setNewShopName("");
     setNewShopGold("");
     setNewShopIrr("");
     setNewShopNote("");
+    await persistSettings({ shops: updated });
   };
 
-  const handleRemoveShop = (id: string) => {
-    setShops(shops.filter(s => s.id !== id));
+  const handleRemoveShop = async (id: string) => {
+    const updated = shops.filter(s => s.id !== id);
+    setShops(updated);
+    await persistSettings({ shops: updated });
   };
 
-  const handleAddPerson = () => {
+  const handleAddPerson = async () => {
     if (!newPersonName.trim() || persons.includes(newPersonName.trim())) return;
-    setPersons([...persons, newPersonName.trim()]);
+    const updated = [...persons, newPersonName.trim()];
+    setPersons(updated);
     setNewPersonName("");
+    await persistSettings({ persons: updated });
   };
 
-  const handleRemovePerson = (name: string) => {
-    setPersons(persons.filter(p => p !== name));
+  const handleRemovePerson = async (name: string) => {
+    const updated = persons.filter(p => p !== name);
+    setPersons(updated);
+    await persistSettings({ persons: updated });
   };
 
-  const handleCoinWeightChange = (index: number, newWeightStr: string) => {
+  const handleCoinWeightChange = async (index: number, newWeightStr: string) => {
     const updated = [...coins];
     const cleanWeight = Number(newWeightStr.replace(/[^0-9.]/g, "")) || 0;
     updated[index] = { ...updated[index], weight: cleanWeight };
     setCoins(updated);
+    await persistSettings({ coins: updated });
   };
 
-  const handleSaveAll = async () => {
-    setSaving(true);
-    setSaveSuccess(false);
-    try {
-      await onUpdateSettings({
-        shops,
-        persons,
-        coins,
-        currentGoldPrice: Number(currentGoldPrice) || 0,
-        spreadsheetId: settings.spreadsheetId
-      });
-      setSaveSuccess(true);
-      setTimeout(() => setSaveSuccess(false), 3000);
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setSaving(false);
-    }
+  const handleGoldPriceChange = async (val: string) => {
+    setCurrentGoldPrice(val);
+    await persistSettings({ currentGoldPrice: Number(val) || 0 });
   };
 
   const cleanNumInput = (val: string) => {
@@ -105,14 +112,6 @@ export default function SettingsTab({ settings, onUpdateSettings }: SettingsTabP
               <CheckCircle2 className="w-4 h-4 stroke-[2.5]" /> ذخیره شد
             </span>
           )}
-          <button
-            onClick={handleSaveAll}
-            disabled={saving}
-            className="w-full sm:w-auto bg-amber-500 text-slate-950 font-extrabold px-6 py-3.5 rounded-2xl text-xs hover:bg-amber-400 active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 min-h-[44px]"
-          >
-            {saving ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
-            ذخیره کل تغییرات تنظیمات
-          </button>
         </div>
       </div>
 
@@ -133,16 +132,14 @@ export default function SettingsTab({ settings, onUpdateSettings }: SettingsTabP
                     inputMode="decimal"
                     pattern="[0-9.,]*"
                     value={coin.weight}
-                    disabled={coin.name === "پارسیان" || coin.name === "سکه پارسیان"}
                     onChange={(e) => handleCoinWeightChange(idx, e.target.value)}
-                    className="w-24 bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-left font-mono font-bold text-slate-800 focus:outline-none focus:border-amber-500 disabled:opacity-50"
+                    className="w-24 bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-left font-mono font-bold text-slate-800 focus:outline-none focus:border-amber-500"
                   />
                   <span className="text-[10px] text-slate-400 font-bold">گرم</span>
                 </div>
               </div>
             ))}
           </div>
-          <p className="text-[9.5px] text-slate-400">* وزن سکه پارسیان اختیاری است و مقدار آن در زمان ثبت تراکنش نیز قابل وارد کردن است.</p>
         </div>
 
         {/* Shop List and Creation Container */}

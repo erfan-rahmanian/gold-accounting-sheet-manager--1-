@@ -16,11 +16,12 @@ const defaultData = {
     shops: [],
     persons: [],
     coins: [
-      { name: "سکه بهار آزادی (امامی)", weight: 8.133 },
-      { name: "نیم سکه بهار آزادی", weight: 4.066 },
-      { name: "ربع سکه بهار آزادی", weight: 2.033 },
-      { name: "سکه گرمی", weight: 1.012 },
-      { name: "سکه پارسیان", weight: 1.000 }
+      { name: "سکه 86", weight: 9.756 },
+      { name: "سکه پایین", weight: 9.756 },
+      { name: "نیم سکه 86", weight: 4.8792 },
+      { name: "نیم پایین", weight: 4.8792 },
+      { name: "ربع سکه 86", weight: 2.440 },
+      { name: "ربع پایین", weight: 2.440 }
     ],
     currentGoldPrice: 35000000, // 35 Million Rail baseline price
     spreadsheetId: ""

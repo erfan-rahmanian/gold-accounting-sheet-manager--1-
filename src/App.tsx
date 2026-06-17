@@ -41,6 +41,20 @@ export default function App() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, [lastScrollY]);
 
+  const DEFAULT_COINS = [
+    { name: "سکه 86", weight: 9.756 },
+    { name: "سکه پایین", weight: 9.756 },
+    { name: "نیم سکه 86", weight: 4.8792 },
+    { name: "نیم پایین", weight: 4.8792 },
+    { name: "ربع سکه 86", weight: 2.440 },
+    { name: "ربع پایین", weight: 2.440 }
+  ];
+
+  const enforceCoins = (state: AppState): AppState => ({
+    ...state,
+    settings: { ...state.settings, coins: DEFAULT_COINS }
+  });
+
   // Fetch initial data with custom offline/static host storage integration (e.g., Vercel fallback)
   const fetchData = async () => {
     setFetching(true);
@@ -49,9 +63,10 @@ export default function App() {
       const res = await fetch("/api/data");
       if (!res.ok) throw new Error("خطا در بارگذاری اطلاعات از پایگاه داده مروگر.");
       const data = await res.json();
-      setAppState(data);
+      const fixed = enforceCoins(data);
+      setAppState(fixed);
       setIsLocalMode(false);
-      localStorage.setItem("gold_accounting_state", JSON.stringify(data));
+      localStorage.setItem("gold_accounting_state", JSON.stringify(fixed));
     } catch (err: any) {
       console.warn("Could not connect to database server. Using localStorage fallback mode...", err);
       setIsLocalMode(true);
@@ -59,7 +74,9 @@ export default function App() {
       if (cached) {
         try {
           const parsed = JSON.parse(cached);
-          setAppState(parsed);
+          const fixed = enforceCoins(parsed);
+          setAppState(fixed);
+          localStorage.setItem("gold_accounting_state", JSON.stringify(fixed));
           setNetworkError(null);
         } catch (e) {
           setNetworkError("خطا در بارگذاری اطلاعات پشتیبان محلی از مرورگر.");
@@ -70,13 +87,7 @@ export default function App() {
           settings: {
             shops: [],
             persons: [],
-            coins: [
-              { name: "سکه بهار آزادی (امامی)", weight: 8.133 },
-              { name: "نیم سکه بهار آزادی", weight: 4.066 },
-              { name: "ربع سکه بهار آزادی", weight: 2.033 },
-              { name: "سکه گرمی", weight: 1.012 },
-              { name: "سکه پارسیان", weight: 1.000 }
-            ],
+            coins: DEFAULT_COINS,
             currentGoldPrice: 35000000,
             spreadsheetId: ""
           },

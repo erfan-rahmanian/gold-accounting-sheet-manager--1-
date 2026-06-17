@@ -51,31 +51,31 @@ export function calculateTransactionFields(
       break;
 
     case "دریافت وجه":
-      irrCredit = amount;
-      break;
-
-    case "دریافت سکه":
-      goldCredit = coinWeight;
-      irrCredit = amount;
-      break;
-
-    case "دریافت آبشده":
-      goldCredit = goldWeight;
-      irrCredit = amount;
-      break;
-
-    case "پرداخت وجه":
       irrDebit = amount;
       break;
 
-    case "پرداخت سکه":
+    case "دریافت سکه":
       goldDebit = coinWeight;
       irrDebit = amount;
       break;
 
-    case "پرداخت آبشده":
+    case "دریافت آبشده":
       goldDebit = goldWeight;
       irrDebit = amount;
+      break;
+
+    case "پرداخت وجه":
+      irrCredit = amount;
+      break;
+
+    case "پرداخت سکه":
+      goldCredit = coinWeight;
+      irrCredit = amount;
+      break;
+
+    case "پرداخت آبشده":
+      goldCredit = goldWeight;
+      irrCredit = amount;
       break;
 
     case "آبشده":

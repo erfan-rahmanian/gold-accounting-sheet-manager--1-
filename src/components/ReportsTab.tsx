@@ -276,12 +276,31 @@ export default function ReportsTab({ settings, transactions }: ReportsTabProps) 
             top: 0;
             width: 100%;
             background: white !important;
-            padding: 0 !important;
+            padding: 8px !important;
             border: none !important;
             box-shadow: none !important;
           }
+          #printable-ledger-section table {
+            width: 100% !important;
+            min-width: 100% !important;
+            font-size: 11px !important;
+          }
+          #printable-ledger-section table th,
+          #printable-ledger-section table td {
+            padding: 6px 4px !important;
+            white-space: nowrap !important;
+            overflow: visible !important;
+            text-overflow: clip !important;
+          }
+          #printable-ledger-section .text-right {
+            text-align: right !important;
+          }
           .no-print {
             display: none !important;
+          }
+          @page {
+            size: A4 landscape;
+            margin: 8mm;
           }
         }
       `}</style>
@@ -672,20 +691,20 @@ export default function ReportsTab({ settings, transactions }: ReportsTabProps) 
 
           {/* Core Table Layout matches commercial paper report identically */}
           <div className="overflow-x-auto w-full">
-            <table className="w-full text-right text-[10.5px] border-2 border-slate-300 min-w-[950px] border-collapse bg-white">
+            <table className="w-full text-right text-[11px] md:text-[10.5px] border-2 border-slate-300 min-w-[850px] border-collapse bg-white">
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-300 text-slate-800 font-bold divide-x divide-slate-300 divide-x-reverse text-center">
                   <th className="py-3 px-1 w-10">ردیف</th>
                   <th className="py-3 px-2 w-20">نوع سند</th>
                   <th className="py-3 px-2 w-16">شماره سند</th>
                   <th className="py-3 px-2 w-20">تاریخ</th>
-                  <th className="py-3 px-3 text-right">شرح کامل تراکنش</th>
-                  <th className="py-3 px-2 text-rose-750 bg-rose-50/50 w-24">بد طلا (گرم)</th>
-                  <th className="py-3 px-2 text-emerald-750 bg-emerald-50/50 w-24">بس طلا (گرم)</th>
-                  <th className="py-3 px-2 w-28 bg-slate-100">مانده طلا (گرم)</th>
-                  <th className="py-3 px-2 text-rose-750 bg-rose-50/50 w-28">بد ریالی</th>
-                  <th className="py-3 px-2 text-emerald-750 bg-emerald-50/50 w-28">بس ریالی</th>
-                  <th className="py-3 px-2 w-32 bg-slate-100">مانده ریالی</th>
+                  <th className="py-3 px-3 text-right">شرح تراکنش</th>
+                  <th className="py-3 px-2 text-rose-750 bg-rose-50/50 w-20">بد طلا</th>
+                  <th className="py-3 px-2 text-emerald-750 bg-emerald-50/50 w-20">بس طلا</th>
+                  <th className="py-3 px-2 w-24 bg-slate-100">مانده طلا</th>
+                  <th className="py-3 px-2 text-rose-750 bg-rose-50/50 w-24">بد ریالی</th>
+                  <th className="py-3 px-2 text-emerald-750 bg-emerald-50/50 w-24">بس ریالی</th>
+                  <th className="py-3 px-2 w-28 bg-slate-100">مانده ریالی</th>
                 </tr>
               </thead>
               <tbody className="divide-y-2 divide-slate-300/80 divide-x divide-slate-200 divide-x-reverse font-medium text-slate-700">
@@ -700,28 +719,28 @@ export default function ReportsTab({ settings, transactions }: ReportsTabProps) 
                     <tr key={row.id} className="hover:bg-slate-50/50 transition-colors text-center">
                       <td className="py-3 px-1 text-slate-400 font-mono font-medium">{toPersianDigits(idx + 1)}</td>
                       <td className="py-3 px-2">
-                        <span className="inline-block bg-slate-100 border border-slate-200 text-slate-800 font-bold px-1.5 py-0.5 rounded text-[9.5px]">
+                        <span className="inline-block bg-slate-100 border border-slate-200 text-slate-800 font-bold px-1.5 py-0.5 rounded text-[10px]">
                           {row.type}
                         </span>
                       </td>
-                      <td className="py-3 px-2 text-slate-500 font-mono text-[9px] truncate max-w-[80px]" title={row.serial}>
+                      <td className="py-3 px-2 text-slate-500 font-mono text-[10px] truncate max-w-[80px]" title={row.serial}>
                         {toPersianDigits(row.serial.substring(0, 4))}
                       </td>
-                      <td className="py-3 px-2 text-slate-650 font-mono font-bold text-[9.5px]">{row.date}</td>
-                      <td className="py-3 px-3 text-right text-slate-800 font-semibold text-[10px] break-words max-w-[200px]" title={row.note}>
+                      <td className="py-3 px-2 text-slate-650 font-mono font-bold text-[10.5px]">{row.date}</td>
+                      <td className="py-3 px-3 text-right text-slate-800 font-semibold text-[10.5px] break-words max-w-[200px]" title={row.note}>
                         {row.note}
                       </td>
                       
                       {/* Swapped Bed/Bes Gold columns */}
-                      <td className="py-3 px-2 text-rose-750 font-mono font-bold bg-rose-50/15">
+                      <td className="py-3 px-2 text-rose-750 font-mono font-bold bg-rose-50/15 text-[11px]">
                         {row.bidGold > 0 ? formatWeight(row.bidGold).replace(" گرم", "") : "۰"}
                       </td>
-                      <td className="py-3 px-2 text-emerald-750 font-mono font-bold bg-emerald-50/15">
+                      <td className="py-3 px-2 text-emerald-750 font-mono font-bold bg-emerald-50/15 text-[11px]">
                         {row.besGold > 0 ? formatWeight(row.besGold).replace(" گرم", "") : "۰"}
                       </td>
                       
                       {/* Signed Running Gold Balance matching PDF exact representation style */}
-                      <td className={`py-3 px-2 font-mono font-black text-[10.5px] bg-slate-50 ${row.goldBalance >= 0 ? "text-emerald-700" : "text-rose-700"}`}>
+                      <td className={`py-3 px-2 font-mono font-black text-[11px] bg-slate-50 ${row.goldBalance >= 0 ? "text-emerald-700" : "text-rose-700"}`}>
                         {formatWeight(row.goldBalance)}
                         <span className="text-[8px] font-sans font-extrabold mr-1">
                           {row.goldBalance >= 0 ? "(بد)" : "(بس)"}
@@ -729,15 +748,15 @@ export default function ReportsTab({ settings, transactions }: ReportsTabProps) 
                       </td>
 
                       {/* Swapped Bed/Bes Riyal cash columns */}
-                      <td className="py-3 px-2 text-rose-750 font-mono font-bold bg-rose-50/15">
+                      <td className="py-3 px-2 text-rose-750 font-mono font-bold bg-rose-50/15 text-[11px]">
                         {row.bidIRR > 0 ? formatCurrency(row.bidIRR).replace(" ریال", "") : "۰"}
                       </td>
-                      <td className="py-3 px-2 text-emerald-750 font-mono font-bold bg-emerald-50/15">
+                      <td className="py-3 px-2 text-emerald-750 font-mono font-bold bg-emerald-50/15 text-[11px]">
                         {row.besIRR > 0 ? formatCurrency(row.besIRR).replace(" ریال", "") : "۰"}
                       </td>
                       
                       {/* Signed Running Riyal Balance matching PDF exact representation style */}
-                      <td className={`py-3 px-2 font-mono font-black text-[10.5px] bg-slate-50 ${row.irrBalance >= 0 ? "text-emerald-700" : "text-rose-700"}`}>
+                      <td className={`py-3 px-2 font-mono font-black text-[11px] bg-slate-50 ${row.irrBalance >= 0 ? "text-emerald-700" : "text-rose-700"}`}>
                         {formatCurrency(row.irrBalance)}
                         <span className="text-[8px] font-sans font-extrabold mr-1">
                           {row.irrBalance >= 0 ? "(بد)" : "(بس)"}

@@ -16,11 +16,8 @@ export default function TransactionsTab({
   onAddTransaction,
   onRemoveTransaction
 }: TransactionsTabProps) {
-  // Filters state
+  // Search state
   const [searchQuery, setSearchQuery] = useState("");
-  const [filterShop, setFilterShop] = useState("");
-  const [filterType, setFilterType] = useState("");
-  const [filterPerson, setFilterPerson] = useState("");
 
   // Transition animation for adding transactions
   const [showAddForm, setShowAddForm] = useState(false);
@@ -97,11 +94,10 @@ export default function TransactionsTab({
   // Filters logic
   const filteredTransactions = transactions.filter(tx => {
     const matchesSearch = tx.note?.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                          tx.person?.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesShop = !filterShop || tx.shop === filterShop;
-    const matchesType = !filterType || tx.type === filterType;
-    const matchesPerson = !filterPerson || tx.person === filterPerson;
-    return matchesSearch && matchesShop && matchesType && matchesPerson;
+                          tx.person?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          tx.shop?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          tx.type?.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesSearch;
   });
 
   // Helper to filter numeric strings cleanly
@@ -113,9 +109,9 @@ export default function TransactionsTab({
     <div className="space-y-6" dir="rtl">
       {/* Search and Filters panel - Mobile first grid */}
       <div className="bg-white border border-slate-200 rounded-3xl p-4 flex flex-col gap-4 shadow-sm">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:flex items-center gap-3 w-full text-xs">
+        <div className="grid grid-cols-1 items-center gap-3 w-full text-xs">
           {/* Quick Search */}
-          <div className="relative w-full lg:w-64">
+          <div className="relative w-full">
             <Search className="w-4 h-4 text-slate-400 absolute right-3.5 top-3.5" />
             <input
               type="text"
@@ -125,36 +121,6 @@ export default function TransactionsTab({
               className="w-full bg-slate-50 border border-slate-200 rounded-xl pr-10 pl-3 py-3 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-amber-500 font-medium"
             />
           </div>
-
-          {/* Shop Filter */}
-          <select
-            value={filterShop}
-            onChange={(e) => setFilterShop(e.target.value)}
-            className="bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-3 text-slate-700 font-medium focus:outline-none focus:border-amber-500 text-xs cursor-pointer h-[44px]"
-          >
-            <option value="">همه مغازه‌ها / صندوق‌ها</option>
-            {settings.shops.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}
-          </select>
-
-          {/* Type Filter */}
-          <select
-            value={filterType}
-            onChange={(e) => setFilterType(e.target.value)}
-            className="bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-3 text-slate-700 font-medium focus:outline-none focus:border-amber-500 text-xs cursor-pointer h-[44px]"
-          >
-            <option value="">همه انواع معاملات</option>
-            {TRANSACTION_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
-          </select>
-
-          {/* Person Filter */}
-          <select
-            value={filterPerson}
-            onChange={(e) => setFilterPerson(e.target.value)}
-            className="bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-3 text-slate-700 font-medium focus:outline-none focus:border-amber-500 text-xs cursor-pointer h-[44px]"
-          >
-            <option value="">همه اشخاص ذینفع</option>
-            {settings.persons.map(p => <option key={p} value={p}>{p}</option>)}
-          </select>
         </div>
 
         {/* Action Toggle Form - High-Contrast yellow button with comfortable touch size */}

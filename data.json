@@ -1,16 +1,80 @@
 {
   "settings": {
-    "shops": [],
+    "shops": [
+      {
+        "id": "0.6605110515987781",
+        "name": "حیدری",
+        "initialGold": 120,
+        "initialIRR": 10000000000,
+        "note": ""
+      }
+    ],
     "persons": [],
     "coins": [
-      { "name": "سکه بهار آزادی (امامی)", "weight": 8.133 },
-      { "name": "نیم سکه بهار آزادی", "weight": 4.066 },
-      { "name": "ربع سکه بهار آزادی", "weight": 2.033 },
-      { "name": "سکه گرمی", "weight": 1.012 },
-      { "name": "سکه پارسیان", "weight": 1.000 }
+      {
+        "name": "سکه بهار آزادی (امامی)",
+        "weight": 8.133
+      },
+      {
+        "name": "نیم سکه بهار آزادی",
+        "weight": 4.066
+      },
+      {
+        "name": "ربع سکه بهار آزادی",
+        "weight": 2.033
+      },
+      {
+        "name": "سکه گرمی",
+        "weight": 1.012
+      },
+      {
+        "name": "سکه پارسیان",
+        "weight": 1
+      }
     ],
     "currentGoldPrice": 35000000,
     "spreadsheetId": ""
   },
-  "transactions": []
+  "transactions": [
+    {
+      "id": "tx-1781732866762",
+      "date": "۱۴۰۵/۰۳/۲۸",
+      "shop": "حیدری",
+      "type": "دریافت آبشده",
+      "subType": "",
+      "coinType": "سکه بهار آزادی (امامی)",
+      "coinCount": 0,
+      "person": "",
+      "goldWeight": 100,
+      "amount": 10000000,
+      "salesAmount": 0,
+      "note": "",
+      "goldCredit": 0,
+      "goldDebit": 100,
+      "irrCredit": 0,
+      "irrDebit": 10000000,
+      "profit": 0,
+      "coinWeight": 0
+    },
+    {
+      "id": "tx-1781732263368",
+      "date": "۱۴۰۵/۰۳/۲۸",
+      "shop": "حیدری",
+      "type": "دریافت وجه",
+      "subType": "",
+      "coinType": "سکه بهار آزادی (امامی)",
+      "coinCount": 0,
+      "person": "",
+      "goldWeight": 0,
+      "amount": 100000000,
+      "salesAmount": 0,
+      "note": "",
+      "goldCredit": 0,
+      "goldDebit": 0,
+      "irrCredit": 100000000,
+      "irrDebit": 0,
+      "profit": 0,
+      "coinWeight": 0
+    }
+  ]
 }
