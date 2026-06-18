@@ -23,7 +23,7 @@
     "@types/express": "^4.17.21",
     "@types/node": "^22.14.0",
     "autoprefixer": "^10.5.0",
-    "esbuild": "^0.25.0",
+    "esbuild": "0.24.2",
     "postcss": "^8.5.15",
     "tailwindcss": "^3.4.19",
     "ts-node": "^10.9.2",
