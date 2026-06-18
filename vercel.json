@@ -1,4 +1,9 @@
 {
-  "buildCommand": "pnpm run build",
-  "outputDirectory": "dist"
+  "buildCommand": "npx vite build",
+  "outputDirectory": "dist",
+  "framework": "vite",
+  "rewrites": [
+    { "source": "/assets/(.*)", "destination": "/assets/$1" },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
 }
