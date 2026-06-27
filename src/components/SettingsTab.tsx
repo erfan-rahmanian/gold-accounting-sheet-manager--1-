@@ -89,7 +89,9 @@ export default function SettingsTab({ settings, onUpdateSettings }: SettingsTabP
   };
 
   const cleanNumInput = (val: string) => {
-    return val.replace(/[^0-9.]/g, "");
+    const cleaned = val.replace(/[^0-9.\-]/g, "");
+    if (cleaned.indexOf("-") > 0) return cleaned.replace(/-/g, "");
+    return cleaned;
   };
 
   return (
