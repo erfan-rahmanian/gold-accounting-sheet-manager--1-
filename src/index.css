@@ -86,6 +86,11 @@ input[type=number] {
     min-height: 48px;
   }
 
+  select {
+    padding-top: 0.55rem !important;
+    padding-bottom: 0.55rem !important;
+  }
+
   .fixed.md\:sticky {
     padding-top: 0.75rem !important;
     padding-bottom: 0.75rem !important;
