@@ -215,8 +215,8 @@ export default function SettingsTab({ settings, onUpdateSettings }: SettingsTabP
                   shops.map((shop) => (
                     <tr key={shop.id} className="hover:bg-slate-50/50 transition-colors">
                       <td className="py-2.5 font-bold text-slate-800">{shop.name}</td>
-                      <td className="py-2.5 text-amber-600 font-mono font-bold">{formatWeight(shop.initialGold)}</td>
-                      <td className="py-2.5 text-emerald-600 font-mono font-bold">{formatCurrency(shop.initialIRR)}</td>
+                      <td className={`py-2.5 font-mono font-bold ${shop.initialGold >= 0 ? "text-amber-600" : "text-rose-600"}`}>{formatWeight(shop.initialGold)}</td>
+                      <td className={`py-2.5 font-mono font-bold ${shop.initialIRR >= 0 ? "text-emerald-600" : "text-rose-600"}`}>{formatCurrency(shop.initialIRR)}</td>
                       <td className="py-2.5 text-left">
                         <button
                           onClick={() => handleRemoveShop(shop.id)}
