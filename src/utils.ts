@@ -6,6 +6,18 @@ export function getCoinWeight(coinName: string, count: number, coins: Coin[]): n
   return count * coin.weight;
 }
 
+export function getCoinWeightForCoinType(coinType: string, count: number, coins: Coin[]): number {
+  const coin = coins.find(c => c.name === coinType);
+  if (coin) return count * coin.weight;
+  const fallback = coins.find(c => {
+    if (coinType === "سکه کامل") return !c.name.includes("نیم") && !c.name.includes("ربع");
+    if (coinType === "نیم سکه") return c.name.includes("نیم");
+    if (coinType === "ربع سکه") return c.name.includes("ربع");
+    return false;
+  });
+  return fallback ? count * fallback.weight : 0;
+}
+
 export function calculateTransactionFields(
   tx: Partial<Transaction>,
   coins: Coin[]
@@ -21,6 +33,8 @@ export function calculateTransactionFields(
   let coinWeight = 0;
   if (type === "دریافت سکه" || type === "پرداخت سکه") {
     coinWeight = getCoinWeight(coinType, coinCount, coins);
+  } else if (type === "خرید سکه" || type === "فروش سکه") {
+    coinWeight = getCoinWeightForCoinType(coinType, coinCount, coins);
   }
 
   let goldCredit = 0;
@@ -48,6 +62,16 @@ export function calculateTransactionFields(
       goldDebit = goldWeight;
       irrCredit = salesAmount;
       profit = salesAmount - amount;
+      break;
+
+    case "خرید سکه":
+      goldCredit = coinWeight;
+      irrDebit = amount;
+      break;
+
+    case "فروش سکه":
+      goldDebit = coinWeight;
+      irrCredit = amount;
       break;
 
     case "دریافت وجه":

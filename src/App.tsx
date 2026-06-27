@@ -50,10 +50,27 @@ export default function App() {
     { name: "ربع پایین", weight: 2.440 }
   ];
 
-  const enforceCoins = (state: AppState): AppState => ({
-    ...state,
-    settings: { ...state.settings, coins: DEFAULT_COINS }
-  });
+  const enforceCoins = (state: AppState): AppState => {
+    const existing = state.settings.coins || [];
+    const merged = [...existing];
+    const hasCoin = (name: string) => merged.find(c => c.name === name);
+    if (!hasCoin("سکه کامل")) {
+      const ref = merged.find(c => {
+        const n = c.name;
+        return !n.includes("نیم") && !n.includes("ربع") && !n.includes("گرمی");
+      });
+      merged.push({ name: "سکه کامل", weight: ref ? ref.weight : 9.756 });
+    }
+    if (!hasCoin("نیم سکه")) {
+      const ref = merged.find(c => c.name.includes("نیم"));
+      merged.push({ name: "نیم سکه", weight: ref ? ref.weight : 4.8792 });
+    }
+    if (!hasCoin("ربع سکه")) {
+      const ref = merged.find(c => c.name.includes("ربع"));
+      merged.push({ name: "ربع سکه", weight: ref ? ref.weight : 2.440 });
+    }
+    return { ...state, settings: { ...state.settings, coins: merged } };
+  };
 
   // Fetch initial data with custom offline/static host storage integration (e.g., Vercel fallback)
   const fetchData = async () => {

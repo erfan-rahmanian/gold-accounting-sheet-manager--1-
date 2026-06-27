@@ -59,6 +59,15 @@ export default function TransactionsTab({
     if (settings.persons.length && !txPerson) setTxPerson(settings.persons[0]);
   }, [settings]);
 
+  const coinTypesForBuySell = ["سکه کامل", "نیم سکه", "ربع سکه"];
+  useEffect(() => {
+    if ((txType === "خرید سکه" || txType === "فروش سکه") && !coinTypesForBuySell.includes(txCoinType)) {
+      setTxCoinType("سکه کامل");
+    } else if ((txType === "دریافت سکه" || txType === "پرداخت سکه") && coinTypesForBuySell.includes(txCoinType)) {
+      setTxCoinType(settings.coins[0]?.name || "");
+    }
+  }, [txType]);
+
   const dateRef = React.useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -262,16 +271,20 @@ export default function TransactionsTab({
               )}
 
               {/* Coin parameter forms */}
-              {(txType === "دریافت سکه" || txType === "پرداخت سکه") && (
+              {(txType === "دریافت سکه" || txType === "پرداخت سکه" || txType === "خرید سکه" || txType === "فروش سکه") && (
                 <>
                   <div className="space-y-1.5 animate-fadeIn">
-                    <label className="text-slate-600 font-medium">نوع سکه امامی/بهار</label>
+                    <label className="text-slate-600 font-medium">نوع سکه</label>
                     <select
                       value={txCoinType}
                       onChange={(e) => setTxCoinType(e.target.value)}
                       className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2.5 text-slate-900 text-xs h-[40px] font-semibold"
                     >
-                      {settings.coins.map(c => <option key={c.name} value={c.name}>{c.name}</option>)}
+                      {(txType === "خرید سکه" || txType === "فروش سکه") ? (
+                        coinTypesForBuySell.map(t => <option key={t} value={t}>{t}</option>)
+                      ) : (
+                        settings.coins.map(c => <option key={c.name} value={c.name}>{c.name}</option>)
+                      )}
                     </select>
                   </div>
                   <div className="space-y-1.5 animate-fadeIn">
@@ -293,7 +306,7 @@ export default function TransactionsTab({
               {(txType !== "سند حسابداری") && (
                 <div className="space-y-1.5 animate-fadeIn">
                   <label className="text-slate-600">
-                    {txType.includes("خرید و فروش") ? "مبلغ خرید (ریال)" : "مبلغ سند (ریال)"}
+                    {txType === "خرید سکه" ? "مبلغ خرید (ریال)" : txType === "فروش سکه" ? "مبلغ فروش (ریال)" : txType.includes("خرید و فروش") ? "مبلغ خرید (ریال)" : "مبلغ سند (ریال)"}
                   </label>
                   <input
                     type="text"
