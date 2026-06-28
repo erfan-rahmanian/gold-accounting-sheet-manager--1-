@@ -23,7 +23,7 @@ export function calculateTransactionFields(
   coins: Coin[]
 ): Partial<Transaction> {
   const type = tx.type || "";
-  const goldWeight = Number(tx.goldWeight) || 0;
+  let goldWeight = Number(tx.goldWeight) || 0;
   const coinType = tx.coinType || "";
   const coinCount = Number(tx.coinCount) || 0;
   const amount = Number(tx.amount) || 0;
@@ -67,11 +67,15 @@ export function calculateTransactionFields(
     case "خرید سکه":
       goldCredit = coinWeight;
       irrDebit = amount;
+      // Store equivalent gold weight for coin transactions
+      goldWeight = coinWeight;
       break;
 
     case "فروش سکه":
       goldDebit = coinWeight;
       irrCredit = amount;
+      // Store equivalent gold weight for coin transactions
+      goldWeight = coinWeight;
       break;
 
     case "دریافت وجه":
@@ -123,6 +127,7 @@ export function calculateTransactionFields(
   return {
     ...tx,
     coinWeight,
+    goldWeight,
     goldCredit,
     goldDebit,
     irrCredit,

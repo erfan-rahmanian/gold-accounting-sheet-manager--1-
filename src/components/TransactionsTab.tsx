@@ -298,6 +298,23 @@ export default function TransactionsTab({
                       className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2.5 text-slate-900 text-left font-mono font-semibold"
                       placeholder="1"
                     />
+                    {Number(txCoinCount) > 0 && (
+                      <span className="text-[10px] text-amber-600 font-bold mt-1 block leading-relaxed">
+                        وزن معادل طلا: {formatWeight(
+                          (txType === "خرید سکه" || txType === "فروش سکه")
+                            ? (() => {
+                                const coinData = settings.coins.find(c =>
+                                  txCoinType === "سکه کامل" ? !c.name.includes("نیم") && !c.name.includes("ربع") :
+                                  txCoinType === "نیم سکه" ? c.name.includes("نیم") :
+                                  txCoinType === "ربع سکه" ? c.name.includes("ربع") :
+                                  c.name === txCoinType
+                                );
+                                return (coinData?.weight || 0) * Number(txCoinCount);
+                              })()
+                            : (settings.coins.find(c => c.name === txCoinType)?.weight || 0) * Number(txCoinCount)
+                        )}
+                      </span>
+                    )}
                   </div>
                 </>
               )}
