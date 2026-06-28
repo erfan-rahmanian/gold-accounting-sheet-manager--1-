@@ -59,11 +59,8 @@ export default function TransactionsTab({
     if (settings.persons.length && !txPerson) setTxPerson(settings.persons[0]);
   }, [settings]);
 
-  const coinTypesForBuySell = ["سکه کامل", "نیم سکه", "ربع سکه"];
   useEffect(() => {
-    if ((txType === "خرید سکه" || txType === "فروش سکه") && !coinTypesForBuySell.includes(txCoinType)) {
-      setTxCoinType("سکه کامل");
-    } else if ((txType === "دریافت سکه" || txType === "پرداخت سکه") && coinTypesForBuySell.includes(txCoinType)) {
+    if ((txType === "خرید سکه" || txType === "فروش سکه" || txType === "دریافت سکه" || txType === "پرداخت سکه") && !settings.coins.some(c => c.name === txCoinType)) {
       setTxCoinType(settings.coins[0]?.name || "");
     }
   }, [txType]);
@@ -280,11 +277,7 @@ export default function TransactionsTab({
                       onChange={(e) => setTxCoinType(e.target.value)}
                       className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2.5 text-slate-900 text-xs h-[40px] font-semibold"
                     >
-                      {(txType === "خرید سکه" || txType === "فروش سکه") ? (
-                        coinTypesForBuySell.map(t => <option key={t} value={t}>{t}</option>)
-                      ) : (
-                        settings.coins.map(c => <option key={c.name} value={c.name}>{c.name}</option>)
-                      )}
+                      {settings.coins.map(c => <option key={c.name} value={c.name}>{c.name}</option>)}
                     </select>
                   </div>
                   <div className="space-y-1.5 animate-fadeIn">
@@ -301,17 +294,7 @@ export default function TransactionsTab({
                     {Number(txCoinCount) > 0 && (
                       <span className="text-[10px] text-amber-600 font-bold mt-1 block leading-relaxed">
                         وزن معادل طلا: {formatWeight(
-                          (txType === "خرید سکه" || txType === "فروش سکه")
-                            ? (() => {
-                                const coinData = settings.coins.find(c =>
-                                  txCoinType === "سکه کامل" ? !c.name.includes("نیم") && !c.name.includes("ربع") :
-                                  txCoinType === "نیم سکه" ? c.name.includes("نیم") :
-                                  txCoinType === "ربع سکه" ? c.name.includes("ربع") :
-                                  c.name === txCoinType
-                                );
-                                return (coinData?.weight || 0) * Number(txCoinCount);
-                              })()
-                            : (settings.coins.find(c => c.name === txCoinType)?.weight || 0) * Number(txCoinCount)
+                          (settings.coins.find(c => c.name === txCoinType)?.weight || 0) * Number(txCoinCount)
                         )}
                       </span>
                     )}

@@ -53,6 +53,26 @@
   },
   "transactions": [
     {
+      "id": "tx-1782676596876",
+      "date": "1405/04/07",
+      "shop": "حیدری",
+      "type": "فروش سکه",
+      "subType": "",
+      "coinType": "سکه کامل",
+      "coinCount": 12,
+      "person": "",
+      "goldWeight": 117.072,
+      "amount": 0,
+      "salesAmount": 0,
+      "note": "",
+      "goldCredit": 0,
+      "goldDebit": 117.072,
+      "irrCredit": 0,
+      "irrDebit": 0,
+      "profit": 0,
+      "coinWeight": 117.072
+    },
+    {
       "id": "tx-1781732866762",
       "date": "۱۴۰۵/۰۳/۲۸",
       "shop": "حیدری",
