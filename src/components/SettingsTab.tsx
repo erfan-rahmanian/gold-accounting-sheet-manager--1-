@@ -1,7 +1,16 @@
 import React, { useState } from "react";
-import { Settings, Plus, Trash2, ShoppingBag, Users, Coins as CoinIcon, CheckCircle2 } from "lucide-react";
+import { Settings, Plus, Trash2, ShoppingBag, Users, Coins as CoinIcon, CheckCircle2, RotateCcw, Save, X } from "lucide-react";
 import { AppSettings, Shop, Coin } from "../types";
 import { formatCurrency, formatWeight, toPersianDigits, formatInputWithCommas } from "../utils";
+
+const DEFAULT_COINS: Coin[] = [
+  { name: "سکه 86", weight: 9.756 },
+  { name: "سکه پایین", weight: 9.756 },
+  { name: "نیم سکه 86", weight: 4.8792 },
+  { name: "نیم پایین", weight: 4.8792 },
+  { name: "ربع سکه 86", weight: 2.440 },
+  { name: "ربع پایین", weight: 2.440 }
+];
 
 interface SettingsTabProps {
   settings: AppSettings;
@@ -14,6 +23,9 @@ export default function SettingsTab({ settings, onUpdateSettings }: SettingsTabP
   const [persons, setPersons] = useState<string[]>(settings.persons);
   const [coins, setCoins] = useState<Coin[]>(settings.coins);
   const [saveSuccess, setSaveSuccess] = useState(false);
+
+  const [editingCoinIdx, setEditingCoinIdx] = useState<number | null>(null);
+  const [editingWeightValue, setEditingWeightValue] = useState("");
 
   const persistSettings = async (patch: Partial<AppSettings>) => {
     const updated = {
@@ -75,12 +87,44 @@ export default function SettingsTab({ settings, onUpdateSettings }: SettingsTabP
     await persistSettings({ persons: updated });
   };
 
-  const handleCoinWeightChange = async (index: number, newWeightStr: string) => {
+  const handleStartEditCoin = (index: number) => {
+    setEditingCoinIdx(index);
+    setEditingWeightValue(coins[index].weight.toString());
+  };
+
+  const handleCancelEditCoin = () => {
+    setEditingCoinIdx(null);
+    setEditingWeightValue("");
+  };
+
+  const handleSaveEditCoin = async (index: number) => {
     const updated = [...coins];
-    const cleanWeight = Number(newWeightStr.replace(/[^0-9.]/g, "")) || 0;
+    const cleanWeight = Number(editingWeightValue.replace(/[^0-9.]/g, "")) || 0;
     updated[index] = { ...updated[index], weight: cleanWeight };
     setCoins(updated);
+    setEditingCoinIdx(null);
+    setEditingWeightValue("");
     await persistSettings({ coins: updated });
+  };
+
+  const handleCoinWeightInput = (val: string) => {
+    const cleaned = val.replace(/[^0-9.]/g, "");
+    const parts = cleaned.split(".");
+    if (parts.length > 2) return;
+    setEditingWeightValue(cleaned);
+  };
+
+  const handleResetCoinWeights = async () => {
+    const updated = DEFAULT_COINS.map(dc => {
+      const existing = coins.find(c => c.name === dc.name);
+      return existing ? { ...existing, weight: dc.weight } : dc;
+    });
+    const existingExtra = coins.filter(c => !DEFAULT_COINS.some(dc => dc.name === c.name));
+    const merged = [...updated, ...existingExtra];
+    setCoins(merged);
+    setEditingCoinIdx(null);
+    setEditingWeightValue("");
+    await persistSettings({ coins: merged });
   };
 
   const handleGoldPriceChange = async (val: string) => {
@@ -120,24 +164,65 @@ export default function SettingsTab({ settings, onUpdateSettings }: SettingsTabP
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Coin Weights Customizer */}
         <div className="lg:col-span-12 bg-white border border-slate-200 rounded-3xl p-5 shadow-sm space-y-4">
-          <h3 className="text-xs font-extrabold text-slate-900 flex items-center gap-2 border-b border-slate-100 pb-2.5">
-            <CoinIcon className="w-4 h-4 text-amber-500" />
-            وزن استاندارد سکه‌ها (امکان کالیبراسیون دستی)
-          </h3>
+          <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
+            <h3 className="text-xs font-extrabold text-slate-900 flex items-center gap-2">
+              <CoinIcon className="w-4 h-4 text-amber-500" />
+              وزن استاندارد سکه‌ها (امکان کالیبراسیون دستی)
+            </h3>
+            <button
+              onClick={handleResetCoinWeights}
+              className="text-[11px] font-bold text-amber-600 hover:text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-xl px-3 py-1.5 flex items-center gap-1.5 cursor-pointer transition-all"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              بازگشت به وزن پیش‌فرض
+            </button>
+          </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             {coins.map((coin, idx) => (
               <div key={coin.name} className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100">
                 <span className="text-xs font-bold text-slate-700">{coin.name}</span>
                 <div className="flex items-center gap-2">
-                  <input
-                    type="text"
-                    inputMode="decimal"
-                    pattern="[0-9.,]*"
-                    value={coin.weight}
-                    onChange={(e) => handleCoinWeightChange(idx, e.target.value)}
-                    className="w-24 bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-left font-mono font-bold text-slate-800 focus:outline-none focus:border-amber-500"
-                  />
-                  <span className="text-[10px] text-slate-400 font-bold">گرم</span>
+                  {editingCoinIdx === idx ? (
+                    <>
+                      <input
+                        type="text"
+                        inputMode="decimal"
+                        pattern="[0-9.,]*"
+                        autoFocus
+                        value={editingWeightValue}
+                        onChange={(e) => handleCoinWeightInput(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") handleSaveEditCoin(idx);
+                          if (e.key === "Escape") handleCancelEditCoin();
+                        }}
+                        className="w-24 bg-white border border-amber-400 rounded-lg px-2.5 py-1.5 text-xs text-left font-mono font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-300"
+                      />
+                      <button
+                        onClick={() => handleSaveEditCoin(idx)}
+                        className="text-emerald-500 hover:bg-emerald-100 p-1.5 rounded-lg transition-colors cursor-pointer"
+                        title="ذخیره"
+                      >
+                        <Save className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        onClick={handleCancelEditCoin}
+                        className="text-rose-500 hover:bg-rose-100 p-1.5 rounded-lg transition-colors cursor-pointer"
+                        title="لغو"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <button
+                        onClick={() => handleStartEditCoin(idx)}
+                        className="w-24 bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-left font-mono font-bold text-slate-800 hover:border-amber-400 cursor-pointer transition-colors"
+                      >
+                        {coin.weight}
+                      </button>
+                      <span className="text-[10px] text-slate-400 font-bold">گرم</span>
+                    </>
+                  )}
                 </div>
               </div>
             ))}
