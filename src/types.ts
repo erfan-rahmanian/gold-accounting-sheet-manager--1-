@@ -6,6 +6,15 @@ export interface Shop {
   note: string;
 }
 
+export interface Person {
+  id: string;
+  name: string;
+  initialGold: number;
+  initialIRR: number;
+  initialProfit: number;
+  note: string;
+}
+
 export interface Coin {
   name: string;
   weight: number;
@@ -35,7 +44,7 @@ export interface Transaction {
 
 export interface AppSettings {
   shops: Shop[];
-  persons: string[];
+  persons: Person[];
   coins: Coin[];
   currentGoldPrice: number;
   spreadsheetId: string;

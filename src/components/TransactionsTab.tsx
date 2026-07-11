@@ -40,7 +40,7 @@ export default function TransactionsTab({
   const [txSubType, setTxSubType] = useState("");
   const [txCoinType, setTxCoinType] = useState(settings.coins[0]?.name || "");
   const [txCoinCount, setTxCoinCount] = useState("");
-  const [txPerson, setTxPerson] = useState(settings.persons[0] || "");
+  const [txPerson, setTxPerson] = useState(settings.persons[0]?.name || "");
   const [txGoldWeight, setTxGoldWeight] = useState("");
   const [txAmount, setTxAmount] = useState("");
   const [txSalesAmount, setTxSalesAmount] = useState("");
@@ -56,7 +56,7 @@ export default function TransactionsTab({
   useEffect(() => {
     // Sync defaults if they load late
     if (settings.shops.length && !txShop) setTxShop(settings.shops[0].name);
-    if (settings.persons.length && !txPerson) setTxPerson(settings.persons[0]);
+    if (settings.persons.length && !txPerson) setTxPerson(settings.persons[0].name);
   }, [settings]);
 
   useEffect(() => {
@@ -238,7 +238,7 @@ export default function TransactionsTab({
                 {settings.persons.length === 0 ? (
                   <option value="">ابتدا شخص ذینفع را ثبت کنید</option>
                 ) : (
-                  settings.persons.map(p => <option key={p} value={p}>{p}</option>)
+                  settings.persons.map(p => <option key={p.id} value={p.name}>{p.name}</option>)
                 )}
               </select>
             </div>

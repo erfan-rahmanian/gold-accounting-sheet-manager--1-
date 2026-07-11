@@ -1,19 +1,82 @@
 import React, { useState } from "react";
-import { Users, ShoppingBag, FileText, X, Printer, Search, ArrowLeftRight, CheckCircle2 } from "lucide-react";
+import { Users, ShoppingBag, FileText, X, Printer, Search, ArrowLeftRight, CheckCircle2, Save, Trash2 } from "lucide-react";
 import { AppSettings, Transaction } from "../types";
-import { formatCurrency, formatWeight, toPersianDigits } from "../utils";
+import { formatCurrency, formatWeight, toPersianDigits, formatInputWithCommas } from "../utils";
 
 interface ReportsTabProps {
   settings: AppSettings;
   transactions: Transaction[];
+  onUpdateSettings: (settings: AppSettings) => Promise<void>;
 }
 
-export default function ReportsTab({ settings, transactions }: ReportsTabProps) {
+export default function ReportsTab({ settings, transactions, onUpdateSettings }: ReportsTabProps) {
   const [activeReport, setActiveReport] = useState<"shops" | "persons" | "dailyTrades">("shops");
   const [selectedPerson, setSelectedPerson] = useState<string | null>(null);
   const [selectedShop, setSelectedShop] = useState<string | null>(null);
   const [ledgerSearch, setLedgerSearch] = useState("");
   const [expandedDays, setExpandedDays] = useState<Record<string, boolean>>({});
+
+  // Inline editing for persons in the balance report
+  const [editingPersonId, setEditingPersonId] = useState<string | null>(null);
+  const [editPersonName, setEditPersonName] = useState("");
+  const [editCurrentGold, setEditCurrentGold] = useState("");
+  const [editCurrentIrr, setEditCurrentIrr] = useState("");
+  const [editProfit, setEditProfit] = useState("");
+
+  const cleanNumInput = (val: string) => {
+    const cleaned = val.replace(/[^0-9.\-]/g, "");
+    if (cleaned.indexOf("-") > 0) return cleaned.replace(/-/g, "");
+    return cleaned;
+  };
+
+  const handleStartEditPerson = (person: { id: string; name: string; currentGold: number; currentIRR: number; profit: number }) => {
+    setEditingPersonId(person.id);
+    setEditPersonName(person.name);
+    setEditCurrentGold(person.currentGold.toString());
+    setEditCurrentIrr(person.currentIRR.toString());
+    setEditProfit(person.profit.toString());
+  };
+
+  const handleCancelEditPerson = () => {
+    setEditingPersonId(null);
+    setEditPersonName("");
+    setEditCurrentGold("");
+    setEditCurrentIrr("");
+    setEditProfit("");
+  };
+
+  const handleSaveEditPerson = async (id: string) => {
+    const report = personsReportData.find(p => p.id === id);
+    const goldChange = report?.goldChange || 0;
+    const irrChange = report?.irrChange || 0;
+    const txProfit = report?.txProfit || 0;
+    const desiredGold = Number(editCurrentGold) || 0;
+    const desiredIrr = Number(editCurrentIrr) || 0;
+    const desiredProfit = Number(editProfit) || 0;
+    const updated = settings.persons.map(p =>
+      p.id === id
+        ? {
+            ...p,
+            name: editPersonName.trim() || p.name,
+            initialGold: desiredGold - goldChange,
+            initialIRR: desiredIrr - irrChange,
+            initialProfit: desiredProfit - txProfit
+          }
+        : p
+    );
+    await onUpdateSettings({ ...settings, persons: updated });
+    setEditingPersonId(null);
+    setEditPersonName("");
+    setEditCurrentGold("");
+    setEditCurrentIrr("");
+    setEditProfit("");
+  };
+
+  const handleRemovePerson = async (id: string) => {
+    const updated = settings.persons.filter(p => p.id !== id);
+    await onUpdateSettings({ ...settings, persons: updated });
+    if (selectedPerson && !updated.some(p => p.id === id)) setSelectedPerson(null);
+  };
 
   const toggleDayExpansion = (dateStr: string) => {
     setExpandedDays(prev => ({
@@ -89,26 +152,36 @@ export default function ReportsTab({ settings, transactions }: ReportsTabProps) 
 
   // Calculations for Persons report
   const personsReportData = settings.persons.map((person, idx) => {
-    const txs = transactions.filter(t => t.person === person);
+    const txs = transactions.filter(t => t.person === person.name);
     const goldCredit = txs.reduce((sum, t) => sum + (t.goldCredit || 0), 0);
     const goldDebit = txs.reduce((sum, t) => sum + (t.goldDebit || 0), 0);
     const irrCredit = txs.reduce((sum, t) => sum + (t.irrCredit || 0), 0);
     const irrDebit = txs.reduce((sum, t) => sum + (t.irrDebit || 0), 0);
-    const profit = txs.reduce((sum, t) => sum + (t.profit || 0), 0);
+    const txProfit = txs.reduce((sum, t) => sum + (t.profit || 0), 0);
     const txCount = txs.length;
 
     // Unique connected shops list
     const connectedShops = Array.from(new Set(txs.map(t => t.shop).filter(Boolean)));
     const connectedShopsLabel = connectedShops.length > 0 ? connectedShops.join("، ") : "-";
 
-    const goldBalance = goldCredit - goldDebit;
-    const irrBalance = irrCredit - irrDebit;
+    const goldChange = goldCredit - goldDebit;
+    const irrChange = irrCredit - irrDebit;
+
+    const currentGold = person.initialGold + goldChange;
+    const currentIRR = person.initialIRR + irrChange;
+    const profit = person.initialProfit + txProfit;
 
     return {
       index: idx + 1,
-      name: person,
-      goldBalance,
-      irrBalance,
+      id: person.id,
+      name: person.name,
+      initialGold: person.initialGold,
+      initialIRR: person.initialIRR,
+      goldChange,
+      irrChange,
+      txProfit,
+      currentGold,
+      currentIRR,
       profit,
       txCount,
       connectedShopsLabel
@@ -180,6 +253,8 @@ export default function ReportsTab({ settings, transactions }: ReportsTabProps) 
         numIndex: idx + 1,
         date: tx.date,
         note: tx.note || "ثبت معامله در سیستم",
+        shopName: tx.shop,
+        personName: tx.person,
         bidGold,
         besGold,
         goldBalance: runningGold,
@@ -207,6 +282,8 @@ export default function ReportsTab({ settings, transactions }: ReportsTabProps) 
       numIndex: 0,
       date: "اول دوره",
       note: "موجودی اولیه مغازه",
+      personName: "-",
+      shopName: shopName,
       bidGold: 0,
       besGold: 0,
       goldBalance: initialGold,
@@ -231,6 +308,8 @@ export default function ReportsTab({ settings, transactions }: ReportsTabProps) 
         numIndex: idx + 1,
         date: tx.date,
         note: tx.note || "ثبت سنجه مالی",
+        personName: tx.person,
+        shopName: tx.shop,
         bidGold,
         besGold,
         goldBalance: runningGold,
@@ -446,50 +525,145 @@ export default function ReportsTab({ settings, transactions }: ReportsTabProps) 
                 <tr className="text-slate-400 font-semibold border-b border-slate-100 pb-2">
                   <th className="py-3 px-1 font-mono w-10">ردیف</th>
                   <th className="py-3 px-2">نام شخص ذینفع / همکار</th>
-                  <th className="py-3 px-2 text-amber-650 text-slate-900">مانده طلا (گرم)</th>
-                  <th className="py-3 px-2 text-emerald-650 text-slate-900">مانده ریال (ریال)</th>
+                  <th className="py-3 px-2">موجودی اولیه طلا</th>
+                  <th className="py-3 px-2">موجودی اولیه ریال</th>
+                  <th className="py-3 px-2 text-amber-650 text-slate-900">مانده فعلی طلا</th>
+                  <th className="py-3 px-2 text-emerald-650 text-slate-900">مانده فعلی ریال</th>
                   <th className="py-3 px-2">سود / زیان با تفکیک</th>
                   <th className="py-3 px-2">تعداد کل معاملات</th>
                   <th className="py-3 px-2">مغازه‌های مرتبط</th>
+                  <th className="py-3 px-2 text-left w-16">عملیات</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100/80">
                 {personsReportData.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="py-8 text-center text-slate-500 font-bold">
+                    <td colSpan={10} className="py-8 text-center text-slate-500 font-bold">
                       شخصی تعریف نشده است.
                     </td>
                   </tr>
                 ) : (
-                  personsReportData.map((person) => (
+                  personsReportData.map((person) => {
+                    const isEditing = editingPersonId === person.id;
+                    return (
                     <tr 
-                      key={person.name} 
-                      onClick={() => {
+                      key={person.id} 
+                      onClick={isEditing ? undefined : () => {
                         setSelectedPerson(person.name);
                         setSelectedShop(null);
                       }}
-                      className={`hover:bg-amber-500/5 cursor-pointer transition-all ${selectedPerson === person.name ? "bg-amber-500/10 border-l-4 border-amber-500 font-bold" : ""}`}
+                      className={`hover:bg-amber-500/5 cursor-pointer transition-all ${selectedPerson === person.name ? "bg-amber-500/10 border-l-4 border-amber-500 font-bold" : ""} ${isEditing ? "bg-amber-50" : ""}`}
                     >
                       <td className="py-3.5 px-1 text-slate-400 font-mono font-medium">{toPersianDigits(person.index)}</td>
                       <td className="py-3.5 px-2 font-black text-slate-900 text-xs flex items-center gap-1.5">
-                        <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-                        {person.name}
+                        {isEditing ? (
+                          <input
+                            type="text"
+                            value={editPersonName}
+                            onChange={(e) => setEditPersonName(e.target.value)}
+                            className="w-full bg-white border border-amber-400 rounded-lg px-2.5 py-1.5 text-xs text-slate-900 focus:outline-none"
+                          />
+                        ) : (
+                          <>
+                            <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                            {person.name}
+                          </>
+                        )}
                       </td>
-                      <td className={`py-3.5 px-2 font-extrabold font-mono ${person.goldBalance >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
-                        {formatWeight(person.goldBalance)}
+                      <td className={`py-3.5 px-2 font-mono font-bold ${person.initialGold >= 0 ? "text-amber-600" : "text-rose-600"}`}>
+                        {formatWeight(person.initialGold)}
                       </td>
-                      <td className={`py-3.5 px-2 font-extrabold font-mono ${person.irrBalance >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
-                        {formatCurrency(person.irrBalance)}
+                      <td className={`py-3.5 px-2 font-mono font-bold ${person.initialIRR >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
+                        {formatCurrency(person.initialIRR)}
+                      </td>
+                      <td className={`py-3.5 px-2 font-extrabold font-mono ${person.currentGold >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
+                        {isEditing ? (
+                          <input
+                            type="text"
+                            inputMode="decimal"
+                            value={formatInputWithCommas(editCurrentGold)}
+                            onChange={(e) => setEditCurrentGold(cleanNumInput(e.target.value))}
+                            className="w-full bg-white border border-amber-400 rounded-lg px-2.5 py-1.5 text-xs text-left font-mono text-slate-900 focus:outline-none"
+                          />
+                        ) : (
+                          formatWeight(person.currentGold)
+                        )}
+                      </td>
+                      <td className={`py-3.5 px-2 font-extrabold font-mono ${person.currentIRR >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
+                        {isEditing ? (
+                          <input
+                            type="text"
+                            inputMode="decimal"
+                            value={formatInputWithCommas(editCurrentIrr)}
+                            onChange={(e) => setEditCurrentIrr(cleanNumInput(e.target.value))}
+                            className="w-full bg-white border border-amber-400 rounded-lg px-2.5 py-1.5 text-xs text-left font-mono text-slate-900 focus:outline-none"
+                          />
+                        ) : (
+                          formatCurrency(person.currentIRR)
+                        )}
                       </td>
                       <td className={`py-3.5 px-2 font-extrabold font-mono ${person.profit >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
-                        {formatCurrency(person.profit)}
+                        {isEditing ? (
+                          <input
+                            type="text"
+                            inputMode="decimal"
+                            value={formatInputWithCommas(editProfit)}
+                            onChange={(e) => setEditProfit(cleanNumInput(e.target.value))}
+                            className="w-full bg-white border border-amber-400 rounded-lg px-2.5 py-1.5 text-xs text-left font-mono text-slate-900 focus:outline-none"
+                          />
+                        ) : (
+                          formatCurrency(person.profit)
+                        )}
                       </td>
                       <td className="py-3.5 px-2 text-slate-500 font-semibold font-mono">{toPersianDigits(person.txCount)} فیش مالی</td>
                       <td className="py-3.5 px-2 text-slate-400 font-semibold max-w-[180px] truncate" title={person.connectedShopsLabel}>
                         {person.connectedShopsLabel}
                       </td>
+                      <td className="py-3.5 px-2 text-left">
+                        {isEditing ? (
+                          <div className="flex items-center gap-1.5">
+                            <button
+                              onClick={(e) => { e.stopPropagation(); handleSaveEditPerson(person.id); }}
+                              className="text-emerald-600 hover:bg-emerald-100 p-1.5 rounded-lg transition-colors cursor-pointer"
+                              title="ذخیره"
+                            >
+                              <Save className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              onClick={(e) => { e.stopPropagation(); handleCancelEditPerson(); }}
+                              className="text-rose-500 hover:bg-rose-100 p-1.5 rounded-lg transition-colors cursor-pointer"
+                              title="لغو"
+                            >
+                              <X className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-1.5">
+                            <button
+                              onClick={(e) => { e.stopPropagation(); handleStartEditPerson(person); }}
+                              className="text-amber-600 hover:bg-amber-100 p-1.5 rounded-lg transition-colors cursor-pointer"
+                              title="ویرایش"
+                            >
+                              <Save className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (window.confirm(`آیا از حذف «${person.name}» اطمینان دارید؟`)) {
+                                  handleRemovePerson(person.id);
+                                }
+                              }}
+                              className="text-rose-500 hover:bg-rose-100 p-1.5 rounded-lg transition-colors cursor-pointer"
+                              title="حذف"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        )}
+                      </td>
                     </tr>
-                  ))
+                    );
+                  })
                 )}
               </tbody>
             </table>
@@ -699,6 +873,7 @@ export default function ReportsTab({ settings, transactions }: ReportsTabProps) 
                   <th className="py-3 px-2 w-16">شماره سند</th>
                   <th className="py-3 px-2 w-20">تاریخ</th>
                   <th className="py-3 px-3 text-right">شرح تراکنش</th>
+                  <th className="py-3 px-2 w-28 bg-amber-50/50">{selectedShop ? "شخص معامله" : "مغازه معامله"}</th>
                   <th className="py-3 px-2 text-rose-750 bg-rose-50/50 w-20">بد طلا</th>
                   <th className="py-3 px-2 text-emerald-750 bg-emerald-50/50 w-20">بس طلا</th>
                   <th className="py-3 px-2 w-24 bg-slate-100">مانده طلا</th>
@@ -710,7 +885,7 @@ export default function ReportsTab({ settings, transactions }: ReportsTabProps) 
               <tbody className="divide-y-2 divide-slate-300/80 divide-x divide-slate-200 divide-x-reverse font-medium text-slate-700">
                 {filteredLedger.length === 0 ? (
                   <tr>
-                    <td colSpan={11} className="py-12 text-center text-slate-400 font-bold bg-slate-50/30">
+                    <td colSpan={12} className="py-12 text-center text-slate-400 font-bold bg-slate-50/30">
                       هیچ سندی با معیارهای انتخابی شما در دفتر معین یافت نشد.
                     </td>
                   </tr>
@@ -729,6 +904,9 @@ export default function ReportsTab({ settings, transactions }: ReportsTabProps) 
                       <td className="py-3 px-2 text-slate-650 font-mono font-bold text-[10.5px]">{row.date}</td>
                       <td className="py-3 px-3 text-right text-slate-800 font-semibold text-[10.5px] break-words max-w-[200px]" title={row.note}>
                         {row.note}
+                      </td>
+                      <td className="py-3 px-2 text-right font-bold text-slate-800 text-[10.5px] max-w-[150px] truncate" title={selectedShop ? row.personName : row.shopName}>
+                        {selectedShop ? (row.personName || "عمومی") : (row.shopName || "عمومی")}
                       </td>
                       
                       {/* Swapped Bed/Bes Gold columns */}

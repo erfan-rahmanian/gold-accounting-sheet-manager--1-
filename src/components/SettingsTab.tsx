@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Settings, Plus, Trash2, ShoppingBag, Users, Coins as CoinIcon, CheckCircle2, RotateCcw, Save, X } from "lucide-react";
-import { AppSettings, Shop, Coin } from "../types";
+import { AppSettings, Shop, Coin, Person } from "../types";
 import { formatCurrency, formatWeight, toPersianDigits, formatInputWithCommas } from "../utils";
 
 const DEFAULT_COINS: Coin[] = [
@@ -20,7 +20,7 @@ interface SettingsTabProps {
 export default function SettingsTab({ settings, onUpdateSettings }: SettingsTabProps) {
   const [currentGoldPrice, setCurrentGoldPrice] = useState(settings.currentGoldPrice.toString());
   const [shops, setShops] = useState<Shop[]>(settings.shops);
-  const [persons, setPersons] = useState<string[]>(settings.persons);
+  const [persons, setPersons] = useState<Person[]>(settings.persons);
   const [coins, setCoins] = useState<Coin[]>(settings.coins);
   const [saveSuccess, setSaveSuccess] = useState(false);
 
@@ -48,6 +48,15 @@ export default function SettingsTab({ settings, onUpdateSettings }: SettingsTabP
   const [newShopNote, setNewShopNote] = useState("");
 
   const [newPersonName, setNewPersonName] = useState("");
+  const [newPersonGold, setNewPersonGold] = useState("");
+  const [newPersonIrr, setNewPersonIrr] = useState("");
+  const [newPersonNote, setNewPersonNote] = useState("");
+
+  const [editingPersonId, setEditingPersonId] = useState<string | null>(null);
+  const [editPersonName, setEditPersonName] = useState("");
+  const [editPersonGold, setEditPersonGold] = useState("");
+  const [editPersonIrr, setEditPersonIrr] = useState("");
+  const [editPersonNote, setEditPersonNote] = useState("");
 
   const handleAddShop = async () => {
     if (!newShopName.trim()) return;
@@ -74,16 +83,64 @@ export default function SettingsTab({ settings, onUpdateSettings }: SettingsTabP
   };
 
   const handleAddPerson = async () => {
-    if (!newPersonName.trim() || persons.includes(newPersonName.trim())) return;
-    const updated = [...persons, newPersonName.trim()];
+    if (!newPersonName.trim() || persons.some(p => p.name === newPersonName.trim())) return;
+    const newPerson: Person = {
+      id: Math.random().toString(),
+      name: newPersonName.trim(),
+      initialGold: Number(newPersonGold) || 0,
+      initialIRR: Number(newPersonIrr) || 0,
+      initialProfit: 0,
+      note: newPersonNote.trim()
+    };
+    const updated = [...persons, newPerson];
     setPersons(updated);
     setNewPersonName("");
+    setNewPersonGold("");
+    setNewPersonIrr("");
+    setNewPersonNote("");
     await persistSettings({ persons: updated });
   };
 
-  const handleRemovePerson = async (name: string) => {
-    const updated = persons.filter(p => p !== name);
+  const handleRemovePerson = async (id: string) => {
+    const updated = persons.filter(p => p.id !== id);
     setPersons(updated);
+    await persistSettings({ persons: updated });
+  };
+
+  const handleStartEditPerson = (person: Person) => {
+    setEditingPersonId(person.id);
+    setEditPersonName(person.name);
+    setEditPersonGold(person.initialGold.toString());
+    setEditPersonIrr(person.initialIRR.toString());
+    setEditPersonNote(person.note);
+  };
+
+  const handleCancelEditPerson = () => {
+    setEditingPersonId(null);
+    setEditPersonName("");
+    setEditPersonGold("");
+    setEditPersonIrr("");
+    setEditPersonNote("");
+  };
+
+  const handleSaveEditPerson = async (id: string) => {
+    const updated = persons.map(p =>
+      p.id === id
+        ? {
+            ...p,
+            name: editPersonName.trim() || p.name,
+            initialGold: Number(editPersonGold) || 0,
+            initialIRR: Number(editPersonIrr) || 0,
+            note: editPersonNote.trim()
+          }
+        : p
+    );
+    setPersons(updated);
+    setEditingPersonId(null);
+    setEditPersonName("");
+    setEditPersonGold("");
+    setEditPersonIrr("");
+    setEditPersonNote("");
     await persistSettings({ persons: updated });
   };
 
@@ -318,45 +375,169 @@ export default function SettingsTab({ settings, onUpdateSettings }: SettingsTabP
           </div>
         </div>
 
-        {/* Persons list card */}
-        <div className="lg:col-span-4 bg-white border border-slate-200 rounded-3xl p-5 shadow-sm space-y-4">
+        {/* Persons management card (mirrors the shops management card) */}
+        <div className="lg:col-span-12 bg-white border border-slate-200 rounded-3xl p-5 shadow-sm space-y-4">
           <h3 className="text-xs font-extrabold text-slate-900 flex items-center gap-2 border-b border-slate-100 pb-2.5">
             <Users className="w-4 h-4 text-amber-500" />
-            مدیریت همکاران و اشخاص ذینفع
+            مدیریت اشخاص ذینفع و همکاران (ثبت موجودی اولیه)
           </h3>
 
-          <div className="flex gap-2 text-xs">
-            <input
-              type="text"
-              placeholder="نام همکار جدید..."
-              value={newPersonName}
-              onChange={(e) => setNewPersonName(e.target.value)}
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-slate-900 focus:outline-none focus:border-amber-500 font-bold"
-            />
-            <button
-              onClick={handleAddPerson}
-              className="bg-amber-500 text-slate-950 font-extrabold rounded-xl px-4 cursor-pointer hover:bg-amber-400 flex items-center justify-center min-h-[44px]"
-            >
-              <Plus className="w-4 h-4 stroke-[2.5]" />
-            </button>
+          {/* Person insertion form */}
+          <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 grid grid-cols-1 sm:grid-cols-3 gap-3 text-[11px] font-bold text-slate-700">
+            <div className="space-y-1.5">
+              <label className="text-slate-500">نام شخص جدید</label>
+              <input
+                type="text"
+                placeholder="مثال: علی زرگر"
+                value={newPersonName}
+                onChange={(e) => setNewPersonName(e.target.value)}
+                className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2.5 text-slate-900 text-xs focus:outline-none focus:border-amber-500"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-slate-500">موجودی اولیه طلا (گرم) - اختیاری</label>
+              <input
+                type="text"
+                inputMode="decimal"
+                pattern="[0-9.,]*"
+                value={formatInputWithCommas(newPersonGold)}
+                onChange={(e) => setNewPersonGold(cleanNumInput(e.target.value))}
+                className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2.5 text-slate-900 text-left font-mono text-xs focus:outline-none"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-slate-500">موجودی اولیه ریال - اختیاری</label>
+              <input
+                type="text"
+                inputMode="decimal"
+                pattern="[0-9.,]*"
+                value={formatInputWithCommas(newPersonIrr)}
+                onChange={(e) => setNewPersonIrr(cleanNumInput(e.target.value))}
+                className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2.5 text-slate-900 text-left font-mono text-xs focus:outline-none"
+              />
+            </div>
+            <div className="sm:col-span-2 space-y-1.5">
+              <label className="text-slate-500">توضیحات / یادداشت - اختیاری</label>
+              <input
+                type="text"
+                placeholder="توضیحات اختیاری..."
+                value={newPersonNote}
+                onChange={(e) => setNewPersonNote(e.target.value)}
+                className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2.5 text-slate-900 text-xs focus:outline-none focus:border-amber-500"
+              />
+            </div>
+            <div className="sm:col-span-1 flex items-end justify-end pt-1">
+              <button
+                onClick={handleAddPerson}
+                className="w-full sm:w-auto bg-amber-500 text-slate-950 font-extrabold px-6 py-2.5 rounded-xl flex items-center justify-center gap-1.5 cursor-pointer transition-all hover:bg-amber-400"
+              >
+                <Plus className="w-4 h-4 stroke-[2.5]" /> ثبت شخص جدید
+              </button>
+            </div>
           </div>
 
-          <div className="space-y-1.5 max-h-[300px] overflow-y-auto">
-            {persons.length === 0 ? (
-              <div className="py-6 text-center text-slate-400 text-xs">همکاری ثبت نشده است.</div>
-            ) : (
-              persons.map((p) => (
-                <div key={p} className="flex justify-between items-center bg-slate-50 border border-slate-100 rounded-xl px-3 py-2">
-                  <span className="text-xs text-slate-800 font-bold">{p}</span>
-                  <button
-                    onClick={() => handleRemovePerson(p)}
-                    className="text-rose-500 hover:bg-rose-100 p-1 rounded-md transition-colors"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              ))
-            )}
+          {/* Current persons table */}
+          <div className="overflow-x-auto text-[11px] w-full">
+            <table className="w-full text-right min-w-[500px]">
+              <thead>
+                <tr className="text-slate-400 border-b border-slate-100 font-semibold">
+                  <th className="pb-2">نام شخص / همکار</th>
+                  <th className="pb-2">موجودی اولیه طلا</th>
+                  <th className="pb-2">موجودی اولیه ریال</th>
+                  <th className="pb-2">توضیحات</th>
+                  <th className="pb-2 text-left w-12">عملیات</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {persons.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="py-4 text-center text-slate-400">شخصی ثبت نشده است</td>
+                  </tr>
+                ) : (
+                  persons.map((p) => (
+                    <tr key={p.id} className="hover:bg-slate-50/50 transition-colors">
+                      {editingPersonId === p.id ? (
+                        <>
+                          <td className="py-2">
+                            <input
+                              type="text"
+                              value={editPersonName}
+                              onChange={(e) => setEditPersonName(e.target.value)}
+                              className="w-full bg-white border border-amber-400 rounded-lg px-2.5 py-1.5 text-xs text-slate-900 focus:outline-none"
+                            />
+                          </td>
+                          <td className="py-2">
+                            <input
+                              type="text"
+                              inputMode="decimal"
+                              value={formatInputWithCommas(editPersonGold)}
+                              onChange={(e) => setEditPersonGold(cleanNumInput(e.target.value))}
+                              className="w-full bg-white border border-amber-400 rounded-lg px-2.5 py-1.5 text-xs text-left font-mono text-slate-900 focus:outline-none"
+                            />
+                          </td>
+                          <td className="py-2">
+                            <input
+                              type="text"
+                              inputMode="decimal"
+                              value={formatInputWithCommas(editPersonIrr)}
+                              onChange={(e) => setEditPersonIrr(cleanNumInput(e.target.value))}
+                              className="w-full bg-white border border-amber-400 rounded-lg px-2.5 py-1.5 text-xs text-left font-mono text-slate-900 focus:outline-none"
+                            />
+                          </td>
+                          <td className="py-2">
+                            <input
+                              type="text"
+                              value={editPersonNote}
+                              onChange={(e) => setEditPersonNote(e.target.value)}
+                              className="w-full bg-white border border-amber-400 rounded-lg px-2.5 py-1.5 text-xs text-slate-900 focus:outline-none"
+                            />
+                          </td>
+                          <td className="py-2 text-left flex items-center gap-1.5">
+                            <button
+                              onClick={() => handleSaveEditPerson(p.id)}
+                              className="text-emerald-600 hover:bg-emerald-100 p-1.5 rounded-lg transition-colors cursor-pointer"
+                              title="ذخیره"
+                            >
+                              <Save className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              onClick={handleCancelEditPerson}
+                              className="text-rose-500 hover:bg-rose-100 p-1.5 rounded-lg transition-colors cursor-pointer"
+                              title="لغو"
+                            >
+                              <X className="w-3.5 h-3.5" />
+                            </button>
+                          </td>
+                        </>
+                      ) : (
+                        <>
+                          <td className="py-2.5 font-bold text-slate-800">{p.name}</td>
+                          <td className={`py-2.5 font-mono font-bold ${p.initialGold >= 0 ? "text-amber-600" : "text-rose-600"}`}>{formatWeight(p.initialGold)}</td>
+                          <td className={`py-2.5 font-mono font-bold ${p.initialIRR >= 0 ? "text-emerald-600" : "text-rose-600"}`}>{formatCurrency(p.initialIRR)}</td>
+                          <td className="py-2.5 text-slate-400 max-w-[160px] truncate" title={p.note}>{p.note || "-"}</td>
+                          <td className="py-2.5 text-left flex items-center gap-1.5">
+                            <button
+                              onClick={() => handleStartEditPerson(p)}
+                              className="text-amber-600 hover:bg-amber-100 p-1.5 rounded-lg transition-colors cursor-pointer"
+                              title="ویرایش"
+                            >
+                              <Save className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              onClick={() => handleRemovePerson(p.id)}
+                              className="text-rose-500 hover:bg-rose-100 p-1.5 rounded-lg transition-colors cursor-pointer"
+                              title="حذف"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </td>
+                        </>
+                      )}
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
           </div>
         </div>
       </div>

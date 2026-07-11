@@ -50,6 +50,16 @@ export default function App() {
     { name: "ربع پایین", weight: 2.440 }
   ];
 
+  const migrateState = (state: AppState): AppState => {
+    const rawPersons: any[] = state.settings.persons || [];
+    const persons = rawPersons.map((p) =>
+      typeof p === "string"
+        ? { id: Math.random().toString(), name: p, initialGold: 0, initialIRR: 0, initialProfit: 0, note: "" }
+        : { ...p, initialProfit: p.initialProfit || 0 }
+    );
+    return { ...state, settings: { ...state.settings, persons } };
+  };
+
   const enforceCoins = (state: AppState): AppState => {
     const existing = state.settings.coins || [];
     const merged = [...existing];
@@ -80,7 +90,7 @@ export default function App() {
       const res = await fetch("/api/data");
       if (!res.ok) throw new Error("خطا در بارگذاری اطلاعات از پایگاه داده مروگر.");
       const data = await res.json();
-      const fixed = enforceCoins(data);
+      const fixed = migrateState(enforceCoins(data));
       setAppState(fixed);
       setIsLocalMode(false);
       localStorage.setItem("gold_accounting_state", JSON.stringify(fixed));
@@ -91,7 +101,7 @@ export default function App() {
       if (cached) {
         try {
           const parsed = JSON.parse(cached);
-          const fixed = enforceCoins(parsed);
+          const fixed = migrateState(enforceCoins(parsed));
           setAppState(fixed);
           localStorage.setItem("gold_accounting_state", JSON.stringify(fixed));
           setNetworkError(null);
@@ -343,6 +353,7 @@ export default function App() {
               <ReportsTab
                 settings={appState.settings}
                 transactions={appState.transactions}
+                onUpdateSettings={handleUpdateSettings}
               />
             )}
 
