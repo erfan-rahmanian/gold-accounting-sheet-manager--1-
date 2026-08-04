@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Users, ShoppingBag, FileText, X, Printer, Search, ArrowLeftRight, CheckCircle2, Save, Trash2 } from "lucide-react";
+import { Users, ShoppingBag, FileText, X, Printer, Search, ArrowLeftRight, CheckCircle2, Save, Trash2, Calculator, RotateCcw } from "lucide-react";
 import { AppSettings, Transaction } from "../types";
 import { formatCurrency, formatWeight, toPersianDigits, formatInputWithCommas } from "../utils";
 
@@ -22,6 +22,69 @@ export default function ReportsTab({ settings, transactions, onUpdateSettings }:
   const [editCurrentGold, setEditCurrentGold] = useState("");
   const [editCurrentIrr, setEditCurrentIrr] = useState("");
   const [editProfit, setEditProfit] = useState("");
+
+  // ===== تقسیم سود روزانه معاملات فردایی بین شرکا =====
+  const [dpTotalProfit, setDpTotalProfit] = useState("");   // سود کل روز
+  const [dpTotalCapital, setDpTotalCapital] = useState(""); // سرمایه کل روز
+  const [dpBrokerProfit, setDpBrokerProfit] = useState(""); // سود کارگزار
+  const [dpShares, setDpShares] = useState<{ id: string; person: string; capital: string }[]>([
+    { id: "sh-1", person: "", capital: "" }
+  ]);
+  const [dpResult, setDpResult] = useState<null | {
+    totalProfit: number;
+    totalCapital: number;
+    brokerProfit: number;
+    secondaryProfit: number;
+    sumShares: number;
+    rows: { person: string; capital: number; percent: number; profit: number }[];
+  }>(null);
+
+  const addShareRow = () => {
+    setDpShares(prev => [...prev, { id: "sh-" + (prev.length + 1) + "-" + prev.length, person: "", capital: "" }]);
+  };
+
+  const removeShareRow = (id: string) => {
+    setDpShares(prev => (prev.length === 1 ? prev : prev.filter(s => s.id !== id)));
+  };
+
+  const updateShareRow = (id: string, field: "person" | "capital", value: string) => {
+    setDpShares(prev => prev.map(s => (s.id === id ? { ...s, [field]: value } : s)));
+  };
+
+  const handleCalcDistribution = () => {
+    const totalProfit = Number(dpTotalProfit) || 0;
+    const totalCapital = Number(dpTotalCapital) || 0;
+    const brokerProfit = Number(dpBrokerProfit) || 0;
+    const secondaryProfit = totalProfit - brokerProfit;
+
+    const valid = dpShares
+      .map(s => ({ person: s.person.trim() || "بدون نام", capital: Number(s.capital) || 0 }))
+      .filter(s => s.capital > 0);
+
+    const sumShares = valid.reduce((sum, s) => sum + s.capital, 0);
+    // مبنای تقسیم: سرمایه کل روز، و اگر وارد نشده باشد جمع سهم اشخاص
+    const base = totalCapital > 0 ? totalCapital : sumShares;
+
+    const rows = valid.map(s => {
+      const percent = base > 0 ? (s.capital / base) * 100 : 0;
+      return {
+        person: s.person,
+        capital: s.capital,
+        percent,
+        profit: base > 0 ? (s.capital / base) * secondaryProfit : 0
+      };
+    });
+
+    setDpResult({ totalProfit, totalCapital: base, brokerProfit, secondaryProfit, sumShares, rows });
+  };
+
+  const handleResetDistribution = () => {
+    setDpTotalProfit("");
+    setDpTotalCapital("");
+    setDpBrokerProfit("");
+    setDpShares([{ id: "sh-1", person: "", capital: "" }]);
+    setDpResult(null);
+  };
 
   const cleanNumInput = (val: string) => {
     const cleaned = val.replace(/[^0-9.\-]/g, "");
@@ -684,6 +747,190 @@ export default function ReportsTab({ settings, transactions, onUpdateSettings }:
               </p>
             </div>
             <span className="text-[10px] text-amber-600 font-bold bg-amber-50 px-2.5 py-1 rounded-lg self-start sm:self-center">بخش گزارش معاملات طلا</span>
+          </div>
+
+          {/* ===== تقسیم سود روز بین شرکا به نسبت سرمایه ===== */}
+          <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 md:p-5 space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 pb-3">
+              <h4 className="text-xs font-extrabold text-slate-900 flex items-center gap-2">
+                <Calculator className="w-4 h-4 text-amber-500" />
+                تقسیم سود روز بین شرکا (به نسبت سرمایه)
+              </h4>
+              <button
+                onClick={handleResetDistribution}
+                className="text-slate-500 hover:text-rose-700 bg-white border border-slate-200 hover:border-rose-300 text-[10px] font-extrabold px-3 py-1.5 rounded-xl cursor-pointer transition-all inline-flex items-center gap-1 self-start sm:self-center"
+              >
+                <RotateCcw className="w-3 h-3" />
+                پاک کردن فرم
+              </button>
+            </div>
+
+            {/* ورودی‌های کلی روز */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+              <div className="space-y-1.5">
+                <label className="text-slate-600 font-bold">سود کل روز (ریال)</label>
+                <input
+                  type="text"
+                  inputMode="decimal"
+                  pattern="[0-9.,\-]*"
+                  value={formatInputWithCommas(dpTotalProfit)}
+                  onChange={(e) => setDpTotalProfit(cleanNumInput(e.target.value))}
+                  className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2.5 text-slate-900 focus:outline-none focus:border-amber-500 text-left font-mono font-semibold"
+                  placeholder="0"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-slate-600 font-bold">سرمایه کل روز (ریال)</label>
+                <input
+                  type="text"
+                  inputMode="decimal"
+                  pattern="[0-9.,]*"
+                  value={formatInputWithCommas(dpTotalCapital)}
+                  onChange={(e) => setDpTotalCapital(cleanNumInput(e.target.value))}
+                  className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2.5 text-slate-900 focus:outline-none focus:border-amber-500 text-left font-mono font-semibold"
+                  placeholder="0"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-slate-600 font-bold">سود کارگزار (ریال)</label>
+                <input
+                  type="text"
+                  inputMode="decimal"
+                  pattern="[0-9.,\-]*"
+                  value={formatInputWithCommas(dpBrokerProfit)}
+                  onChange={(e) => setDpBrokerProfit(cleanNumInput(e.target.value))}
+                  className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2.5 text-slate-900 focus:outline-none focus:border-amber-500 text-left font-mono font-semibold"
+                  placeholder="0"
+                />
+                <span className="text-[10px] text-amber-700 font-bold block">
+                  سود ثانویه قابل تقسیم: {formatCurrency((Number(dpTotalProfit) || 0) - (Number(dpBrokerProfit) || 0))}
+                </span>
+              </div>
+            </div>
+
+            {/* سهم سرمایه هر شخص */}
+            <div className="space-y-2">
+              <label className="text-slate-600 font-bold text-xs block">سهم هر شخص از سرمایه کل (ریال)</label>
+              {dpShares.map((row, i) => (
+                <div key={row.id} className="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center">
+                  <span className="text-[10px] text-slate-400 font-mono font-bold w-5 shrink-0 self-center">{toPersianDigits(i + 1)}</span>
+                  <select
+                    value={row.person}
+                    onChange={(e) => updateShareRow(row.id, "person", e.target.value)}
+                    className="flex-1 bg-white border border-slate-200 rounded-xl px-3 py-2.5 text-slate-900 font-bold text-xs h-[42px] focus:outline-none focus:border-amber-500"
+                  >
+                    <option value="">انتخاب شخص...</option>
+                    {settings.persons.map(p => <option key={p.id} value={p.name}>{p.name}</option>)}
+                  </select>
+                  <input
+                    type="text"
+                    inputMode="decimal"
+                    pattern="[0-9.,]*"
+                    value={formatInputWithCommas(row.capital)}
+                    onChange={(e) => updateShareRow(row.id, "capital", cleanNumInput(e.target.value))}
+                    className="flex-1 bg-white border border-slate-200 rounded-xl px-3 py-2.5 text-slate-900 focus:outline-none focus:border-amber-500 text-left font-mono font-semibold text-xs h-[42px]"
+                    placeholder="سرمایه آورده شده"
+                  />
+                  <button
+                    onClick={() => removeShareRow(row.id)}
+                    disabled={dpShares.length === 1}
+                    className="text-rose-500 hover:text-white border border-rose-100 hover:border-rose-500 bg-rose-50 hover:bg-rose-500 p-2 rounded-xl cursor-pointer transition-all inline-flex items-center justify-center shrink-0 disabled:opacity-40 disabled:cursor-not-allowed h-[42px] w-[42px]"
+                    title="حذف ردیف"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              ))}
+
+              <button
+                onClick={addShareRow}
+                className="text-amber-700 hover:text-white border border-amber-200 hover:border-amber-500 bg-amber-50 hover:bg-amber-500 text-[10px] font-extrabold px-3 py-2 rounded-xl cursor-pointer transition-all inline-flex items-center gap-1"
+              >
+                + افزودن شخص
+              </button>
+            </div>
+
+            <div className="flex justify-end pt-1">
+              <button
+                onClick={handleCalcDistribution}
+                className="bg-amber-500 text-slate-950 font-extrabold px-6 py-3 rounded-2xl text-xs hover:bg-amber-400 cursor-pointer transition-all flex items-center gap-2 shadow-sm shadow-amber-500/20 active:scale-[0.98] min-h-[44px]"
+              >
+                <CheckCircle2 className="w-4 h-4 stroke-[2.5]" />
+                تایید و محاسبه سهم سود اشخاص
+              </button>
+            </div>
+
+            {/* نتیجه محاسبه */}
+            {dpResult && (
+              <div className="bg-white border border-slate-200 rounded-2xl p-4 space-y-3 animate-fadeIn">
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 text-[11px]">
+                  <div className="bg-slate-50 rounded-xl p-2.5 border border-slate-100">
+                    <span className="text-slate-400 font-bold block">سود کل روز</span>
+                    <span className={`font-black font-mono block mt-1 ${dpResult.totalProfit >= 0 ? "text-emerald-700" : "text-rose-700"}`}>{formatCurrency(dpResult.totalProfit)}</span>
+                  </div>
+                  <div className="bg-slate-50 rounded-xl p-2.5 border border-slate-100">
+                    <span className="text-slate-400 font-bold block">سود کارگزار</span>
+                    <span className="font-black font-mono block mt-1 text-rose-700">{formatCurrency(dpResult.brokerProfit)}</span>
+                  </div>
+                  <div className="bg-amber-50 rounded-xl p-2.5 border border-amber-100">
+                    <span className="text-amber-700 font-bold block">سود ثانویه (قابل تقسیم)</span>
+                    <span className="font-black font-mono block mt-1 text-amber-700">{formatCurrency(dpResult.secondaryProfit)}</span>
+                  </div>
+                  <div className="bg-slate-50 rounded-xl p-2.5 border border-slate-100">
+                    <span className="text-slate-400 font-bold block">سرمایه کل (مبنای تقسیم)</span>
+                    <span className="font-black font-mono block mt-1 text-slate-800">{formatCurrency(dpResult.totalCapital)}</span>
+                  </div>
+                </div>
+
+                {Math.abs(dpResult.sumShares - dpResult.totalCapital) > 0.5 && (
+                  <div className="bg-rose-50 border border-rose-200 text-rose-700 rounded-xl px-3 py-2 text-[10px] font-bold leading-relaxed">
+                    توجه: جمع سرمایه اشخاص ({formatCurrency(dpResult.sumShares)}) با سرمایه کل روز ({formatCurrency(dpResult.totalCapital)}) برابر نیست؛ تقسیم بر مبنای سرمایه کل روز انجام شد.
+                  </div>
+                )}
+
+                <div className="overflow-x-auto w-full">
+                  <table className="w-full text-right text-xs min-w-[520px]">
+                    <thead>
+                      <tr className="text-slate-400 font-semibold border-b border-slate-100">
+                        <th className="py-2.5 px-1 font-mono w-10 text-center">ردیف</th>
+                        <th className="py-2.5 px-2">شخص</th>
+                        <th className="py-2.5 px-2">سرمایه آورده شده</th>
+                        <th className="py-2.5 px-2">درصد از سرمایه کل</th>
+                        <th className="py-2.5 px-2 text-emerald-700 font-black">سهم از سود ثانویه</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100/80">
+                      {dpResult.rows.length === 0 ? (
+                        <tr>
+                          <td colSpan={5} className="py-6 text-center text-slate-400 font-bold">سرمایه هیچ شخصی وارد نشده است.</td>
+                        </tr>
+                      ) : (
+                        dpResult.rows.map((r, i) => (
+                          <tr key={r.person + i} className="hover:bg-amber-500/5 transition-colors">
+                            <td className="py-3 px-1 text-center text-slate-400 font-mono font-medium">{toPersianDigits(i + 1)}</td>
+                            <td className="py-3 px-2 font-black text-slate-900">{r.person}</td>
+                            <td className="py-3 px-2 font-mono font-semibold text-slate-600">{formatCurrency(r.capital)}</td>
+                            <td className="py-3 px-2 font-mono font-bold text-slate-700">{toPersianDigits(r.percent.toFixed(2))}%</td>
+                            <td className={`py-3 px-2 font-black font-mono ${r.profit >= 0 ? "text-emerald-700" : "text-rose-700"}`}>{formatCurrency(r.profit)}</td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                    {dpResult.rows.length > 0 && (
+                      <tfoot>
+                        <tr className="border-t-2 border-slate-200 font-black text-[11px]">
+                          <td className="py-3 px-1"></td>
+                          <td className="py-3 px-2 text-slate-900">جمع کل</td>
+                          <td className="py-3 px-2 font-mono text-slate-800">{formatCurrency(dpResult.rows.reduce((s, r) => s + r.capital, 0))}</td>
+                          <td className="py-3 px-2 font-mono text-slate-800">{toPersianDigits(dpResult.rows.reduce((s, r) => s + r.percent, 0).toFixed(2))}%</td>
+                          <td className="py-3 px-2 font-mono text-emerald-700">{formatCurrency(dpResult.rows.reduce((s, r) => s + r.profit, 0))}</td>
+                        </tr>
+                      </tfoot>
+                    )}
+                  </table>
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="overflow-x-auto w-full text-semibold">
