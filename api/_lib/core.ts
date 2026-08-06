@@ -47,6 +47,19 @@ function localFile(pathname: string): string {
   return path.join(LOCAL_DIR, safe);
 }
 
+/**
+ * آیا این خطا یعنی «چنین فایلی وجود ندارد»؟
+ *
+ * نبودِ فایل حالت عادی است (اولین اجرا، یا کاربری که هنوز داده‌ای ذخیره نکرده)
+ * و باید null برگردد، نه خطا. پیام‌های SDK در نسخه‌های مختلف فرق می‌کنند
+ * («not found»، «does not exist»، «missing») و گاهی name هم فقط Error است،
+ * برای همین روی مجموعِ name و message تطبیق می‌دهیم.
+ */
+function isNotFound(err: any): boolean {
+  const msg = `${err?.name ?? ""} ${err?.message ?? ""}`;
+  return /BlobNotFound|not\s*found|does\s*not\s*exist|no\s*such|missing|404/i.test(msg);
+}
+
 async function blobRead<T>(pathname: string): Promise<T | null> {
   const { head } = await import("@vercel/blob");
   try {
@@ -56,8 +69,7 @@ async function blobRead<T>(pathname: string): Promise<T | null> {
     if (!res.ok) return null;
     return (await res.json()) as T;
   } catch (err: any) {
-    const msg = String(err?.name || "") + " " + String(err?.message || "");
-    if (/BlobNotFound|not\s*found|404/i.test(msg)) return null;
+    if (isNotFound(err)) return null;
     throw err;
   }
 }
