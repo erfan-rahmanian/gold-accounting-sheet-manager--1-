@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { LayoutDashboard, Coins, Settings, ShieldAlert, LineChart, Database, RefreshCw, Smartphone, Menu, X, Table2 } from "lucide-react";
+import { LayoutDashboard, Coins, Settings, ShieldAlert, LineChart, Database, RefreshCw, Smartphone, Menu, X, Table2, LogOut } from "lucide-react";
 import { AppState, AppSettings, Transaction, SheetDoc } from "./types";
 import { formatCurrency, toPersianDigits } from "./utils";
 import DashboardTab from "./components/DashboardTab";
@@ -8,6 +8,7 @@ import ReportsTab from "./components/ReportsTab";
 import SettingsTab from "./components/SettingsTab";
 import BackupRecoveryTab from "./components/BackupRecoveryTab";
 import SpreadsheetTab from "./components/SpreadsheetTab";
+import AuthGate from "./components/AuthGate";
 
 export default function App() {
   const [appState, setAppState] = useState<AppState | null>(null);
@@ -16,6 +17,17 @@ export default function App() {
   const [networkError, setNetworkError] = useState<string | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [isLocalMode, setIsLocalMode] = useState(false);
+
+  // ---- احراز هویت ----
+  const [authUser, setAuthUser] = useState<string | null>(null);
+  const [authChecked, setAuthChecked] = useState(false);
+  const [signupOpen, setSignupOpen] = useState(false);
+  const [signupNeedsCode, setSignupNeedsCode] = useState(false);
+  const [signupReason, setSignupReason] = useState<string | undefined>(undefined);
+
+  /** کلید کش مرورگر برای هر کاربر جداست تا داده‌ی کاربران با هم قاطی نشود */
+  const cacheKey = (user: string) => `gold_accounting_state__${user}`;
+
 
   // Scroll to hide logic on mobile
   const [showHeader, setShowHeader] = useState(true);
@@ -84,27 +96,33 @@ export default function App() {
   };
 
   // Fetch initial data with custom offline/static host storage integration (e.g., Vercel fallback)
-  const fetchData = async () => {
+  const fetchData = async (user: string) => {
     setFetching(true);
     setNetworkError(null);
     try {
       const res = await fetch("/api/data");
-      if (!res.ok) throw new Error("خطا در بارگذاری اطلاعات از پایگاه داده مروگر.");
+      if (res.status === 401) {
+        // نشست منقضی شده — برگرد به صفحه ورود
+        setAuthUser(null);
+        setAppState(null);
+        return;
+      }
+      if (!res.ok) throw new Error("خطا در بارگذاری اطلاعات از پایگاه داده.");
       const data = await res.json();
       const fixed = migrateState(enforceCoins(data));
       setAppState(fixed);
       setIsLocalMode(false);
-      localStorage.setItem("gold_accounting_state", JSON.stringify(fixed));
+      localStorage.setItem(cacheKey(user), JSON.stringify(fixed));
     } catch (err: any) {
       console.warn("Could not connect to database server. Using localStorage fallback mode...", err);
       setIsLocalMode(true);
-      const cached = localStorage.getItem("gold_accounting_state");
+      const cached = localStorage.getItem(cacheKey(user));
       if (cached) {
         try {
           const parsed = JSON.parse(cached);
           const fixed = migrateState(enforceCoins(parsed));
           setAppState(fixed);
-          localStorage.setItem("gold_accounting_state", JSON.stringify(fixed));
+          localStorage.setItem(cacheKey(user), JSON.stringify(fixed));
           setNetworkError(null);
         } catch (e) {
           setNetworkError("خطا در بارگذاری اطلاعات پشتیبان محلی از مرورگر.");
@@ -119,10 +137,11 @@ export default function App() {
             currentGoldPrice: 35000000,
             spreadsheetId: ""
           },
-          transactions: []
+          transactions: [],
+          sheets: []
         };
         setAppState(defaultState);
-        localStorage.setItem("gold_accounting_state", JSON.stringify(defaultState));
+        localStorage.setItem(cacheKey(user), JSON.stringify(defaultState));
         setNetworkError(null);
       }
     } finally {
@@ -130,14 +149,64 @@ export default function App() {
     }
   };
 
+  // بررسی نشست در شروع کار
   useEffect(() => {
-    fetchData();
+    (async () => {
+      try {
+        const res = await fetch("/api/auth");
+        const info = await res.json();
+        setSignupOpen(!!info?.signup?.open);
+        setSignupNeedsCode(!!info?.signup?.needsCode);
+        setSignupReason(info?.signup?.reason);
+        if (info?.user) {
+          setAuthUser(info.user);
+        } else {
+          setFetching(false);
+        }
+      } catch {
+        // سرور در دسترس نیست — اگر قبلاً کاربری وارد شده بود، حالت محلی
+        const last = localStorage.getItem("gold_accounting_last_user");
+        if (last) {
+          setIsLocalMode(true);
+          setAuthUser(last);
+        } else {
+          setSignupOpen(true);
+          setFetching(false);
+        }
+      } finally {
+        setAuthChecked(true);
+      }
+    })();
   }, []);
 
-  // Saves state to Express server (and mirrors to localStorage instantly)
+  // با ورود کاربر، داده‌های همان کاربر خوانده می‌شود
+  useEffect(() => {
+    if (!authUser) return;
+    localStorage.setItem("gold_accounting_last_user", authUser);
+    fetchData(authUser);
+  }, [authUser]);
+
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/auth", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "logout" })
+      });
+    } catch {
+      /* حتی اگر سرور جواب نداد، از حساب خارج شو */
+    }
+    localStorage.removeItem("gold_accounting_last_user");
+    setAuthUser(null);
+    setAppState(null);
+    setMenuOpen(false);
+    setActiveTab("dashboard");
+  };
+
+  // Saves state to the server (and mirrors to localStorage instantly)
   const saveState = async (updatedState: AppState) => {
     setAppState(updatedState); // optimistic update
-    localStorage.setItem("gold_accounting_state", JSON.stringify(updatedState));
+    if (authUser) localStorage.setItem(cacheKey(authUser), JSON.stringify(updatedState));
 
     try {
       const res = await fetch("/api/data", {
@@ -145,12 +214,17 @@ export default function App() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(updatedState)
       });
+      if (res.status === 401) {
+        setAuthUser(null);
+        setAppState(null);
+        return;
+      }
       if (!res.ok) throw new Error("مشکل در ذخیره‌سازی اطلاعات.");
       const result = await res.json();
       setAppState(result.data);
       setIsLocalMode(false);
     } catch (err: any) {
-      console.warn("Express server unavailable. Saving state locally in browser...", err);
+      console.warn("Server unavailable. Saving state locally in browser...", err);
       setIsLocalMode(true);
     }
   };
@@ -195,12 +269,27 @@ export default function App() {
     await saveState({ ...appState, sheets });
   };
 
-  if (fetching) {
+  if (fetching || !authChecked) {
     return (
       <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col justify-center items-center gap-4 animate-fadeIn" dir="rtl">
         <div className="w-12 h-12 border-4 border-amber-500 border-t-transparent rounded-full animate-spin"></div>
         <p className="text-sm font-semibold text-slate-500">درحال فراخوانی اسناد و دفاتر حسابداری طلا...</p>
       </div>
+    );
+  }
+
+  // بدون ورود، هیچ داده‌ای نمایش داده نمی‌شود
+  if (!authUser) {
+    return (
+      <AuthGate
+        signupOpen={signupOpen}
+        signupNeedsCode={signupNeedsCode}
+        signupReason={signupReason}
+        onAuthenticated={(user) => {
+          setSignupOpen(false);
+          setAuthUser(user);
+        }}
+      />
     );
   }
 
@@ -210,7 +299,7 @@ export default function App() {
         <ShieldAlert className="w-12 h-12 text-rose-500 mb-4" />
         <p className="text-base font-bold text-rose-600 mb-3">{networkError || "کال بک دیتابیس با مشکل روبرو شد."}</p>
         <button
-          onClick={fetchData}
+          onClick={() => fetchData(authUser)}
           className="bg-amber-500 text-slate-950 font-extrabold px-6 py-3 rounded-2xl text-xs hover:bg-amber-400 cursor-pointer shadow-sm active:scale-95"
         >
           تلاش مجدد اتصال
@@ -329,9 +418,27 @@ export default function App() {
                 </div>
               </div>
 
-              {/* Drawer footer containing version info */}
-              <div className="p-4 border-t border-slate-150 bg-slate-50/50 text-center text-[10px] text-slate-400 font-bold">
-                نسخه آفلاین طلا PWA و اکسل
+              {/* Drawer footer: حساب کاربری و خروج */}
+              <div className="p-3 border-t border-slate-150 bg-slate-50/50 space-y-2">
+                <div className="flex items-center gap-2 px-2 py-1.5">
+                  <div className="w-7 h-7 rounded-lg bg-amber-500/15 border border-amber-200 flex items-center justify-center text-[11px] font-black text-amber-700 shrink-0 uppercase">
+                    {authUser.slice(0, 1)}
+                  </div>
+                  <div className="min-w-0">
+                    <div className="text-[10px] text-slate-400 font-bold leading-none mb-1">وارد شده با</div>
+                    <div className="text-[11px] font-black text-slate-800 truncate" dir="ltr">{authUser}</div>
+                  </div>
+                </div>
+                <button
+                  onClick={handleLogout}
+                  className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-[11px] font-extrabold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 cursor-pointer transition-all active:scale-95"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                  خروج از حساب
+                </button>
+                <div className="text-center text-[10px] text-slate-400 font-bold pt-1">
+                  نسخه آفلاین طلا PWA و اکسل
+                </div>
               </div>
             </div>
           </div>

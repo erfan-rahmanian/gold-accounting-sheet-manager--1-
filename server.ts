@@ -1,63 +1,26 @@
 import express from "express";
 import path from "path";
-import fs from "fs";
+import dotenv from "dotenv";
 import { createServer as createViteServer } from "vite";
+
+// متغیرهای محلی (.env.local) را بخوان تا رفتار لوکال شبیه ورسل قابل تست باشد.
+// روی ورسل، متغیرها از تنظیمات پروژه می‌آیند و این فایل وجود ندارد.
+dotenv.config({ path: ".env.local" });
+
+const { default: authHandler } = await import("./api/auth.js");
+const { default: dataHandler } = await import("./api/data.js");
+const { USE_BLOB } = await import("./api/_lib/core.js");
 
 const app = express();
 const PORT = 3000;
 
-app.use(express.json());
+app.use(express.json({ limit: "10mb" }));
 
-const DATA_FILE = path.join(process.cwd(), "data.json");
+// همان توابعی که روی ورسل به صورت serverless اجرا می‌شوند، اینجا هم استفاده
+// می‌شوند تا رفتار محیط توسعه دقیقاً مثل محیط واقعی باشد.
+app.all("/api/auth", (req, res) => authHandler(req as any, res as any));
+app.all("/api/data", (req, res) => dataHandler(req as any, res as any));
 
-// Fully clean default template data with empty transactions and no mock trade records
-const defaultData = {
-  settings: {
-    shops: [],
-    persons: [],
-    coins: [
-      { name: "سکه 86", weight: 9.756 },
-      { name: "سکه پایین", weight: 9.756 },
-      { name: "نیم سکه 86", weight: 4.8792 },
-      { name: "نیم پایین", weight: 4.8792 },
-      { name: "ربع سکه 86", weight: 2.440 },
-      { name: "ربع پایین", weight: 2.440 }
-    ],
-    currentGoldPrice: 35000000, // 35 Million Rail baseline price
-    spreadsheetId: ""
-  },
-  transactions: []
-};
-
-// Ensure database file exists
-if (!fs.existsSync(DATA_FILE)) {
-  fs.writeFileSync(DATA_FILE, JSON.stringify(defaultData, null, 2), "utf8");
-}
-
-// REST endpoints for local database handling
-app.get("/api/data", (req, res) => {
-  try {
-    if (fs.existsSync(DATA_FILE)) {
-      const rawData = fs.readFileSync(DATA_FILE, "utf8");
-      res.json(JSON.parse(rawData));
-    } else {
-      res.json(defaultData);
-    }
-  } catch (error) {
-    res.status(500).json({ error: "Failed to read database file." });
-  }
-});
-
-app.post("/api/data", (req, res) => {
-  try {
-    fs.writeFileSync(DATA_FILE, JSON.stringify(req.body, null, 2), "utf8");
-    res.json({ success: true, data: req.body });
-  } catch (error) {
-    res.status(500).json({ error: "Failed to update database file." });
-  }
-});
-
-// Setup Vite & Static HTML fallbacks
 async function start() {
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({
@@ -75,6 +38,11 @@ async function start() {
 
   app.listen(PORT, "0.0.0.0", () => {
     console.log(`Server is running on port ${PORT}`);
+    console.log(
+      USE_BLOB
+        ? "ذخیره‌سازی: Vercel Blob"
+        : "ذخیره‌سازی: پوشه محلی .data/ (روی ورسل متغیر BLOB_READ_WRITE_TOKEN لازم است)"
+    );
   });
 }
 

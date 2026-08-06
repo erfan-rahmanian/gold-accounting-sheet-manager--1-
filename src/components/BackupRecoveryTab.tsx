@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Download, Upload, FileSpreadsheet, CheckCircle2, AlertTriangle, RefreshCw, GitMerge } from "lucide-react";
-import { AppState, Transaction, Shop, Person, Coin } from "../types";
+import { AppState, Transaction, Shop, Person, Coin, SheetDoc } from "../types";
 import { formatCurrency, formatWeight, toPersianDigits } from "../utils";
 
 interface BackupRecoveryTabProps {
@@ -17,6 +17,9 @@ interface MergeResult {
   addedShops: number;
   addedPersons: number;
   addedCoins: number;
+  addedSheets: number;
+  updatedSheets: number;
+  removedSheets: number;
 }
 
 /**
@@ -26,6 +29,7 @@ interface MergeResult {
  * - تراکنش‌های حذف‌شده (در بک‌آپ نیستن ولی در state فعلی هستن) → حذف می‌شن
  * - تراکنش‌های تکراری (id یکسان، محتوا کاملاً یکسان) → نادیده گرفته می‌شن
  * - shops/persons/coins جدید اضافه می‌شن، تکراری‌ها skip می‌شن
+ * - برگه‌های صفحه‌گسترده (اکسل داخلی) هم دقیقاً مثل تراکنش‌ها با id ادغام می‌شن
  */
 function mergeBackupIntoState(current: AppState, incoming: AppState): { merged: AppState; result: MergeResult } {
   const result: MergeResult = {
@@ -36,6 +40,9 @@ function mergeBackupIntoState(current: AppState, incoming: AppState): { merged: 
     addedShops: 0,
     addedPersons: 0,
     addedCoins: 0,
+    addedSheets: 0,
+    updatedSheets: 0,
+    removedSheets: 0,
   };
 
   // ---- ادغام تراکنش‌ها ----
@@ -120,6 +127,43 @@ function mergeBackupIntoState(current: AppState, incoming: AppState): { merged: 
     }
   }
 
+  // ---- ادغام برگه‌های صفحه‌گسترده (اکسل داخلی) ----
+  // اگر فایل بک‌آپ قدیمی باشد و اصلاً فیلد sheets نداشته باشد، برگه‌های فعلی
+  // دست‌نخورده می‌مانند (نبودِ فیلد یعنی «خبر ندارم»، نه «حذف کن»).
+  const currentSheets = current.sheets ?? [];
+  let mergedSheets: SheetDoc[] = currentSheets;
+
+  if (Array.isArray(incoming.sheets)) {
+    const currentSheetMap = new Map<string, SheetDoc>(currentSheets.map(s => [s.id, s]));
+    const incomingSheetMap = new Map<string, SheetDoc>(incoming.sheets.map(s => [s.id, s]));
+    const sheetMap = new Map<string, SheetDoc>(currentSheetMap);
+
+    for (const [id, incomingSheet] of incomingSheetMap) {
+      const currentSheet = currentSheetMap.get(id);
+      if (!currentSheet) {
+        sheetMap.set(id, incomingSheet);
+        result.addedSheets++;
+      } else if (JSON.stringify(currentSheet) !== JSON.stringify(incomingSheet)) {
+        sheetMap.set(id, incomingSheet);
+        result.updatedSheets++;
+      }
+    }
+
+    for (const [id] of currentSheetMap) {
+      if (!incomingSheetMap.has(id)) {
+        sheetMap.delete(id);
+        result.removedSheets++;
+      }
+    }
+
+    // ترتیب برگه‌ها: اول ترتیب بک‌آپ، بعد برگه‌های فقط-محلی
+    const sheetOrder = [
+      ...incoming.sheets.map(s => s.id),
+      ...currentSheets.map(s => s.id).filter(id => !incomingSheetMap.has(id) && sheetMap.has(id)),
+    ];
+    mergedSheets = sheetOrder.filter(id => sheetMap.has(id)).map(id => sheetMap.get(id)!);
+  }
+
   const merged: AppState = {
     settings: {
       ...current.settings,
@@ -130,6 +174,7 @@ function mergeBackupIntoState(current: AppState, incoming: AppState): { merged: 
       currentGoldPrice: incoming.settings.currentGoldPrice || current.settings.currentGoldPrice,
     },
     transactions: finalTransactions,
+    sheets: mergedSheets,
   };
 
   return { merged, result };
@@ -257,7 +302,10 @@ export default function BackupRecoveryTab({ appState, onRestoreState }: BackupRe
             result.removedTransactions > 0 ||
             result.addedShops > 0 ||
             result.addedPersons > 0 ||
-            result.addedCoins > 0;
+            result.addedCoins > 0 ||
+            result.addedSheets > 0 ||
+            result.updatedSheets > 0 ||
+            result.removedSheets > 0;
 
           if (hasChanges) {
             setSuccessMsg("ادغام بک‌آپ با موفقیت انجام شد. جزئیات تغییرات را در زیر ببینید.");
@@ -266,8 +314,18 @@ export default function BackupRecoveryTab({ appState, onRestoreState }: BackupRe
           }
         } else {
           // جایگزینی کامل (حالت قدیمی)
-          await onRestoreState(importedState);
-          setSuccessMsg("کل دفاتر مالی، تنظیمات، همکاران و مغازه‌ها با موفقیت بازیابی شدند.");
+          // اگر فایل بک‌آپ قدیمی باشد و فیلد sheets نداشته باشد، برگه‌های
+          // صفحه‌گسترده‌ی فعلی حفظ می‌شوند تا سهواً پاک نشوند.
+          const replacement: AppState = Array.isArray(importedState.sheets)
+            ? importedState
+            : { ...importedState, sheets: appState.sheets ?? [] };
+          await onRestoreState(replacement);
+          const sheetCount = replacement.sheets?.length ?? 0;
+          setSuccessMsg(
+            sheetCount > 0
+              ? `کل دفاتر مالی، تنظیمات، همکاران، مغازه‌ها و ${toPersianDigits(sheetCount)} برگه صفحه‌گسترده با موفقیت بازیابی شدند.`
+              : "کل دفاتر مالی، تنظیمات، همکاران و مغازه‌ها با موفقیت بازیابی شدند."
+          );
         }
 
         setTimeout(() => setSuccessMsg(null), 8000);
@@ -338,7 +396,7 @@ export default function BackupRecoveryTab({ appState, onRestoreState }: BackupRe
             >
               <div className="space-y-0.5">
                 <span className="font-extrabold text-slate-800 block text-xs">دانلود بک‌آپ کامل نرم‌افزار (.json)</span>
-                <span className="text-[10px] text-slate-400 font-medium">شامل تنظیمات اولیه غرفه‌ها، اشخاص و کل اسناد</span>
+                <span className="text-[10px] text-slate-400 font-medium">شامل تنظیمات اولیه غرفه‌ها، اشخاص، کل اسناد و برگه‌های صفحه‌گسترده (اکسل داخلی)</span>
               </div>
               <Download className="w-5 h-5 text-slate-600 shrink-0" />
             </button>
@@ -389,7 +447,7 @@ export default function BackupRecoveryTab({ appState, onRestoreState }: BackupRe
             {importMode === "merge" ? (
               <div className="bg-blue-50 p-3 border border-blue-100 rounded-xl text-[10px] text-blue-700 leading-relaxed font-semibold">
                 <span className="font-extrabold block mb-1">حالت ادغام هوشمند:</span>
-                تراکنش‌های جدید اضافه، ویرایش‌شده‌ها آپدیت، و حذف‌شده‌ها پاک می‌شن. موارد تکراری نادیده گرفته می‌شن. مغازه‌ها و اشخاص جدید هم اضافه می‌شن.
+                تراکنش‌های جدید اضافه، ویرایش‌شده‌ها آپدیت، و حذف‌شده‌ها پاک می‌شن. موارد تکراری نادیده گرفته می‌شن. مغازه‌ها و اشخاص جدید هم اضافه می‌شن. برگه‌های صفحه‌گسترده (اکسل داخلی) هم به همین شکل ادغام می‌شن.
               </div>
             ) : (
               <div className="bg-rose-50 p-3 border border-rose-100 rounded-xl flex gap-2">
@@ -455,6 +513,18 @@ export default function BackupRecoveryTab({ appState, onRestoreState }: BackupRe
                 </div>
                 <div className="text-[10px] text-amber-600 font-bold mt-0.5">
                   مغازه/شخص/سکه جدید اضافه‌شده
+                </div>
+              </div>
+            )}
+            {(mergeResult.addedSheets > 0 || mergeResult.updatedSheets > 0 || mergeResult.removedSheets > 0) && (
+              <div className="bg-indigo-50 border border-indigo-100 rounded-2xl p-3 text-center col-span-2 sm:col-span-2">
+                <div className="text-xl font-black text-indigo-700">
+                  {toPersianDigits(mergeResult.addedSheets + mergeResult.updatedSheets + mergeResult.removedSheets)}
+                </div>
+                <div className="text-[10px] text-indigo-600 font-bold mt-0.5">
+                  برگه صفحه‌گسترده ({toPersianDigits(mergeResult.addedSheets)} جدید،{" "}
+                  {toPersianDigits(mergeResult.updatedSheets)} به‌روز،{" "}
+                  {toPersianDigits(mergeResult.removedSheets)} حذف)
                 </div>
               </div>
             )}

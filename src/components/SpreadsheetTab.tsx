@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useRef, useEffect, useCallback } from "react";
 import {
-  Table2, Plus, Trash2, Undo2, Redo2, Bold, Download, Sigma, X, Save, Palette, Upload
+  Table2, Plus, Trash2, Undo2, Redo2, Bold, Download, Sigma, X, Save, Palette, Upload, Pencil
 } from "lucide-react";
 import { SheetDoc, SheetCell } from "../types";
 import {
@@ -66,9 +66,12 @@ export default function SpreadsheetTab({ sheets: initialSheets, onChange }: Prop
   const [saveState, setSaveState] = useState<"idle" | "saving" | "saved">("idle");
   const [toast, setToast] = useState<string | null>(null);
   const [showColors, setShowColors] = useState(false);
+  /** برگه‌ای که نامش در حال ویرایش است (ویرایش درجا روی خود تب) */
+  const [renaming, setRenaming] = useState<{ id: string; value: string } | null>(null);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const editRef = useRef<HTMLInputElement>(null);
+  const renameRef = useRef<HTMLInputElement>(null);
   const formulaRef = useRef<HTMLInputElement>(null);
   const clipRef = useRef<{ raw: string[][]; text: string; r: number; c: number } | null>(null);
   const draggingRef = useRef(false);
@@ -554,12 +557,27 @@ export default function SpreadsheetTab({ sheets: initialSheets, onChange }: Prop
     if (activeId === id) setActiveId(next[0].id);
   };
 
-  const renameSheet = (id: string) => {
+  /** شروع ویرایش نام برگه (روی خود تب، بدون پنجره‌ی مرورگر) */
+  const startRename = (id: string) => {
     const cur = sheets.find(s => s.id === id);
-    const name = window.prompt("نام جدید برگه:", cur?.name || "");
-    if (!name) return;
-    commit(sheets.map(s => (s.id === id ? { ...s, name } : s)));
+    if (!cur) return;
+    setRenaming({ id, value: cur.name });
   };
+
+  /** ثبت نام جدید؛ نام خالی یا بدون تغییر نادیده گرفته می‌شود */
+  const commitRename = () => {
+    if (!renaming) return;
+    const name = renaming.value.trim();
+    const cur = sheets.find(s => s.id === renaming.id);
+    setRenaming(null);
+    if (!name || !cur || name === cur.name) return;
+    commit(sheets.map(s => (s.id === renaming.id ? { ...s, name } : s)));
+  };
+
+  // فوکوس و انتخاب کامل متن، به محض باز شدن ویرایش نام
+  useEffect(() => {
+    if (renaming) renameRef.current?.select();
+  }, [renaming?.id]);
 
   // ---------- خروجی و ورودی CSV ----------
   const exportCSV = () => {
@@ -917,17 +935,49 @@ export default function SpreadsheetTab({ sheets: initialSheets, onChange }: Prop
               className={`flex items-center gap-1 rounded-xl border px-2.5 py-1.5 text-[11px] font-extrabold cursor-pointer transition-all ${
                 s.id === activeId ? "bg-amber-500 border-amber-500 text-slate-950" : "bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100"
               }`}
-              onClick={() => { setActiveId(s.id); setSel({ r: 0, c: 0, r2: 0, c2: 0 }); }}
-              onDoubleClick={() => renameSheet(s.id)}
-              title="دوبار کلیک برای تغییر نام"
+              onClick={() => {
+                if (renaming?.id === s.id) return;
+                setActiveId(s.id);
+                setSel({ r: 0, c: 0, r2: 0, c2: 0 });
+              }}
+              onDoubleClick={() => startRename(s.id)}
+              title={renaming?.id === s.id ? undefined : "دوبار کلیک (یا دکمه مداد) برای تغییر نام"}
             >
-              <span>{s.name}</span>
-              <button
-                onClick={e => { e.stopPropagation(); removeSheet(s.id); }}
-                className="opacity-60 hover:opacity-100 hover:text-rose-600"
-              >
-                <X className="w-3 h-3" />
-              </button>
+              {renaming?.id === s.id ? (
+                <input
+                  ref={renameRef}
+                  value={renaming.value}
+                  autoFocus
+                  onChange={e => setRenaming({ id: s.id, value: e.target.value })}
+                  onClick={e => e.stopPropagation()}
+                  onDoubleClick={e => e.stopPropagation()}
+                  onBlur={commitRename}
+                  onKeyDown={e => {
+                    e.stopPropagation();
+                    if (e.key === "Enter") { e.preventDefault(); commitRename(); }
+                    else if (e.key === "Escape") { e.preventDefault(); setRenaming(null); }
+                  }}
+                  className="w-24 bg-white text-slate-900 border-2 border-amber-600 rounded-md px-1.5 py-0.5 text-[11px] font-extrabold outline-none"
+                />
+              ) : (
+                <>
+                  <span>{s.name}</span>
+                  <button
+                    onClick={e => { e.stopPropagation(); startRename(s.id); }}
+                    className="opacity-60 hover:opacity-100 hover:text-blue-700"
+                    title="تغییر نام برگه"
+                  >
+                    <Pencil className="w-3 h-3" />
+                  </button>
+                  <button
+                    onClick={e => { e.stopPropagation(); removeSheet(s.id); }}
+                    className="opacity-60 hover:opacity-100 hover:text-rose-600"
+                    title="حذف برگه"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </>
+              )}
             </div>
           ))}
           <button onClick={addSheet} className={btnGray} title="برگه جدید">
