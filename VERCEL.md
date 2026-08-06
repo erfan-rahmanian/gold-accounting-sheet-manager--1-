@@ -194,6 +194,30 @@ Vercel به‌محض دریافت push شروع به build می‌کند. در �
 
 ## عیب‌یابی
 
+### خطای بیلد: `ERR_PNPM_OUTDATED_LOCKFILE`
+
+پروژه از `npm` استفاده می‌کند، ولی یک فایل `pnpm-lock.yaml` قدیمی از قالب اولیه
+در مخزن مانده بود. Vercel وقتی این فایل را می‌بیند سراغ pnpm می‌رود و چون
+با `package.json` هماهنگ نیست، بیلد را رد می‌کند.
+
+این فایل حذف شده و در `.gitignore` هم قرار گرفته. اگر باز هم دیدیدش:
+
+```bash
+git rm --cached pnpm-lock.yaml && rm -f pnpm-lock.yaml
+```
+
+### خطای بیلد: پکیجی پیدا نمی‌شود
+
+اگر وابستگی جدیدی به `package.json` اضافه شد، `package-lock.json` را هم
+به‌روز و کامیت کنید:
+
+```bash
+npm install
+git add package.json package-lock.json
+git commit -m "chore: update lockfile"
+git push
+```
+
 ### بعد از Deploy صفحه‌ی سفید یا خطای سرور می‌بینم
 
 - در داشبورد Vercel به **Deployments** → آخرین Deploy → تب **Functions**/**Logs**
