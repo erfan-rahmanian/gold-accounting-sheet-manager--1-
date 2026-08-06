@@ -76,6 +76,7 @@ interface BlobGetResult {
 interface BlobSdk {
   get(pathname: string, options: Record<string, unknown>): Promise<BlobGetResult | null>;
   put(pathname: string, body: string, options: Record<string, unknown>): Promise<unknown>;
+  del(pathname: string, options: Record<string, unknown>): Promise<void>;
 }
 
 async function blobSdk(): Promise<BlobSdk> {
@@ -132,6 +133,20 @@ export async function writeJSON(pathname: string, data: unknown): Promise<void> 
   const file = localFile(pathname);
   fs.mkdirSync(path.dirname(file), { recursive: true });
   fs.writeFileSync(file, JSON.stringify(data, null, 2), "utf8");
+}
+
+export async function deleteJSON(pathname: string): Promise<void> {
+  if (USE_BLOB) {
+    const { del } = await blobSdk();
+    // del روی فایلِ ناموجود خطا نمی‌دهد
+    await del(pathname, { token: BLOB_TOKEN });
+    return;
+  }
+  try {
+    fs.unlinkSync(localFile(pathname));
+  } catch {
+    // نبودِ فایل مشکلی نیست
+  }
 }
 
 // ---------------------------------------------------------------- حساب‌ها
@@ -317,6 +332,24 @@ export async function loadUserData(username: string): Promise<any> {
 
 export async function saveUserData(username: string, data: unknown): Promise<void> {
   await writeJSON(userDataPath(username), data);
+}
+
+/**
+ * داده‌های کاربر را در مسیر نام جدید کپی می‌کند (نسخه‌ی قدیم دست‌نخورده می‌ماند).
+ *
+ * مسیر فایل داده از روی نام کاربری ساخته می‌شود، پس تغییر نام یعنی جابه‌جایی
+ * فایل. عمداً «کپی» و «حذف» را جدا کرده‌ایم تا ترتیبِ امنی ممکن شود:
+ * کپی → ثبت نام جدید → حذف نسخه‌ی قدیم. اگر ثبت نام جدید شکست بخورد،
+ * کاربر با نام قدیم و داده‌های سالم خودش باقی می‌ماند.
+ */
+export async function copyUserData(from: string, to: string): Promise<void> {
+  const data = await readJSON<any>(userDataPath(from));
+  await writeJSON(userDataPath(to), data ?? defaultAppState());
+}
+
+/** فایل داده‌ی یک نام کاربری را پاک می‌کند (برای پاک‌سازی بعد از تغییر نام) */
+export async function discardUserData(username: string): Promise<void> {
+  await deleteJSON(userDataPath(username));
 }
 
 /**

@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'v2';
+const CACHE_VERSION = 'v3';
 const CACHE_NAME = `gold-ledger-cache-${CACHE_VERSION}`;
 const urlsToCache = [
   '/',
@@ -33,6 +33,16 @@ self.addEventListener('fetch', event => {
   const url = new URL(request.url);
 
   if (request.method !== 'GET' || url.origin !== self.location.origin) {
+    return;
+  }
+
+  // درخواست‌های API هرگز کش نمی‌شوند و از سرویس‌ورکر رد می‌شوند.
+  //
+  // این پاسخ‌ها وابسته به نشست کاربرند: اگر /api/auth کش شود، پاسخِ «کاربری
+  // وارد نشده» برای همیشه تکرار می‌شود و کاربر با هر رفرش به صفحه‌ی ورود
+  // پرت می‌شود، حتی وقتی کوکی نشستش معتبر است. /api/data هم به همین دلیل
+  // نباید کش شود، وگرنه داده‌ی قدیمی یا داده‌ی کاربر دیگری نمایش داده می‌شود.
+  if (url.pathname.startsWith('/api/')) {
     return;
   }
 

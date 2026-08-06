@@ -14,6 +14,8 @@ import {
   signupPolicy,
   checkSignupCode,
   saveUserData,
+  copyUserData,
+  discardUserData,
   initialStateForNewAccount,
   USERNAME_RE,
   MIN_PASSWORD,
@@ -63,7 +65,7 @@ export default async function handler(req: Req, res: Res) {
         });
       }
       if (password.length < MIN_PASSWORD) {
-        return send(res, 400, { error: `رمز عبور باید حداقل ${MIN_PASSWORD} کاراکتر باشد.` });
+        return send(res, 400, { error: "رمز عبور باید حداقل ۶ کاراکتر باشد." });
       }
       if (accounts.some(a => a.username.toLowerCase() === username.toLowerCase())) {
         return send(res, 409, { error: "این نام کاربری قبلاً گرفته شده است." });
@@ -97,7 +99,7 @@ export default async function handler(req: Req, res: Res) {
       if (!user) return send(res, 401, { error: "ابتدا وارد شوید." });
       const next = String(body.newPassword || "");
       if (next.length < MIN_PASSWORD) {
-        return send(res, 400, { error: `رمز عبور جدید باید حداقل ${MIN_PASSWORD} کاراکتر باشد.` });
+        return send(res, 400, { error: "رمز عبور جدید باید حداقل ۶ کاراکتر باشد." });
       }
       const accounts = await loadAccounts();
       const account = accounts.find(a => a.username.toLowerCase() === user.toLowerCase());
@@ -112,6 +114,59 @@ export default async function handler(req: Req, res: Res) {
       // نشست را تازه می‌کنیم
       setSessionCookie(res, signSession(account.username));
       return send(res, 200, { ok: true });
+    }
+
+    if (action === "username") {
+      // تغییر نام کاربری — رمز فعلی لازم است تا با دزدیدن نشست نشود نام را عوض کرد
+      const user = currentUser(req);
+      if (!user) return send(res, 401, { error: "ابتدا وارد شوید." });
+
+      const next = String(body.newUsername || "").trim();
+      if (!USERNAME_RE.test(next)) {
+        return send(res, 400, {
+          error: "نام کاربری جدید باید ۳ تا ۳۲ کاراکتر و شامل حروف انگلیسی، عدد، نقطه، خط تیره یا زیرخط باشد.",
+        });
+      }
+
+      const accounts = await loadAccounts();
+      const account = accounts.find(a => a.username.toLowerCase() === user.toLowerCase());
+      if (!account) return send(res, 401, { error: "حساب یافت نشد." });
+      if (!verifyPassword(password, account.salt, account.hash)) {
+        return send(res, 403, { error: "رمز عبور فعلی نادرست است." });
+      }
+
+      if (next === account.username) {
+        return send(res, 400, { error: "نام کاربری جدید با نام فعلی یکسان است." });
+      }
+      // فقط تغییر بزرگی/کوچکی حروفِ نام خودش مجاز است، ولی نام کاربر دیگر نه
+      const takenByOther = accounts.some(
+        a =>
+          a.username.toLowerCase() === next.toLowerCase() &&
+          a.username.toLowerCase() !== account.username.toLowerCase()
+      );
+      if (takenByOther) return send(res, 409, { error: "این نام کاربری قبلاً گرفته شده است." });
+
+      // مسیر فایل داده از روی نام کاربری (حروف کوچک) ساخته می‌شود، پس اگر فقط
+      // بزرگی/کوچکی حروف عوض شود مسیر تغییری نمی‌کند و جابه‌جایی لازم نیست
+      const pathChanges = next.toLowerCase() !== account.username.toLowerCase();
+      const previous = account.username;
+
+      // ترتیب امن: کپی داده → ثبت نام جدید → حذف نسخه‌ی قدیم
+      if (pathChanges) await copyUserData(previous, next);
+      account.username = next;
+      await saveAccounts(accounts);
+      if (pathChanges) {
+        try {
+          await discardUserData(previous);
+        } catch (e) {
+          // نام با موفقیت عوض شده؛ باقی ماندن فایل قدیمی مشکل کاربر نیست
+          console.error("cleanup of old user data failed:", e);
+        }
+      }
+
+      // نشست فعلی به نام قدیمی امضا شده و دیگر معتبر نیست
+      setSessionCookie(res, signSession(next));
+      return send(res, 200, { ok: true, user: next });
     }
 
     return send(res, 400, { error: "درخواست نامعتبر است." });

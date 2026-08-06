@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { LayoutDashboard, Coins, Settings, ShieldAlert, LineChart, Database, RefreshCw, Smartphone, Menu, X, Table2, LogOut } from "lucide-react";
+import { LayoutDashboard, Coins, Settings, ShieldAlert, LineChart, Database, RefreshCw, Smartphone, Menu, X, Table2, LogOut, UserCog } from "lucide-react";
 import { AppState, AppSettings, Transaction, SheetDoc } from "./types";
 import { formatCurrency, toPersianDigits } from "./utils";
 import DashboardTab from "./components/DashboardTab";
@@ -9,10 +9,11 @@ import SettingsTab from "./components/SettingsTab";
 import BackupRecoveryTab from "./components/BackupRecoveryTab";
 import SpreadsheetTab from "./components/SpreadsheetTab";
 import AuthGate from "./components/AuthGate";
+import ProfileTab from "./components/ProfileTab";
 
 export default function App() {
   const [appState, setAppState] = useState<AppState | null>(null);
-  const [activeTab, setActiveTab] = useState<"dashboard" | "transactions" | "reports" | "sheets" | "settings" | "backup">("dashboard");
+  const [activeTab, setActiveTab] = useState<"dashboard" | "transactions" | "reports" | "sheets" | "settings" | "backup" | "profile">("dashboard");
   const [fetching, setFetching] = useState(true);
   const [networkError, setNetworkError] = useState<string | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -215,6 +216,24 @@ export default function App() {
     setActiveTab("dashboard");
   };
 
+  /**
+   * بعد از تغییر نام کاربری، کش مرورگر هم باید با نام جدید برچسب بخورد.
+   *
+   * کلید کش شامل نام کاربری است؛ اگر منتقلش نکنیم، در حالت آفلاین کاربر با
+   * نام جدید یک دفتر خالی می‌بیند در حالی که داده‌هایش زیر کلید قدیمی مانده.
+   */
+  const handleUsernameChanged = (next: string) => {
+    if (!next || next === authUser) return;
+    if (authUser) {
+      const cached = localStorage.getItem(cacheKey(authUser));
+      if (cached) localStorage.setItem(cacheKey(next), cached);
+      localStorage.removeItem(cacheKey(authUser));
+    }
+    localStorage.setItem("gold_accounting_last_user", next);
+    // تغییر authUser خودش باعث خواندن دوباره‌ی داده‌ها از سرور می‌شود
+    setAuthUser(next);
+  };
+
   // Saves state to the server (and mirrors to localStorage instantly)
   const saveState = async (updatedState: AppState) => {
     setAppState(updatedState); // optimistic update
@@ -327,6 +346,7 @@ export default function App() {
     { key: "sheets", label: "صفحه گسترده (اکسل)", icon: Table2 },
     { key: "settings", label: "ثبت مغازه و شخص", icon: Settings },
     { key: "backup", label: "بکاپ و بازیابی", icon: Database },
+    { key: "profile", label: "پروفایل و حساب کاربری", icon: UserCog },
   ] as const;
 
   return (
@@ -502,6 +522,13 @@ export default function App() {
               <BackupRecoveryTab
                 appState={appState}
                 onRestoreState={handleRestoreState}
+              />
+            )}
+
+            {activeTab === "profile" && (
+              <ProfileTab
+                username={authUser}
+                onUsernameChanged={handleUsernameChanged}
               />
             )}
           </div>

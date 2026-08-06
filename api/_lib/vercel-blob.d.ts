@@ -36,4 +36,9 @@ declare module "@vercel/blob" {
       cacheControlMaxAge?: number;
     }
   ): Promise<{ url: string; pathname: string }>;
+
+  export function del(
+    urlOrPathname: string | string[],
+    options?: { token?: string }
+  ): Promise<void>;
 }
