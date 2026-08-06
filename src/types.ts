@@ -50,9 +50,25 @@ export interface AppSettings {
   spreadsheetId: string;
 }
 
+export interface SheetCell {
+  v: string;       // محتوای خام: متن، عدد یا فرمول (با = شروع می‌شود)
+  b?: boolean;     // درشت (Bold)
+  bg?: string;     // رنگ پس‌زمینه
+}
+
+export interface SheetDoc {
+  id: string;
+  name: string;
+  rows: number;
+  cols: number;
+  colWidths: number[];
+  cells: Record<string, SheetCell>;
+}
+
 export interface AppState {
   settings: AppSettings;
   transactions: Transaction[];
+  sheets?: SheetDoc[];
 }
 
 export const TRANSACTION_TYPES = [

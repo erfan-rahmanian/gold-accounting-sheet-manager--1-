@@ -1,16 +1,17 @@
 import React, { useState, useEffect } from "react";
-import { LayoutDashboard, Coins, Settings, ShieldAlert, LineChart, Database, RefreshCw, Smartphone, Menu, X } from "lucide-react";
-import { AppState, AppSettings, Transaction } from "./types";
+import { LayoutDashboard, Coins, Settings, ShieldAlert, LineChart, Database, RefreshCw, Smartphone, Menu, X, Table2 } from "lucide-react";
+import { AppState, AppSettings, Transaction, SheetDoc } from "./types";
 import { formatCurrency, toPersianDigits } from "./utils";
 import DashboardTab from "./components/DashboardTab";
 import TransactionsTab from "./components/TransactionsTab";
 import ReportsTab from "./components/ReportsTab";
 import SettingsTab from "./components/SettingsTab";
 import BackupRecoveryTab from "./components/BackupRecoveryTab";
+import SpreadsheetTab from "./components/SpreadsheetTab";
 
 export default function App() {
   const [appState, setAppState] = useState<AppState | null>(null);
-  const [activeTab, setActiveTab] = useState<"dashboard" | "transactions" | "reports" | "settings" | "backup">("dashboard");
+  const [activeTab, setActiveTab] = useState<"dashboard" | "transactions" | "reports" | "sheets" | "settings" | "backup">("dashboard");
   const [fetching, setFetching] = useState(true);
   const [networkError, setNetworkError] = useState<string | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -188,6 +189,12 @@ export default function App() {
     await saveState(restoredState);
   };
 
+  // Spreadsheet (excel-like) sheets persistence
+  const handleUpdateSheets = async (sheets: SheetDoc[]) => {
+    if (!appState) return;
+    await saveState({ ...appState, sheets });
+  };
+
   if (fetching) {
     return (
       <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col justify-center items-center gap-4 animate-fadeIn" dir="rtl">
@@ -216,6 +223,7 @@ export default function App() {
     { key: "dashboard", label: "داشبورد", icon: LayoutDashboard },
     { key: "transactions", label: "ثبت سند", icon: Coins },
     { key: "reports", label: "صورتحساب موجودی", icon: LineChart },
+    { key: "sheets", label: "صفحه گسترده (اکسل)", icon: Table2 },
     { key: "settings", label: "ثبت مغازه و شخص", icon: Settings },
     { key: "backup", label: "بکاپ و بازیابی", icon: Database },
   ] as const;
@@ -354,6 +362,13 @@ export default function App() {
                 settings={appState.settings}
                 transactions={appState.transactions}
                 onUpdateSettings={handleUpdateSettings}
+              />
+            )}
+
+            {activeTab === "sheets" && (
+              <SpreadsheetTab
+                sheets={appState.sheets}
+                onChange={handleUpdateSheets}
               />
             )}
 
