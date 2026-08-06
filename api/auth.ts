@@ -117,6 +117,12 @@ export default async function handler(req: Req, res: Res) {
     return send(res, 400, { error: "درخواست نامعتبر است." });
   } catch (err: any) {
     console.error("auth error:", err);
-    return send(res, 500, { error: "خطای سرور در پردازش حساب کاربری." });
+    // متن واقعی خطا را هم برمی‌گردانیم؛ بدون آن عیب‌یابی روی ورسل عملاً ممکن نیست
+    const detail = [err?.name, err?.message].filter(Boolean).join(": ");
+    return send(res, 500, {
+      error: detail
+        ? `خطای سرور در پردازش حساب کاربری — ${detail}`
+        : "خطای سرور در پردازش حساب کاربری.",
+    });
   }
 }

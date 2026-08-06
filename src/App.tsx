@@ -154,11 +154,23 @@ export default function App() {
     (async () => {
       try {
         const res = await fetch("/api/auth");
-        const info = await res.json();
-        setSignupOpen(!!info?.signup?.open);
-        setSignupNeedsCode(!!info?.signup?.needsCode);
-        setSignupReason(info?.signup?.reason);
-        if (info?.user) {
+        const info = await res.json().catch(() => null);
+        if (!res.ok || !info?.signup) {
+          // سرور جواب داد ولی خطا برگرداند — دلیلش را به کاربر نشان بده
+          setSignupOpen(false);
+          setSignupNeedsCode(false);
+          setSignupReason(
+            info?.error ||
+              `سرور نتوانست وضعیت حساب‌ها را بخواند (کد ${res.status}). ` +
+                "احتمالاً فضای ذخیره‌سازی Blob به پروژه وصل نشده یا متغیر AUTH_SECRET تنظیم نشده است."
+          );
+          setFetching(false);
+          return;
+        }
+        setSignupOpen(!!info.signup.open);
+        setSignupNeedsCode(!!info.signup.needsCode);
+        setSignupReason(info.signup.reason);
+        if (info.user) {
           setAuthUser(info.user);
         } else {
           setFetching(false);

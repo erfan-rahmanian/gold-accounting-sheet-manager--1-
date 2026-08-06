@@ -86,13 +86,10 @@ export default function AuthGate({
             <button
               type="button"
               onClick={() => { setMode("register"); setError(null); }}
-              disabled={!canRegister}
-              className={`py-2.5 rounded-lg text-[11px] font-extrabold transition-all ${
-                !canRegister
-                  ? "text-slate-300 cursor-not-allowed"
-                  : mode === "register"
-                    ? "bg-white text-slate-900 shadow-sm cursor-pointer"
-                    : "text-slate-500 hover:text-slate-800 cursor-pointer"
+              className={`py-2.5 rounded-lg text-[11px] font-extrabold transition-all cursor-pointer ${
+                mode === "register"
+                  ? "bg-white text-slate-900 shadow-sm"
+                  : "text-slate-500 hover:text-slate-800"
               }`}
             >
               ساخت حساب

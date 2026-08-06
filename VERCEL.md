@@ -218,6 +218,23 @@ git commit -m "chore: update lockfile"
 git push
 ```
 
+### دکمه‌ی «ساخت حساب» کار نمی‌کند / خطای ۵۰۰ روی `/api/auth`
+
+یعنی سرور نتوانست فهرست حساب‌ها را از Blob بخواند. روی تب **ساخت حساب** بزنید
+تا متن دقیق خطا را ببینید. رایج‌ترین پیام‌ها:
+
+| پیام خطا | معنی و راه‌حل |
+|---|---|
+| `This store does not exist` | توکن به یک Blob Store پاک‌شده یا اشتباه اشاره می‌کند. در **Storage** یک Blob بسازید و در **Connect Project** پروژه را وصل کنید. اگر `BLOB_READ_WRITE_TOKEN` را دستی وارد کرده‌اید، پاکش کنید تا Vercel خودش تزریقش کند. |
+| `Access denied` / `valid token` | Blob Store به پروژه‌ی دیگری وصل است. آن را به همین پروژه وصل کنید. |
+| `Cannot find module '@vercel/blob'` | وابستگی نصب نشده. `npm install` بزنید و `package-lock.json` را کامیت کنید. |
+
+بعد از هر تغییر در Storage یا Environment Variables، حتماً **Redeploy** کنید —
+تغییرات روی Deploy فعلی اثر نمی‌گذارند.
+
+برای دیدن جزئیات کامل: داشبورد Vercel → **Deployments** → آخرین Deploy →
+تب **Logs** (بخش Functions).
+
 ### بعد از Deploy صفحه‌ی سفید یا خطای سرور می‌بینم
 
 - در داشبورد Vercel به **Deployments** → آخرین Deploy → تب **Functions**/**Logs**
