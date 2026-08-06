@@ -60,14 +60,40 @@ function isNotFound(err: any): boolean {
   return /BlobNotFound|not\s*found|does\s*not\s*exist|no\s*such|missing|404/i.test(msg);
 }
 
+/**
+ * Store ما Private است، پس همه‌ی خواندن/نوشتن‌ها با access: "private" انجام
+ * می‌شود و فایل‌ها بدون توکن از بیرون قابل خواندن نیستند.
+ *
+ * تایپ‌ها را اینجا خودمان تعریف می‌کنیم چون دسترسی private از @vercel/blob
+ * نسخه‌ی ۲.۳ به بعد اضافه شده و ممکن است نسخه‌ی نصب‌شده روی سیستم توسعه
+ * قدیمی‌تر باشد؛ نسخه‌ی واقعی از package.json روی ورسل نصب می‌شود.
+ */
+interface BlobGetResult {
+  statusCode: number;
+  stream: ReadableStream | null;
+}
+
+interface BlobSdk {
+  get(pathname: string, options: Record<string, unknown>): Promise<BlobGetResult | null>;
+  put(pathname: string, body: string, options: Record<string, unknown>): Promise<unknown>;
+}
+
+async function blobSdk(): Promise<BlobSdk> {
+  return (await import("@vercel/blob")) as unknown as BlobSdk;
+}
+
 async function blobRead<T>(pathname: string): Promise<T | null> {
-  const { head } = await import("@vercel/blob");
+  const { get } = await blobSdk();
   try {
-    const meta = await head(pathname, { token: BLOB_TOKEN });
-    // کش CDN را دور می‌زنیم تا همیشه آخرین نسخه خوانده شود
-    const res = await fetch(`${meta.url}?t=${Date.now()}`, { cache: "no-store" });
-    if (!res.ok) return null;
-    return (await res.json()) as T;
+    // useCache: false تا بعد از هر ذخیره، بلافاصله آخرین نسخه خوانده شود
+    const result = await get(pathname, {
+      access: "private",
+      token: BLOB_TOKEN,
+      useCache: false,
+    });
+    // فایل نیست → get مقدار null برمی‌گرداند (خطا پرت نمی‌کند)
+    if (!result || result.statusCode !== 200 || !result.stream) return null;
+    return (await new Response(result.stream).json()) as T;
   } catch (err: any) {
     if (isNotFound(err)) return null;
     throw err;
@@ -75,14 +101,15 @@ async function blobRead<T>(pathname: string): Promise<T | null> {
 }
 
 async function blobWrite(pathname: string, data: unknown): Promise<void> {
-  const { put } = await import("@vercel/blob");
+  const { put } = await blobSdk();
   await put(pathname, JSON.stringify(data), {
-    access: "public",
+    access: "private",
     token: BLOB_TOKEN,
     contentType: "application/json",
     addRandomSuffix: false,
     allowOverwrite: true,
-    cacheControlMaxAge: 0,
+    // cacheControlMaxAge نمی‌گذاریم؛ در نسخه‌ی ۲ کمتر از ۶۰ ثانیه مجاز نیست
+    // و تازگیِ خواندن را از طریق useCache: false تأمین می‌کنیم
   });
 }
 

@@ -46,9 +46,17 @@
 2. به تب **Storage** بروید
 3. روی **Create Database** کلیک کنید
 4. **Blob** را انتخاب کنید
-5. نامی برای آن انتخاب کنید (مثلاً `gold-accounting-storage`)
-6. **Create** کنید
-7. در پنجره‌ی **Connect Project**، پروژه‌ی فعلی برنامه را انتخاب کنید و **Connect** بزنید
+5. **Continue** بزنید و دسترسی را روی **Private** بگذارید
+6. نامی برای آن انتخاب کنید (مثلاً `gold-accounting-storage`)
+7. **Create** کنید
+8. در پنجره‌ی **Connect Project**، پروژه‌ی فعلی برنامه را انتخاب کنید و **Connect** بزنید
+
+> ⚠️ **حتماً Private را انتخاب کنید، نه Public.**
+> در حالت Public هر کسی که آدرس فایل را داشته باشد می‌تواند بدون رمز
+> محتوایش را بخواند. کد برنامه برای حالت Private نوشته شده و همه‌ی
+> خواندن/نوشتن‌ها با احراز هویت انجام می‌شود.
+> **این تنظیم بعد از ساخت Store قابل تغییر نیست** — اگر اشتباه ساختید،
+> Store را حذف کنید و از نو بسازید.
 
 با اتصال به پروژه، Vercel خودش متغیر `BLOB_READ_WRITE_TOKEN` را به پروژه اضافه می‌کند
 (لازم نیست دستی واردش کنید).
@@ -227,6 +235,8 @@ git push
 |---|---|
 | `This store does not exist` | توکن به یک Blob Store پاک‌شده یا اشتباه اشاره می‌کند. در **Storage** یک Blob بسازید و در **Connect Project** پروژه را وصل کنید. اگر `BLOB_READ_WRITE_TOKEN` را دستی وارد کرده‌اید، پاکش کنید تا Vercel خودش تزریقش کند. |
 | `Access denied` / `valid token` | Blob Store به پروژه‌ی دیگری وصل است. آن را به همین پروژه وصل کنید. |
+| `Cannot use public access on a private store` | نسخه‌ی قدیمی `@vercel/blob` نصب شده. این پکیج باید **۲.۳ یا بالاتر** باشد؛ دسترسی Private از آن نسخه به بعد پشتیبانی می‌شود. مقدار `@vercel/blob` در `package.json` را چک کنید. |
+| `The requested blob does not exist` | طبیعی است و خطا حساب نمی‌شود؛ یعنی Store خالی است. اگر باعث خطای ۵۰۰ شد، نسخه‌ی کد قدیمی است — آخرین تغییرات را push کنید. |
 | `Cannot find module '@vercel/blob'` | وابستگی نصب نشده. `npm install` بزنید و `package-lock.json` را کامیت کنید. |
 
 بعد از هر تغییر در Storage یا Environment Variables، حتماً **Redeploy** کنید —
