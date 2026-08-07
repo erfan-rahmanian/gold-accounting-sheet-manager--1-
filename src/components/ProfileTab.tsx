@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { UserCog, KeyRound, CheckCircle2, AlertCircle, Loader2, Save, ShieldCheck } from "lucide-react";
+import { UserGear, Key, CheckCircle, WarningCircle, CircleNotch, FloppyDisk, ShieldCheck } from "@phosphor-icons/react";
 import BrandIcon from "./BrandIcon";
 
 interface ProfileTabProps {
@@ -130,7 +130,7 @@ export default function ProfileTab({ username, onUsernameChanged }: ProfileTabPr
         {/* تغییر نام کاربری */}
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
           <div className="flex items-center gap-2 mb-4">
-            <UserCog className="w-4 h-4 text-amber-500 shrink-0" />
+            <UserGear className="w-4 h-4 text-amber-500 shrink-0" />
             <h3 className="text-xs font-black text-slate-900">تغییر نام کاربری</h3>
           </div>
 
@@ -166,14 +166,14 @@ export default function ProfileTab({ username, onUsernameChanged }: ProfileTabPr
 
             {usernameError && (
               <div className="flex items-start gap-2 p-3 bg-rose-50 border border-rose-200 rounded-xl text-[11px] font-bold text-rose-700 leading-relaxed">
-                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                <WarningCircle className="w-4 h-4 shrink-0 mt-0.5" />
                 <span>{usernameError}</span>
               </div>
             )}
 
             {usernameDone && (
               <div className="flex items-start gap-2 p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-[11px] font-bold text-emerald-700 leading-relaxed">
-                <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5" />
+                <CheckCircle className="w-4 h-4 shrink-0 mt-0.5" />
                 <span>نام کاربری با موفقیت تغییر کرد. از این به بعد با همین نام وارد شوید.</span>
               </div>
             )}
@@ -183,7 +183,7 @@ export default function ProfileTab({ username, onUsernameChanged }: ProfileTabPr
               disabled={usernameBusy || newUsername.trim() === username}
               className="w-full flex items-center justify-center gap-2 bg-amber-500 hover:bg-amber-400 disabled:opacity-60 disabled:cursor-not-allowed text-slate-950 font-extrabold py-3 rounded-xl text-xs cursor-pointer shadow-sm active:scale-[0.98] transition-all"
             >
-              {usernameBusy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+              {usernameBusy ? <CircleNotch className="w-4 h-4 animate-spin" /> : <FloppyDisk className="w-4 h-4" />}
               ذخیره نام کاربری
             </button>
           </form>
@@ -192,7 +192,7 @@ export default function ProfileTab({ username, onUsernameChanged }: ProfileTabPr
         {/* تغییر رمز عبور */}
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
           <div className="flex items-center gap-2 mb-4">
-            <KeyRound className="w-4 h-4 text-amber-500 shrink-0" />
+            <Key className="w-4 h-4 text-amber-500 shrink-0" />
             <h3 className="text-xs font-black text-slate-900">تغییر رمز عبور</h3>
           </div>
 
@@ -242,14 +242,14 @@ export default function ProfileTab({ username, onUsernameChanged }: ProfileTabPr
 
             {passwordError && (
               <div className="flex items-start gap-2 p-3 bg-rose-50 border border-rose-200 rounded-xl text-[11px] font-bold text-rose-700 leading-relaxed">
-                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                <WarningCircle className="w-4 h-4 shrink-0 mt-0.5" />
                 <span>{passwordError}</span>
               </div>
             )}
 
             {passwordDone && (
               <div className="flex items-start gap-2 p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-[11px] font-bold text-emerald-700 leading-relaxed">
-                <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5" />
+                <CheckCircle className="w-4 h-4 shrink-0 mt-0.5" />
                 <span>رمز عبور با موفقیت تغییر کرد.</span>
               </div>
             )}
@@ -259,7 +259,7 @@ export default function ProfileTab({ username, onUsernameChanged }: ProfileTabPr
               disabled={passwordBusy}
               className="w-full flex items-center justify-center gap-2 bg-amber-500 hover:bg-amber-400 disabled:opacity-60 disabled:cursor-not-allowed text-slate-950 font-extrabold py-3 rounded-xl text-xs cursor-pointer shadow-sm active:scale-[0.98] transition-all"
             >
-              {passwordBusy ? <Loader2 className="w-4 h-4 animate-spin" /> : <KeyRound className="w-4 h-4" />}
+              {passwordBusy ? <CircleNotch className="w-4 h-4 animate-spin" /> : <Key className="w-4 h-4" />}
               ذخیره رمز عبور
             </button>
           </form>

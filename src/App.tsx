@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { ShieldAlert, RefreshCw, Smartphone, Menu, X, LogOut } from "lucide-react";
+import { ShieldWarning, List, X, SignOut } from "@phosphor-icons/react";
 import { AppState, AppSettings, Transaction, SheetDoc } from "./types";
 import { formatCurrency, toPersianDigits } from "./utils";
 import DashboardTab from "./components/DashboardTab";
@@ -327,7 +327,7 @@ export default function App() {
   if (networkError || !appState) {
     return (
       <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col justify-center items-center p-6 text-center animate-fadeIn" dir="rtl">
-        <ShieldAlert className="w-12 h-12 text-rose-500 mb-4" />
+        <ShieldWarning className="w-12 h-12 text-rose-500 mb-4" />
         <p className="text-base font-bold text-rose-600 mb-3">{networkError || "کال بک دیتابیس با مشکل روبرو شد."}</p>
         <button
           onClick={() => fetchData(authUser)}
@@ -365,7 +365,7 @@ export default function App() {
                 className="p-2 bg-slate-100 hover:bg-slate-200 rounded-xl text-slate-700 transition-colors cursor-pointer mr-0.5 min-h-[40px] min-w-[40px] flex items-center justify-center border border-slate-200"
                 title="منوی اصلی"
               >
-                <Menu className="w-5 h-5" />
+                <List className="w-5 h-5" />
               </button>
 
               <div className="flex items-center gap-2">
@@ -435,7 +435,7 @@ export default function App() {
                     onClick={() => setMenuOpen(false)}
                     className="p-1.5 bg-slate-100 hover:bg-rose-100 text-slate-500 hover:text-rose-700 rounded-lg transition-all cursor-pointer min-h-[32px] min-w-[32px] flex items-center justify-center"
                   >
-                    <X className="w-4.5 h-4.5" />
+                    <X className="w-[18px] h-[18px]" />
                   </button>
                 </div>
 
@@ -493,7 +493,7 @@ export default function App() {
                   onClick={handleLogout}
                   className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-[11px] font-extrabold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 cursor-pointer transition-all active:scale-95"
                 >
-                  <LogOut className="w-3.5 h-3.5" />
+                  <SignOut className="w-3.5 h-3.5" />
                   خروج از حساب
                 </button>
                 <div className="text-center text-[10px] text-slate-400 font-bold pt-1">

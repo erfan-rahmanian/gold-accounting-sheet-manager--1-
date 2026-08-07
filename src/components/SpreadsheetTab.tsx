@@ -1,8 +1,8 @@
 import React, { useState, useMemo, useRef, useEffect, useCallback } from "react";
 import {
-  Plus, Trash2, Undo2, Redo2, Bold, Download, Sigma, X, Save, Palette, Upload, Pencil,
-  SquareDashed, MoreHorizontal, ChevronUp
-} from "lucide-react";
+  Plus, Trash, ArrowUUpLeft, ArrowUUpRight, TextB, DownloadSimple, Sigma, X, FloppyDisk, Palette, UploadSimple, PencilSimple,
+  Selection, DotsThree, CaretUp
+} from "@phosphor-icons/react";
 import BrandIcon from "./BrandIcon";
 import { SheetDoc, SheetCell } from "../types";
 import {
@@ -765,12 +765,12 @@ export default function SpreadsheetTab({ sheets: initialSheets, onChange }: Prop
           <div className="flex items-center gap-2">
             {saveState === "saving" && (
               <span className="text-[10px] font-bold text-amber-600 bg-amber-50 px-2 py-1 rounded-lg flex items-center gap-1">
-                <Save className="w-3 h-3" /> در حال ذخیره...
+                <FloppyDisk className="w-3 h-3" /> در حال ذخیره...
               </span>
             )}
             {saveState === "saved" && (
               <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-lg flex items-center gap-1">
-                <Save className="w-3 h-3" /> ذخیره شد
+                <FloppyDisk className="w-3 h-3" /> ذخیره شد
               </span>
             )}
           </div>
@@ -780,13 +780,13 @@ export default function SpreadsheetTab({ sheets: initialSheets, onChange }: Prop
         <div className="space-y-1.5">
           <div className="flex flex-wrap items-center gap-1.5">
             <button className={btnGray} onClick={undo} disabled={!past.length} title="واگرد (Ctrl+Z)">
-              <Undo2 className="w-3.5 h-3.5" />
+              <ArrowUUpLeft className="w-3.5 h-3.5" />
             </button>
             <button className={btnGray} onClick={redo} disabled={!future.length} title="ازنو (Ctrl+Y)">
-              <Redo2 className="w-3.5 h-3.5" />
+              <ArrowUUpRight className="w-3.5 h-3.5" />
             </button>
             <button className={btnGray} onClick={toggleBold} title="درشت (Ctrl+B)">
-              <Bold className="w-3.5 h-3.5" />
+              <TextB className="w-3.5 h-3.5" />
             </button>
 
             <div className="relative">
@@ -826,7 +826,7 @@ export default function SpreadsheetTab({ sheets: initialSheets, onChange }: Prop
               onClick={() => setRangeMode(v => !v)}
               title="انتخاب محدوده با کشیدن انگشت"
             >
-              <SquareDashed className="w-3.5 h-3.5" />
+              <Selection className="w-3.5 h-3.5" />
               <span className="md:hidden">انتخاب</span>
             </button>
 
@@ -835,7 +835,7 @@ export default function SpreadsheetTab({ sheets: initialSheets, onChange }: Prop
               onClick={() => setShowMore(v => !v)}
               title="ابزارهای بیشتر"
             >
-              {showMore ? <ChevronUp className="w-3.5 h-3.5" /> : <MoreHorizontal className="w-3.5 h-3.5" />}
+              {showMore ? <CaretUp className="w-3.5 h-3.5" /> : <DotsThree className="w-3.5 h-3.5" />}
               {showMore ? "بستن" : "بیشتر"}
             </button>
           </div>
@@ -856,10 +856,10 @@ export default function SpreadsheetTab({ sheets: initialSheets, onChange }: Prop
               <Plus className="w-3.5 h-3.5" /> ستون
             </button>
             <button className={btnGray} onClick={deleteRows} title="حذف ردیف‌های انتخابی">
-              <Trash2 className="w-3.5 h-3.5" /> ردیف
+              <Trash className="w-3.5 h-3.5" /> ردیف
             </button>
             <button className={btnGray} onClick={deleteCols} title="حذف ستون‌های انتخابی">
-              <Trash2 className="w-3.5 h-3.5" /> ستون
+              <Trash className="w-3.5 h-3.5" /> ستون
             </button>
             <button className={btnGray} onClick={() => addRows(10)}>+۱۰ ردیف</button>
             <button className={btnGray} onClick={() => addCols(3)}>+۳ ستون</button>
@@ -867,10 +867,10 @@ export default function SpreadsheetTab({ sheets: initialSheets, onChange }: Prop
             <span className="w-px h-6 bg-slate-200 mx-1" />
 
             <button className={btnGray} onClick={exportCSV} title="خروجی برای اکسل">
-              <Download className="w-3.5 h-3.5" /> خروجی CSV
+              <DownloadSimple className="w-3.5 h-3.5" /> خروجی CSV
             </button>
             <button className={btnGray} onClick={() => fileRef.current?.click()} title="ورود فایل CSV">
-              <Upload className="w-3.5 h-3.5" /> ورود CSV
+              <UploadSimple className="w-3.5 h-3.5" /> ورود CSV
             </button>
           </div>
 
@@ -1093,7 +1093,7 @@ export default function SpreadsheetTab({ sheets: initialSheets, onChange }: Prop
                     className="opacity-60 hover:opacity-100 hover:text-blue-700"
                     title="تغییر نام برگه"
                   >
-                    <Pencil className="w-3 h-3" />
+                    <PencilSimple className="w-3 h-3" />
                   </button>
                   <button
                     onClick={e => { e.stopPropagation(); removeSheet(s.id); }}

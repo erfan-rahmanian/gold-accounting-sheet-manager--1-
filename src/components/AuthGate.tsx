@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { LogIn, UserPlus, Loader2, AlertCircle, KeyRound } from "lucide-react";
+import { SignIn, UserPlus, CircleNotch, WarningCircle, Key } from "@phosphor-icons/react";
 
 interface AuthGateProps {
   /** آیا ساخت حساب جدید در حال حاضر مجاز است */
@@ -106,7 +106,7 @@ export default function AuthGate({
 
           {mode === "register" && !canRegister ? (
             <div className="flex items-start gap-2 p-3 bg-amber-50 border border-amber-200 rounded-xl text-[11px] font-bold text-amber-800 leading-relaxed">
-              <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+              <WarningCircle className="w-4 h-4 shrink-0 mt-0.5" />
               <span>{signupReason || "ساخت حساب جدید در حال حاضر بسته است."}</span>
             </div>
           ) : (
@@ -144,7 +144,7 @@ export default function AuthGate({
               {mode === "register" && signupNeedsCode && (
                 <div>
                   <label className="flex items-center gap-1.5 text-[11px] font-extrabold text-slate-700 mb-1.5">
-                    <KeyRound className="w-3.5 h-3.5 text-amber-500" />
+                    <Key className="w-3.5 h-3.5 text-amber-500" />
                     کد دعوت
                   </label>
                   <input
@@ -162,7 +162,7 @@ export default function AuthGate({
 
               {error && (
                 <div className="flex items-start gap-2 p-3 bg-rose-50 border border-rose-200 rounded-xl text-[11px] font-bold text-rose-700 leading-relaxed">
-                  <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                  <WarningCircle className="w-4 h-4 shrink-0 mt-0.5" />
                   <span>{error}</span>
                 </div>
               )}
@@ -173,9 +173,9 @@ export default function AuthGate({
                 className="w-full flex items-center justify-center gap-2 bg-amber-500 hover:bg-amber-400 disabled:opacity-60 disabled:cursor-not-allowed text-slate-950 font-extrabold py-3 rounded-xl text-xs cursor-pointer shadow-sm active:scale-[0.98] transition-all"
               >
                 {busy ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <CircleNotch className="w-4 h-4 animate-spin" />
                 ) : mode === "login" ? (
-                  <LogIn className="w-4 h-4" />
+                  <SignIn className="w-4 h-4" />
                 ) : (
                   <UserPlus className="w-4 h-4" />
                 )}

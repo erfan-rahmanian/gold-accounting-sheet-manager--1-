@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Plus, Trash2, ShoppingBag, Users, Coins as CoinIcon, CheckCircle2, RotateCcw, Save, X } from "lucide-react";
+import { Plus, Trash, ShoppingBag, Users, Coins as CoinIcon, CheckCircle, ArrowCounterClockwise, FloppyDisk, X } from "@phosphor-icons/react";
 import { AppSettings, Shop, Coin, Person } from "../types";
 import { formatCurrency, formatWeight, toPersianDigits, formatInputWithCommas } from "../utils";
 import BrandIcon from "./BrandIcon";
@@ -213,7 +213,7 @@ export default function SettingsTab({ settings, onUpdateSettings }: SettingsTabP
         <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
           {saveSuccess && (
             <span className="text-[11px] text-emerald-600 flex items-center gap-1 font-bold ml-2">
-              <CheckCircle2 className="w-4 h-4 stroke-[2.5]" /> ذخیره شد
+              <CheckCircle className="w-4 h-4 stroke-[2.5]" /> ذخیره شد
             </span>
           )}
         </div>
@@ -231,7 +231,7 @@ export default function SettingsTab({ settings, onUpdateSettings }: SettingsTabP
               onClick={handleResetCoinWeights}
               className="text-[11px] font-bold text-amber-600 hover:text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-xl px-3 py-1.5 flex items-center gap-1.5 cursor-pointer transition-all"
             >
-              <RotateCcw className="w-3.5 h-3.5" />
+              <ArrowCounterClockwise className="w-3.5 h-3.5" />
               بازگشت به وزن پیش‌فرض
             </button>
           </div>
@@ -260,7 +260,7 @@ export default function SettingsTab({ settings, onUpdateSettings }: SettingsTabP
                         className="text-emerald-500 hover:bg-emerald-100 p-1.5 rounded-lg transition-colors cursor-pointer"
                         title="ذخیره"
                       >
-                        <Save className="w-3.5 h-3.5" />
+                        <FloppyDisk className="w-3.5 h-3.5" />
                       </button>
                       <button
                         onClick={handleCancelEditCoin}
@@ -365,7 +365,7 @@ export default function SettingsTab({ settings, onUpdateSettings }: SettingsTabP
                           onClick={() => handleRemoveShop(shop.id)}
                           className="text-rose-500 hover:text-white border border-rose-100 hover:border-rose-500 bg-rose-50 hover:bg-rose-500 p-1.5 rounded-lg transition-all cursor-pointer"
                         >
-                          <Trash2 className="w-3.5 h-3.5" />
+                          <Trash className="w-3.5 h-3.5" />
                         </button>
                       </td>
                     </tr>
@@ -499,7 +499,7 @@ export default function SettingsTab({ settings, onUpdateSettings }: SettingsTabP
                               className="text-emerald-600 hover:bg-emerald-100 p-1.5 rounded-lg transition-colors cursor-pointer"
                               title="ذخیره"
                             >
-                              <Save className="w-3.5 h-3.5" />
+                              <FloppyDisk className="w-3.5 h-3.5" />
                             </button>
                             <button
                               onClick={handleCancelEditPerson}
@@ -522,14 +522,14 @@ export default function SettingsTab({ settings, onUpdateSettings }: SettingsTabP
                               className="text-amber-600 hover:bg-amber-100 p-1.5 rounded-lg transition-colors cursor-pointer"
                               title="ویرایش"
                             >
-                              <Save className="w-3.5 h-3.5" />
+                              <FloppyDisk className="w-3.5 h-3.5" />
                             </button>
                             <button
                               onClick={() => handleRemovePerson(p.id)}
                               className="text-rose-500 hover:bg-rose-100 p-1.5 rounded-lg transition-colors cursor-pointer"
                               title="حذف"
                             >
-                              <Trash2 className="w-3.5 h-3.5" />
+                              <Trash className="w-3.5 h-3.5" />
                             </button>
                           </td>
                         </>

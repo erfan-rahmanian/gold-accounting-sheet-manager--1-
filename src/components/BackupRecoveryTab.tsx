@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Download, Upload, FileSpreadsheet, CheckCircle2, AlertTriangle, RefreshCw, GitMerge } from "lucide-react";
+import { DownloadSimple, UploadSimple, FileXls, CheckCircle, Warning, ArrowsClockwise, GitMerge } from "@phosphor-icons/react";
 import { AppState, Transaction, Shop, Person, Coin, SheetDoc } from "../types";
 import { formatCurrency, formatWeight, toPersianDigits } from "../utils";
 import BrandIcon from "./BrandIcon";
@@ -357,14 +357,14 @@ export default function BackupRecoveryTab({ appState, onRestoreState }: BackupRe
       {/* Trigger messages */}
       {successMsg && (
         <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-2xl p-4 flex items-center gap-3 text-xs font-bold animate-fadeIn">
-          <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+          <CheckCircle className="w-5 h-5 text-emerald-600 shrink-0" />
           <span>{successMsg}</span>
         </div>
       )}
 
       {errorMsg && (
         <div className="bg-rose-50 border border-rose-200 text-rose-800 rounded-2xl p-4 flex items-center gap-3 text-xs font-bold animate-fadeIn">
-          <AlertTriangle className="w-5 h-5 text-rose-600 shrink-0" />
+          <Warning className="w-5 h-5 text-rose-600 shrink-0" />
           <span>{errorMsg}</span>
         </div>
       )}
@@ -373,7 +373,7 @@ export default function BackupRecoveryTab({ appState, onRestoreState }: BackupRe
         {/* Export backups panel */}
         <div className="bg-white border border-slate-200 rounded-3xl p-5 md:p-6 shadow-sm space-y-4">
           <h3 className="text-xs font-extrabold text-slate-800 border-b border-slate-100 pb-3 flex items-center gap-2">
-            <Download className="w-4.5 h-4.5 text-amber-500" />
+            <DownloadSimple className="w-[18px] h-[18px] text-amber-500" />
             تهیه نسخه پشتیبان (خروجی گرفتن)
           </h3>
 
@@ -387,7 +387,7 @@ export default function BackupRecoveryTab({ appState, onRestoreState }: BackupRe
                 <span className="font-extrabold text-slate-800 block text-xs">دانلود بک‌آپ اکسل (فرمت CSV)</span>
                 <span className="text-[10px] text-slate-400 font-medium">مناسب بارگذاری مستقیم در مایکروسافت اکسل</span>
               </div>
-              <FileSpreadsheet className="w-5 h-5 text-amber-600 shrink-0" />
+              <FileXls className="w-5 h-5 text-amber-600 shrink-0" />
             </button>
 
             {/* JSON Full Backup */}
@@ -399,7 +399,7 @@ export default function BackupRecoveryTab({ appState, onRestoreState }: BackupRe
                 <span className="font-extrabold text-slate-800 block text-xs">دانلود بک‌آپ کامل نرم‌افزار (.json)</span>
                 <span className="text-[10px] text-slate-400 font-medium">شامل تنظیمات اولیه غرفه‌ها، اشخاص، کل اسناد و برگه‌های صفحه‌گسترده (اکسل داخلی)</span>
               </div>
-              <Download className="w-5 h-5 text-slate-600 shrink-0" />
+              <DownloadSimple className="w-5 h-5 text-slate-600 shrink-0" />
             </button>
           </div>
         </div>
@@ -407,7 +407,7 @@ export default function BackupRecoveryTab({ appState, onRestoreState }: BackupRe
         {/* Restore backup panel */}
         <div className="bg-white border border-slate-200 rounded-3xl p-5 md:p-6 shadow-sm space-y-4">
           <h3 className="text-xs font-extrabold text-slate-800 border-b border-slate-100 pb-3 flex items-center gap-2">
-            <Upload className="w-4.5 h-4.5 text-amber-500" />
+            <UploadSimple className="w-[18px] h-[18px] text-amber-500" />
             بازیابی اطلاعات (وارد کردن بک‌آپ)
           </h3>
 
@@ -438,7 +438,7 @@ export default function BackupRecoveryTab({ appState, onRestoreState }: BackupRe
                     : "border-slate-200 bg-slate-50 text-slate-500 hover:border-slate-300"
                 }`}
               >
-                <RefreshCw className={`w-4 h-4 ${importMode === "replace" ? "text-rose-500" : "text-slate-400"}`} />
+                <ArrowsClockwise className={`w-4 h-4 ${importMode === "replace" ? "text-rose-500" : "text-slate-400"}`} />
                 <span className="text-[10px] font-extrabold">جایگزینی کامل</span>
                 <span className="text-[9px] font-medium leading-tight">همه داده‌ها بازنویسی می‌شن</span>
               </button>
@@ -452,7 +452,7 @@ export default function BackupRecoveryTab({ appState, onRestoreState }: BackupRe
               </div>
             ) : (
               <div className="bg-rose-50 p-3 border border-rose-100 rounded-xl flex gap-2">
-                <AlertTriangle className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
+                <Warning className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
                 <div className="text-[10px] text-rose-700 leading-relaxed font-semibold">
                   <span className="font-extrabold block mb-1">هشدار: جایگزینی کامل</span>
                   تمام اسناد موجود پاک و با فایل بک‌آپ جایگزین می‌شن. این عمل برگشت‌پذیر نیست.
@@ -463,9 +463,9 @@ export default function BackupRecoveryTab({ appState, onRestoreState }: BackupRe
             <div className="relative">
               <label className="flex flex-col items-center justify-center p-6 bg-slate-50 border border-dashed border-slate-300 rounded-2xl hover:border-amber-500 hover:bg-amber-500/5 transition-all cursor-pointer">
                 {loading ? (
-                  <RefreshCw className="w-8 h-8 text-amber-600 animate-spin" />
+                  <ArrowsClockwise className="w-8 h-8 text-amber-600 animate-spin" />
                 ) : (
-                  <Upload className="w-8 h-8 text-slate-400 mb-2" />
+                  <UploadSimple className="w-8 h-8 text-slate-400 mb-2" />
                 )}
                 <span className="text-xs font-extrabold text-slate-800">انتخاب فایل پشتیبان (.json)</span>
                 <span className="text-[9.5px] text-slate-400 font-medium mt-1">یا فایل را به این بخش بکشید و رها کنید</span>

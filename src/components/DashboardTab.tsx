@@ -1,5 +1,5 @@
 import React from "react";
-import { Coins, TrendingUp, Landmark, Activity } from "lucide-react";
+import { Coins, TrendUp, Bank, Pulse } from "@phosphor-icons/react";
 import { AppSettings, Transaction } from "../types";
 import { formatCurrency, formatWeight, toPersianDigits } from "../utils";
 import { EmptyRow } from "./EmptyState";
@@ -50,7 +50,7 @@ export default function DashboardTab({ settings, transactions }: DashboardTabPro
           <div className="flex items-center justify-between mb-1.5">
             <span className="text-[11px] md:text-xs font-semibold text-slate-500">موجودی کل ریال</span>
             <div className="p-1.5 md:p-2 bg-emerald-600/10 text-emerald-600 rounded-xl">
-              <Landmark className="w-4 h-4 md:w-5 md:h-5" />
+              <Bank className="w-4 h-4 md:w-5 md:h-5" />
             </div>
           </div>
           <div className="text-base md:text-xl font-extrabold font-sans text-emerald-600 tracking-tight">
@@ -66,7 +66,7 @@ export default function DashboardTab({ settings, transactions }: DashboardTabPro
           <div className="flex items-center justify-between mb-1.5">
             <span className="text-[11px] md:text-xs font-semibold text-slate-500">کل سود و زیان (ریال)</span>
             <div className={`p-1.5 md:p-2 rounded-xl ${totalProfit >= 0 ? "bg-emerald-600/10 text-emerald-600" : "bg-rose-600/10 text-rose-600"}`}>
-              <TrendingUp className="w-4 h-4 md:w-5 md:h-5" />
+              <TrendUp className="w-4 h-4 md:w-5 md:h-5" />
             </div>
           </div>
           <div className={`text-base md:text-xl font-extrabold font-sans ${totalProfit >= 0 ? "text-emerald-600" : "text-rose-600"} tracking-tight`}>
@@ -80,7 +80,7 @@ export default function DashboardTab({ settings, transactions }: DashboardTabPro
           <div className="flex items-center justify-between mb-1.5">
             <span className="text-[11px] md:text-xs font-semibold text-slate-500">تعداد کل تراکنش‌ها</span>
             <div className="p-1.5 md:p-2 bg-blue-600/10 text-blue-600 rounded-xl">
-              <Activity className="w-4 h-4 md:w-5 md:h-5" />
+              <Pulse className="w-4 h-4 md:w-5 md:h-5" />
             </div>
           </div>
           <div className="text-base md:text-xl font-extrabold font-sans text-blue-600 tracking-tight">

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Users, ShoppingBag, X, Printer, Search, ArrowLeftRight, CheckCircle2, Save, Trash2, Calculator, RotateCcw } from "lucide-react";
+import { Users, ShoppingBag, X, Printer, MagnifyingGlass, ArrowsLeftRight, CheckCircle, FloppyDisk, Trash, Calculator, ArrowCounterClockwise } from "@phosphor-icons/react";
 import { AppSettings, Transaction } from "../types";
 import { formatCurrency, formatWeight, toPersianDigits, formatInputWithCommas } from "../utils";
 import { EmptyRow } from "./EmptyState";
@@ -493,7 +493,7 @@ export default function ReportsTab({ settings, transactions, onUpdateSettings }:
               : "text-slate-500 hover:text-slate-800"
           }`}
         >
-          <ArrowLeftRight className="w-3.5 h-3.5 text-amber-600" />
+          <ArrowsLeftRight className="w-3.5 h-3.5 text-amber-600" />
           معاملات روزانه
         </button>
       </div>
@@ -692,7 +692,7 @@ export default function ReportsTab({ settings, transactions, onUpdateSettings }:
                               className="text-emerald-600 hover:bg-emerald-100 p-1.5 rounded-lg transition-colors cursor-pointer"
                               title="ذخیره"
                             >
-                              <Save className="w-3.5 h-3.5" />
+                              <FloppyDisk className="w-3.5 h-3.5" />
                             </button>
                             <button
                               onClick={(e) => { e.stopPropagation(); handleCancelEditPerson(); }}
@@ -709,7 +709,7 @@ export default function ReportsTab({ settings, transactions, onUpdateSettings }:
                               className="text-amber-600 hover:bg-amber-100 p-1.5 rounded-lg transition-colors cursor-pointer"
                               title="ویرایش"
                             >
-                              <Save className="w-3.5 h-3.5" />
+                              <FloppyDisk className="w-3.5 h-3.5" />
                             </button>
                             <button
                               onClick={(e) => {
@@ -721,7 +721,7 @@ export default function ReportsTab({ settings, transactions, onUpdateSettings }:
                               className="text-rose-500 hover:bg-rose-100 p-1.5 rounded-lg transition-colors cursor-pointer"
                               title="حذف"
                             >
-                              <Trash2 className="w-3.5 h-3.5" />
+                              <Trash className="w-3.5 h-3.5" />
                             </button>
                           </div>
                         )}
@@ -741,7 +741,7 @@ export default function ReportsTab({ settings, transactions, onUpdateSettings }:
           <div className="flex flex-col sm:flex-row justify-between sm:items-center border-b border-slate-100 pb-3 gap-2">
             <div>
               <h3 className="text-sm font-extrabold text-slate-900 flex items-center gap-2">
-                <ArrowLeftRight className="w-4 h-4 text-amber-500" />
+                <ArrowsLeftRight className="w-4 h-4 text-amber-500" />
                 دفتر معاملات خرید و فروش طلا به تفکیک روز
               </h3>
               <p className="text-[10px] text-slate-500 mt-1 font-semibold font-sans">
@@ -762,7 +762,7 @@ export default function ReportsTab({ settings, transactions, onUpdateSettings }:
                 onClick={handleResetDistribution}
                 className="text-slate-500 hover:text-rose-700 bg-white border border-slate-200 hover:border-rose-300 text-[10px] font-extrabold px-3 py-1.5 rounded-xl cursor-pointer transition-all inline-flex items-center gap-1 self-start sm:self-center"
               >
-                <RotateCcw className="w-3 h-3" />
+                <ArrowCounterClockwise className="w-3 h-3" />
                 پاک کردن فرم
               </button>
             </div>
@@ -839,7 +839,7 @@ export default function ReportsTab({ settings, transactions, onUpdateSettings }:
                     className="text-rose-500 hover:text-white border border-rose-100 hover:border-rose-500 bg-rose-50 hover:bg-rose-500 p-2 rounded-xl cursor-pointer transition-all inline-flex items-center justify-center shrink-0 disabled:opacity-40 disabled:cursor-not-allowed h-[42px] w-[42px]"
                     title="حذف ردیف"
                   >
-                    <Trash2 className="w-3.5 h-3.5" />
+                    <Trash className="w-3.5 h-3.5" />
                   </button>
                 </div>
               ))}
@@ -857,7 +857,7 @@ export default function ReportsTab({ settings, transactions, onUpdateSettings }:
                 onClick={handleCalcDistribution}
                 className="bg-amber-500 text-slate-950 font-extrabold px-6 py-3 rounded-2xl text-xs hover:bg-amber-400 cursor-pointer transition-all flex items-center gap-2 shadow-sm shadow-amber-500/20 active:scale-[0.98] min-h-[44px]"
               >
-                <CheckCircle2 className="w-4 h-4 stroke-[2.5]" />
+                <CheckCircle className="w-4 h-4 stroke-[2.5]" />
                 تایید و محاسبه سهم سود اشخاص
               </button>
             </div>
@@ -1102,7 +1102,7 @@ export default function ReportsTab({ settings, transactions, onUpdateSettings }:
             
             {/* Quick in-ledger search */}
             <div className="mt-4 relative max-w-xs no-print">
-              <Search className="w-4 h-4 text-slate-400 absolute right-3 top-3" />
+              <MagnifyingGlass className="w-4 h-4 text-slate-400 absolute right-3 top-3" />
               <input 
                 type="text" 
                 placeholder="جستجوی سریع درون صورت‌حساب..." 
@@ -1202,7 +1202,7 @@ export default function ReportsTab({ settings, transactions, onUpdateSettings }:
           {activeLedgerData.length > 0 && (
             <div className="border-t-4 border-double border-slate-950 pt-5 mt-4 space-y-3 bg-slate-50 p-5 rounded-2xl border border-slate-200">
               <h4 className="text-xs font-black text-slate-900 border-b border-slate-200 pb-2 flex items-center gap-2">
-                <ArrowLeftRight className="w-4 h-4 text-amber-500" />
+                <ArrowsLeftRight className="w-4 h-4 text-amber-500" />
                 جمع نهایی تراز کل صورت‌حساب معین (طرف همکار)
               </h4>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-bold font-mono">

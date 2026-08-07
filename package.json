@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@majidh1/jalalidatepicker": "^0.9.12",
+    "@phosphor-icons/react": "^2.1.10",
     "@vercel/blob": "^2.7.0",
     "@vitejs/plugin-react": "^4.7.0",
     "dotenv": "^17.2.3",

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Plus, Search, Filter, CheckCircle2, Tag, Trash2 } from "lucide-react";
+import { Plus, MagnifyingGlass, CheckCircle, Tag, Trash } from "@phosphor-icons/react";
 import { AppSettings, Transaction, TRANSACTION_TYPES } from "../types";
 import { EmptyState } from "./EmptyState";
 import BrandIcon from "./BrandIcon";
@@ -157,7 +157,7 @@ export default function TransactionsTab({
         <div className="grid grid-cols-1 items-center gap-3 w-full text-xs">
           {/* Quick Search */}
           <div className="relative w-full">
-            <Search className="w-4 h-4 text-slate-400 absolute right-3.5 top-3.5" />
+            <MagnifyingGlass className="w-4 h-4 text-slate-400 absolute right-3.5 top-3.5" />
             <input
               type="text"
               placeholder="جستجو در نام شخص، توضیحات..."
@@ -392,7 +392,7 @@ export default function TransactionsTab({
               type="submit"
               className="bg-amber-500 text-slate-950 font-extrabold px-8 py-3.5 rounded-2xl text-xs hover:bg-amber-400 cursor-pointer transition-all flex items-center gap-2 shadow-sm shadow-amber-500/20 active:scale-[0.98] min-h-[44px]"
             >
-              <CheckCircle2 className="w-4 h-4 stroke-[2.5]" />
+              <CheckCircle className="w-4 h-4 stroke-[2.5]" />
               ثبت نهایی و سند زدن در دفتر حسابداری طلا
             </button>
           </div>
@@ -481,7 +481,7 @@ export default function TransactionsTab({
                           className="text-rose-500 hover:text-white border border-rose-100 hover:border-rose-500 bg-rose-50 hover:bg-rose-500 p-1.5 rounded-lg cursor-pointer transition-all inline-flex items-center justify-center"
                           title="حذف سند"
                         >
-                          <Trash2 className="w-3.5 h-3.5" />
+                          <Trash className="w-3.5 h-3.5" />
                         </button>
                       </td>
                     )}
