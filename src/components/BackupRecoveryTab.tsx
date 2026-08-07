@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Download, Upload, FileSpreadsheet, CheckCircle2, AlertTriangle, RefreshCw, GitMerge } from "lucide-react";
 import { AppState, Transaction, Shop, Person, Coin, SheetDoc } from "../types";
 import { formatCurrency, formatWeight, toPersianDigits } from "../utils";
+import BrandIcon from "./BrandIcon";
 
 interface BackupRecoveryTabProps {
   appState: AppState;
@@ -345,7 +346,7 @@ export default function BackupRecoveryTab({ appState, onRestoreState }: BackupRe
       {/* Introduction Banner with Premium Golden Highlights */}
       <div className="bg-white border border-slate-200 rounded-3xl p-5 shadow-sm space-y-3">
         <h2 className="text-sm font-extrabold text-slate-900 flex items-center gap-2">
-          <FileSpreadsheet className="w-5 h-5 text-amber-500" />
+          <BrandIcon name="backup" size={22} />
           مرکز پشتیبان‌گیری و بازیابی دفاتر حسابداری طلا
         </h2>
         <p className="text-xs text-slate-500 leading-relaxed font-semibold">

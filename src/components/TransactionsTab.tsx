@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { Plus, Search, Filter, Coins, CheckCircle2, Tag, Trash2 } from "lucide-react";
+import { Plus, Search, Filter, CheckCircle2, Tag, Trash2 } from "lucide-react";
 import { AppSettings, Transaction, TRANSACTION_TYPES } from "../types";
 import { EmptyState } from "./EmptyState";
+import BrandIcon from "./BrandIcon";
 import { calculateTransactionFields, formatCurrency, formatWeight, getTodayJalali, toPersianDigits, formatInputWithCommas } from "../utils";
 
 declare global {
@@ -181,7 +182,7 @@ export default function TransactionsTab({
       {showAddForm && (
         <form onSubmit={handleSubmit} className="bg-white border border-slate-200 rounded-3xl p-5 md:p-6 shadow-md text-xs space-y-4 max-w-4xl mx-auto animate-fadeIn">
           <h3 className="text-sm font-extrabold text-slate-900 border-b border-slate-100 pb-3 flex items-center gap-2">
-            <Coins className="w-4.5 h-4.5 text-amber-500" />
+            <BrandIcon name="transaction" size={20} />
             سند جدید حسابداری طلا
           </h3>
 
@@ -401,7 +402,7 @@ export default function TransactionsTab({
       {/* Main ledger journal table */}
       <div className="bg-white border border-slate-200 rounded-3xl shadow-sm overflow-hidden p-4 md:p-6">
         <h3 className="text-sm font-extrabold text-slate-905 text-slate-900 mb-4 flex items-center gap-2 border-b border-slate-100 pb-3">
-          <Coins className="w-5 h-5 text-amber-500" />
+          <BrandIcon name="transaction" size={22} />
           ریزمجموعه اسناد حسابداری دفتر طلا
         </h3>
 

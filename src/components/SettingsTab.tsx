@@ -1,7 +1,8 @@
 import React, { useState } from "react";
-import { Settings, Plus, Trash2, ShoppingBag, Users, Coins as CoinIcon, CheckCircle2, RotateCcw, Save, X } from "lucide-react";
+import { Plus, Trash2, ShoppingBag, Users, Coins as CoinIcon, CheckCircle2, RotateCcw, Save, X } from "lucide-react";
 import { AppSettings, Shop, Coin, Person } from "../types";
 import { formatCurrency, formatWeight, toPersianDigits, formatInputWithCommas } from "../utils";
+import BrandIcon from "./BrandIcon";
 
 const DEFAULT_COINS: Coin[] = [
   { name: "سکه 86", weight: 9.756 },
@@ -200,8 +201,8 @@ export default function SettingsTab({ settings, onUpdateSettings }: SettingsTabP
       {/* Top action header for saving */}
       <div className="bg-white border border-slate-200 rounded-3xl p-4 md:p-5 flex flex-col sm:flex-row justify-between items-center gap-4 shadow-sm">
         <div className="flex items-center gap-3">
-          <div className="p-2.5 bg-amber-500/10 text-amber-600 rounded-2xl">
-            <Settings className="w-6 h-6 stroke-[2]" />
+          <div className="p-2 bg-amber-500/10 rounded-2xl shrink-0">
+            <BrandIcon name="settings" size={26} />
           </div>
           <div>
             <h2 className="text-sm font-extrabold text-slate-900">تنظیمات پایه دفاتر حسابداری</h2>

@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { UserCog, KeyRound, CheckCircle2, AlertCircle, Loader2, Save, ShieldCheck } from "lucide-react";
+import BrandIcon from "./BrandIcon";
 
 interface ProfileTabProps {
   /** نام کاربری فعلی */
@@ -103,8 +104,8 @@ export default function ProfileTab({ username, onUsernameChanged }: ProfileTabPr
     <div className="space-y-5 animate-fadeIn" dir="rtl">
       {/* سربرگ */}
       <div className="flex items-center gap-2.5">
-        <div className="w-9 h-9 bg-amber-500/15 border border-amber-200 rounded-xl flex items-center justify-center text-amber-600 shrink-0">
-          <UserCog className="w-4.5 h-4.5" />
+        <div className="w-9 h-9 bg-amber-500/15 border border-amber-200 rounded-xl flex items-center justify-center shrink-0">
+          <BrandIcon name="profile" size={22} />
         </div>
         <div>
           <h2 className="text-sm font-black text-slate-900 leading-none mb-1">پروفایل و تنظیمات حساب</h2>

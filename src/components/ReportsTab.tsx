@@ -1,8 +1,9 @@
 import React, { useState } from "react";
-import { Users, ShoppingBag, FileText, X, Printer, Search, ArrowLeftRight, CheckCircle2, Save, Trash2, Calculator, RotateCcw } from "lucide-react";
+import { Users, ShoppingBag, X, Printer, Search, ArrowLeftRight, CheckCircle2, Save, Trash2, Calculator, RotateCcw } from "lucide-react";
 import { AppSettings, Transaction } from "../types";
 import { formatCurrency, formatWeight, toPersianDigits, formatInputWithCommas } from "../utils";
 import { EmptyRow } from "./EmptyState";
+import BrandIcon from "./BrandIcon";
 
 interface ReportsTabProps {
   settings: AppSettings;
@@ -1049,7 +1050,7 @@ export default function ReportsTab({ settings, transactions, onUpdateSettings }:
             <div className="flex flex-col sm:flex-row justify-between items-center gap-4 text-center sm:text-right">
               <div>
                 <h2 className="text-base md:text-lg font-black text-slate-900 flex items-center gap-2 justify-center sm:justify-start">
-                  <FileText className="w-5 h-5 text-amber-500 no-print" />
+                  <BrandIcon name="reports" size={22} className="no-print" />
                   صورت‌حساب معین طلا و ریال: {selectedPerson || selectedShop}
                 </h2>
                 <p className="text-[10px] text-slate-500 mt-1.5 font-bold leading-relaxed no-print">

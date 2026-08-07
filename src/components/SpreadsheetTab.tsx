@@ -1,8 +1,9 @@
 import React, { useState, useMemo, useRef, useEffect, useCallback } from "react";
 import {
-  Table2, Plus, Trash2, Undo2, Redo2, Bold, Download, Sigma, X, Save, Palette, Upload, Pencil,
+  Plus, Trash2, Undo2, Redo2, Bold, Download, Sigma, X, Save, Palette, Upload, Pencil,
   SquareDashed, MoreHorizontal, ChevronUp
 } from "lucide-react";
+import BrandIcon from "./BrandIcon";
 import { SheetDoc, SheetCell } from "../types";
 import {
   createEngine, cellKey, colToName, parseRef, formatNumber,
@@ -758,7 +759,7 @@ export default function SpreadsheetTab({ sheets: initialSheets, onChange }: Prop
       <div className="bg-white border border-slate-200 rounded-3xl p-3 md:p-4 shadow-sm space-y-3">
         <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-3">
           <h3 className="text-sm font-extrabold text-slate-900 flex items-center gap-2">
-            <Table2 className="w-4 h-4 text-amber-500" />
+            <BrandIcon name="spreadsheet" size={20} />
             صفحه گسترده (اکسل داخلی)
           </h3>
           <div className="flex items-center gap-2">

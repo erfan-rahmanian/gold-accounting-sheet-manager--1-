@@ -1,8 +1,9 @@
 import React from "react";
-import { Coins, TrendingUp, ShoppingBag, Landmark, Activity } from "lucide-react";
+import { Coins, TrendingUp, Landmark, Activity } from "lucide-react";
 import { AppSettings, Transaction } from "../types";
 import { formatCurrency, formatWeight, toPersianDigits } from "../utils";
 import { EmptyRow } from "./EmptyState";
+import BrandIcon from "./BrandIcon";
 
 interface DashboardTabProps {
   settings: AppSettings;
@@ -93,7 +94,7 @@ export default function DashboardTab({ settings, transactions }: DashboardTabPro
         {/* Shop management table summary */}
         <div className="bg-white border border-slate-200 rounded-3xl p-5 md:p-6 shadow-sm overflow-hidden">
           <h3 className="text-sm font-extrabold text-slate-900 mb-4 flex items-center gap-2">
-            <ShoppingBag className="w-5 h-5 text-amber-500" />
+            <BrandIcon name="dashboard" size={22} />
             خلاصه وضعیت موجودی به تفکیک مغازه‌ها
           </h3>
           <div className="overflow-x-auto w-full">
