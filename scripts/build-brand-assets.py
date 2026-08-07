@@ -156,6 +156,16 @@ def main():
         art.save(p, "WEBP", quality=86, method=6, lossless=False)
         outputs.append((os.path.relpath(p, ROOT), kb(p)))
 
+    # ---------------------------------------------------- آیکون‌های منوی اصلی
+    # در منو با اندازه‌ی ۲۴ پیکسل نمایش داده می‌شوند؛ ۹۶ پیکسل می‌سازیم تا
+    # روی نمایشگرهای رتینا (تا ۴ برابر) هم تیز بماند.
+    # برش تا محتوا لازم است چون بوم اصلی حاشیه‌ی خالی زیادی دارد و بدون آن
+    # آیکون‌ها در منو ریز و بی‌قواره دیده می‌شوند.
+    for name in ("dashboard", "transaction", "reports", "spreadsheet",
+                 "settings", "backup", "profile"):
+        icon = square(trim(bleed_alpha(load(f"{name}-icon.png"))), 96, 0.96)
+        save_png(icon, os.path.join(BRAND, f"{name}-icon.png"))
+
     total = 0
     for rel, size in outputs:
         print(f"  {rel:38} {size}")

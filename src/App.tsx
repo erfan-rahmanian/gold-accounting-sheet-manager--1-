@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { LayoutDashboard, Coins, Settings, ShieldAlert, LineChart, Database, RefreshCw, Smartphone, Menu, X, Table2, LogOut, UserCog } from "lucide-react";
+import { ShieldAlert, RefreshCw, Smartphone, Menu, X, LogOut } from "lucide-react";
 import { AppState, AppSettings, Transaction, SheetDoc } from "./types";
 import { formatCurrency, toPersianDigits } from "./utils";
 import DashboardTab from "./components/DashboardTab";
@@ -339,14 +339,16 @@ export default function App() {
     );
   }
 
+  // آیکون‌های منو تصویرند، نه فونت‌آیکون؛ پس رنگشان با حالت فعال عوض نمی‌شود.
+  // تشخیص گزینه‌ی فعال با همان پس‌زمینه‌ی کهربایی انجام می‌شود.
   const navItems = [
-    { key: "dashboard", label: "داشبورد", icon: LayoutDashboard },
-    { key: "transactions", label: "ثبت سند", icon: Coins },
-    { key: "reports", label: "صورتحساب موجودی", icon: LineChart },
-    { key: "sheets", label: "صفحه گسترده (اکسل)", icon: Table2 },
-    { key: "settings", label: "ثبت مغازه و شخص", icon: Settings },
-    { key: "backup", label: "بکاپ و بازیابی", icon: Database },
-    { key: "profile", label: "پروفایل و حساب کاربری", icon: UserCog },
+    { key: "dashboard", label: "داشبورد", icon: "/brand/dashboard-icon.png" },
+    { key: "transactions", label: "ثبت سند", icon: "/brand/transaction-icon.png" },
+    { key: "reports", label: "صورتحساب موجودی", icon: "/brand/reports-icon.png" },
+    { key: "sheets", label: "صفحه گسترده (اکسل)", icon: "/brand/spreadsheet-icon.png" },
+    { key: "settings", label: "ثبت مغازه و شخص", icon: "/brand/settings-icon.png" },
+    { key: "backup", label: "بکاپ و بازیابی", icon: "/brand/backup-icon.png" },
+    { key: "profile", label: "پروفایل و حساب کاربری", icon: "/brand/profile-icon.png" },
   ] as const;
 
   return (
@@ -411,7 +413,12 @@ export default function App() {
 
             {/* Nav Panel Drawer */}
             <div className="absolute right-0 top-0 bottom-0 w-[280px] max-w-full bg-white shadow-2xl flex flex-col justify-between border-l border-slate-200 animate-slideInRight">
-              <div>
+              {/*
+                روی نمایشگرهای کوتاه (یا گوشی در حالت افقی) فهرست بلندتر از صفحه
+                می‌شود؛ با اسکرول شدنِ همین بخش، بخش پایینی (حساب کاربری و خروج)
+                همیشه سر جایش می‌ماند.
+              */}
+              <div className="min-h-0 overflow-y-auto">
                 {/* Panel Header */}
                 <div className="p-4 border-b border-slate-100 flex items-center justify-between">
                   <div className="flex items-center gap-2">
@@ -435,7 +442,6 @@ export default function App() {
                 {/* Panel Nav Links */}
                 <div className="p-3 space-y-1">
                   {navItems.map((item) => {
-                    const IconComp = item.icon;
                     const isActive = activeTab === item.key;
                     return (
                       <button
@@ -444,13 +450,27 @@ export default function App() {
                           setActiveTab(item.key);
                           setMenuOpen(false);
                         }}
-                        className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all font-extrabold text-xs cursor-pointer ${
-                          isActive 
-                            ? "bg-amber-500 text-slate-950 shadow-sm" 
+                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-extrabold text-xs cursor-pointer ${
+                          isActive
+                            ? "bg-amber-500 text-slate-950 shadow-sm"
                             : "text-slate-650 hover:bg-slate-50 hover:text-slate-950"
                         }`}
                       >
-                        <IconComp className={`w-4 h-4 shrink-0 ${isActive ? "text-slate-950" : "text-amber-500"}`} />
+                        {/*
+                          آیکون روی کارت سفید می‌نشیند تا وقتی گزینه فعال است و
+                          پس‌زمینه کهربایی می‌شود، رنگ‌های خودِ آیکون گم نشوند.
+                        */}
+                        <span className={`w-8 h-8 shrink-0 rounded-lg flex items-center justify-center transition-all ${
+                          isActive ? "bg-white/85 shadow-sm" : "bg-slate-50 border border-slate-150"
+                        }`}>
+                          <img
+                            src={item.icon}
+                            alt=""
+                            width={24}
+                            height={24}
+                            className="w-6 h-6 object-contain"
+                          />
+                        </span>
                         <span>{item.label}</span>
                       </button>
                     );
