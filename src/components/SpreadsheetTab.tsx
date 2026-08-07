@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useRef, useEffect, useCallback } from "react";
 import {
-  Table2, Plus, Trash2, Undo2, Redo2, Bold, Download, Sigma, X, Save, Palette, Upload, Pencil
+  Table2, Plus, Trash2, Undo2, Redo2, Bold, Download, Sigma, X, Save, Palette, Upload, Pencil,
+  SquareDashed, MoreHorizontal, ChevronUp
 } from "lucide-react";
 import { SheetDoc, SheetCell } from "../types";
 import {
@@ -66,8 +67,28 @@ export default function SpreadsheetTab({ sheets: initialSheets, onChange }: Prop
   const [saveState, setSaveState] = useState<"idle" | "saving" | "saved">("idle");
   const [toast, setToast] = useState<string | null>(null);
   const [showColors, setShowColors] = useState(false);
+  /** روی موبایل، بخش دوم نوار ابزار و راهنما جمع می‌شود تا جدول جا بگیرد */
+  const [showMore, setShowMore] = useState(false);
+  /**
+   * حالت «انتخاب محدوده» برای لمس.
+   * وقتی خاموش است، کشیدن انگشت جدول را اسکرول می‌کند (رفتار طبیعی).
+   * وقتی روشن است، کشیدن انگشت محدوده انتخاب می‌کند — همان کاری که
+   * روی دسکتاپ با درگ ماوس انجام می‌شود.
+   */
+  const [rangeMode, setRangeMode] = useState(false);
   /** برگه‌ای که نامش در حال ویرایش است (ویرایش درجا روی خود تب) */
   const [renaming, setRenaming] = useState<{ id: string; value: string } | null>(null);
+
+  /** عرض ستون شماره ردیف و ارتفاع سلول‌ها روی موبایل فرق می‌کند */
+  const [isMobile, setIsMobile] = useState(
+    () => typeof window !== "undefined" && window.matchMedia("(max-width: 767px)").matches
+  );
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 767px)");
+    const onChange = () => setIsMobile(mq.matches);
+    mq.addEventListener("change", onChange);
+    return () => mq.removeEventListener("change", onChange);
+  }, []);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const editRef = useRef<HTMLInputElement>(null);
@@ -75,6 +96,9 @@ export default function SpreadsheetTab({ sheets: initialSheets, onChange }: Prop
   const formulaRef = useRef<HTMLInputElement>(null);
   const clipRef = useRef<{ raw: string[][]; text: string; r: number; c: number } | null>(null);
   const draggingRef = useRef(false);
+  /** آخرین لمس: برای تشخیص «ضربه» از «کشیدن» و باز کردن ویرایش با ضربه دوم */
+  const touchRef = useRef<{ r: number; c: number; x: number; y: number; moved: boolean } | null>(null);
+  const resizingRef = useRef(false);
   const firstRender = useRef(true);
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -512,14 +536,23 @@ export default function SpreadsheetTab({ sheets: initialSheets, onChange }: Prop
     return () => window.removeEventListener("mouseup", up);
   }, []);
 
-  // ---------- تغییر عرض ستون ----------
-  const startResize = (e: React.MouseEvent, colIdx: number) => {
-    e.preventDefault();
+  // ---------- تغییر عرض ستون (ماوس و لمس) ----------
+  const startResize = (e: React.MouseEvent | React.TouchEvent, colIdx: number) => {
     e.stopPropagation();
-    const startX = e.clientX;
+    if (resizingRef.current) return;
+    resizingRef.current = true;
+
+    const pointX = (ev: MouseEvent | TouchEvent) =>
+      "touches" in ev ? ev.touches[0]?.clientX : (ev as MouseEvent).clientX;
+
+    const startX = "touches" in e ? e.touches[0].clientX : e.clientX;
     const startW = sheet.colWidths[colIdx] ?? DEFAULT_W;
-    const move = (ev: MouseEvent) => {
-      const w = Math.max(MIN_W, startW + (startX - ev.clientX));
+
+    const move = (ev: MouseEvent | TouchEvent) => {
+      const x = pointX(ev);
+      if (x === undefined) return;
+      // چیدمان راست‌به‌چپ است، پس کشیدن به چپ یعنی پهن‌تر شدن
+      const w = Math.max(MIN_W, startW + (startX - x));
       setSheets(prev => prev.map(s => {
         if (s.id !== sheet.id) return s;
         const colWidths = [...s.colWidths];
@@ -527,12 +560,53 @@ export default function SpreadsheetTab({ sheets: initialSheets, onChange }: Prop
         return { ...s, colWidths };
       }));
     };
+
     const up = () => {
+      resizingRef.current = false;
       window.removeEventListener("mousemove", move);
       window.removeEventListener("mouseup", up);
+      window.removeEventListener("touchmove", move);
+      window.removeEventListener("touchend", up);
+      window.removeEventListener("touchcancel", up);
     };
+
     window.addEventListener("mousemove", move);
     window.addEventListener("mouseup", up);
+    window.addEventListener("touchmove", move);
+    window.addEventListener("touchend", up);
+    window.addEventListener("touchcancel", up);
+  };
+
+  // ---------- انتخاب با لمس ----------
+  /** سلولِ زیر انگشت را از روی مختصات صفحه پیدا می‌کند */
+  const cellAtPoint = (x: number, y: number) => {
+    const el = document.elementFromPoint(x, y)?.closest("[data-cell]");
+    const key = el?.getAttribute("data-cell");
+    return key ? parseRef(key) : null;
+  };
+
+  const onGridTouchMove = (e: React.TouchEvent) => {
+    const t = e.touches[0];
+    const tr = touchRef.current;
+    if (!t || !tr) return;
+    if (!tr.moved && (Math.abs(t.clientX - tr.x) > 8 || Math.abs(t.clientY - tr.y) > 8)) {
+      tr.moved = true;
+    }
+    if (!rangeMode || !tr.moved) return;
+    const p = cellAtPoint(t.clientX, t.clientY);
+    if (p) setSel(s => (s.r2 === p.r && s.c2 === p.c ? s : { ...s, r2: p.r, c2: p.c }));
+  };
+
+  const onGridTouchEnd = (e: React.TouchEvent) => {
+    const tr = touchRef.current;
+    touchRef.current = null;
+    if (!tr || tr.moved) return;
+    // ضربه‌ی ساده: بار اول سلول را انتخاب می‌کند، بار دوم ویرایش را باز می‌کند.
+    // preventDefault جلوی رویدادهای ماوسِ ساختگی را می‌گیرد تا انتخاب دوباره صفر نشود.
+    e.preventDefault();
+    if (editing) { commitEdit("none"); return; }
+    if (sel.r === tr.r && sel.c === tr.c && sel.r2 === tr.r && sel.c2 === tr.c) startEdit(tr.r, tr.c);
+    else setSel({ r: tr.r, c: tr.c, r2: tr.r, c2: tr.c });
   };
 
   // ---------- اسکرول به سلول فعال ----------
@@ -674,7 +748,7 @@ export default function SpreadsheetTab({ sheets: initialSheets, onChange }: Prop
   const activeRaw = sheet.cells[activeKey]?.v ?? "";
   const { r1, rr, c1, cc } = norm(sel);
 
-  const btn = "inline-flex items-center justify-center gap-1 px-2.5 py-2 rounded-xl text-[11px] font-extrabold cursor-pointer transition-all border min-h-[36px] active:scale-95";
+  const btn = "inline-flex items-center justify-center gap-1 px-2.5 py-2 rounded-xl text-[11px] font-extrabold cursor-pointer transition-all border min-h-[38px] md:min-h-[36px] active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed";
   const btnGray = `${btn} bg-white border-slate-200 text-slate-700 hover:bg-slate-100`;
   const btnAmber = `${btn} bg-amber-500 border-amber-500 text-slate-950 hover:bg-amber-400`;
 
@@ -701,75 +775,104 @@ export default function SpreadsheetTab({ sheets: initialSheets, onChange }: Prop
           </div>
         </div>
 
-        {/* دکمه‌ها */}
-        <div className="flex flex-wrap items-center gap-1.5">
-          <button className={btnGray} onClick={undo} disabled={!past.length} title="واگرد (Ctrl+Z)">
-            <Undo2 className="w-3.5 h-3.5" />
-          </button>
-          <button className={btnGray} onClick={redo} disabled={!future.length} title="ازنو (Ctrl+Y)">
-            <Redo2 className="w-3.5 h-3.5" />
-          </button>
-          <button className={btnGray} onClick={toggleBold} title="درشت (Ctrl+B)">
-            <Bold className="w-3.5 h-3.5" />
-          </button>
-
-          <div className="relative">
-            <button className={btnGray} onClick={() => setShowColors(v => !v)} title="رنگ پس‌زمینه">
-              <Palette className="w-3.5 h-3.5" />
+        {/* دکمه‌ها — روی موبایل فقط ردیف اول دیده می‌شود */}
+        <div className="space-y-1.5">
+          <div className="flex flex-wrap items-center gap-1.5">
+            <button className={btnGray} onClick={undo} disabled={!past.length} title="واگرد (Ctrl+Z)">
+              <Undo2 className="w-3.5 h-3.5" />
             </button>
-            {showColors && (
-              <div className="absolute z-40 mt-1 bg-white border border-slate-200 rounded-2xl shadow-lg p-2 grid grid-cols-4 gap-1.5 w-44">
-                {FILL_COLORS.map(col => (
-                  <button
-                    key={col.label}
-                    title={col.label}
-                    onClick={() => { styleSelection({ bg: col.value }); setShowColors(false); }}
-                    className="w-8 h-8 rounded-lg border border-slate-200 cursor-pointer hover:scale-110 transition-transform flex items-center justify-center"
-                    style={{ background: col.value || "#fff" }}
-                  >
-                    {!col.value && <X className="w-3 h-3 text-slate-400" />}
-                  </button>
-                ))}
-              </div>
-            )}
+            <button className={btnGray} onClick={redo} disabled={!future.length} title="ازنو (Ctrl+Y)">
+              <Redo2 className="w-3.5 h-3.5" />
+            </button>
+            <button className={btnGray} onClick={toggleBold} title="درشت (Ctrl+B)">
+              <Bold className="w-3.5 h-3.5" />
+            </button>
+
+            <div className="relative">
+              <button className={btnGray} onClick={() => setShowColors(v => !v)} title="رنگ پس‌زمینه">
+                <Palette className="w-3.5 h-3.5" />
+              </button>
+              {showColors && (
+                <div className="absolute z-40 mt-1 bg-white border border-slate-200 rounded-2xl shadow-lg p-2 grid grid-cols-4 gap-1.5 w-44">
+                  {FILL_COLORS.map(col => (
+                    <button
+                      key={col.label}
+                      title={col.label}
+                      onClick={() => { styleSelection({ bg: col.value }); setShowColors(false); }}
+                      className="w-8 h-8 rounded-lg border border-slate-200 cursor-pointer hover:scale-110 transition-transform flex items-center justify-center"
+                      style={{ background: col.value || "#fff" }}
+                    >
+                      {!col.value && <X className="w-3 h-3 text-slate-400" />}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <span className="w-px h-6 bg-slate-200 mx-1" />
+
+            <button className={btnAmber} onClick={() => applyOp("sum")} title="جمع سلول‌های انتخاب‌شده">
+              <Sigma className="w-3.5 h-3.5" /> جمع
+            </button>
+
+            {/*
+              روی دسکتاپ محدوده را با درگ ماوس یا Shift انتخاب می‌کنید؛ روی گوشی
+              چنین چیزی وجود ندارد و کشیدن انگشت باید جدول را اسکرول کند.
+              پس این کلید، لمس را موقتاً به حالت «انتخاب» می‌برد.
+            */}
+            <button
+              className={rangeMode ? btnAmber : btnGray}
+              onClick={() => setRangeMode(v => !v)}
+              title="انتخاب محدوده با کشیدن انگشت"
+            >
+              <SquareDashed className="w-3.5 h-3.5" />
+              <span className="md:hidden">انتخاب</span>
+            </button>
+
+            <button
+              className={`${btnGray} md:hidden`}
+              onClick={() => setShowMore(v => !v)}
+              title="ابزارهای بیشتر"
+            >
+              {showMore ? <ChevronUp className="w-3.5 h-3.5" /> : <MoreHorizontal className="w-3.5 h-3.5" />}
+              {showMore ? "بستن" : "بیشتر"}
+            </button>
           </div>
 
-          <span className="w-px h-6 bg-slate-200 mx-1" />
+          <div className={`${showMore ? "flex" : "hidden"} md:flex flex-wrap items-center gap-1.5`}>
+            <button className={btnGray} onClick={() => applyOp("sub")} title="تفریق">−  تفریق</button>
+            <button className={btnGray} onClick={() => applyOp("mul")} title="ضرب">×  ضرب</button>
+            <button className={btnGray} onClick={() => applyOp("div")} title="تقسیم">÷  تقسیم</button>
+            <button className={btnGray} onClick={() => applyOp("avg")} title="میانگین">میانگین</button>
+            <button className={btnGray} onClick={totalTable} title="جمع ردیف‌ها و ستون‌های جدول">جمع کل جدول</button>
 
-          <button className={btnAmber} onClick={() => applyOp("sum")} title="جمع سلول‌های انتخاب‌شده">
-            <Sigma className="w-3.5 h-3.5" /> جمع
-          </button>
-          <button className={btnGray} onClick={() => applyOp("sub")} title="تفریق">−  تفریق</button>
-          <button className={btnGray} onClick={() => applyOp("mul")} title="ضرب">×  ضرب</button>
-          <button className={btnGray} onClick={() => applyOp("div")} title="تقسیم">÷  تقسیم</button>
-          <button className={btnGray} onClick={() => applyOp("avg")} title="میانگین">میانگین</button>
-          <button className={btnGray} onClick={totalTable} title="جمع ردیف‌ها و ستون‌های جدول">جمع کل جدول</button>
+            <span className="w-px h-6 bg-slate-200 mx-1" />
 
-          <span className="w-px h-6 bg-slate-200 mx-1" />
+            <button className={btnGray} onClick={() => insertRow(r1, rr - r1 + 1)} title="درج ردیف">
+              <Plus className="w-3.5 h-3.5" /> ردیف
+            </button>
+            <button className={btnGray} onClick={() => insertCol(c1, cc - c1 + 1)} title="درج ستون">
+              <Plus className="w-3.5 h-3.5" /> ستون
+            </button>
+            <button className={btnGray} onClick={deleteRows} title="حذف ردیف‌های انتخابی">
+              <Trash2 className="w-3.5 h-3.5" /> ردیف
+            </button>
+            <button className={btnGray} onClick={deleteCols} title="حذف ستون‌های انتخابی">
+              <Trash2 className="w-3.5 h-3.5" /> ستون
+            </button>
+            <button className={btnGray} onClick={() => addRows(10)}>+۱۰ ردیف</button>
+            <button className={btnGray} onClick={() => addCols(3)}>+۳ ستون</button>
 
-          <button className={btnGray} onClick={() => insertRow(r1, rr - r1 + 1)} title="درج ردیف">
-            <Plus className="w-3.5 h-3.5" /> ردیف
-          </button>
-          <button className={btnGray} onClick={() => insertCol(c1, cc - c1 + 1)} title="درج ستون">
-            <Plus className="w-3.5 h-3.5" /> ستون
-          </button>
-          <button className={btnGray} onClick={deleteRows} title="حذف ردیف‌های انتخابی">
-            <Trash2 className="w-3.5 h-3.5" /> ردیف
-          </button>
-          <button className={btnGray} onClick={deleteCols} title="حذف ستون‌های انتخابی">
-            <Trash2 className="w-3.5 h-3.5" /> ستون
-          </button>
-          <button className={btnGray} onClick={() => addRows(10)}>+۱۰ ردیف</button>
-          <button className={btnGray} onClick={() => addCols(3)}>+۳ ستون</button>
+            <span className="w-px h-6 bg-slate-200 mx-1" />
 
-          <span className="w-px h-6 bg-slate-200 mx-1" />
+            <button className={btnGray} onClick={exportCSV} title="خروجی برای اکسل">
+              <Download className="w-3.5 h-3.5" /> خروجی CSV
+            </button>
+            <button className={btnGray} onClick={() => fileRef.current?.click()} title="ورود فایل CSV">
+              <Upload className="w-3.5 h-3.5" /> ورود CSV
+            </button>
+          </div>
 
-          <button className={btnGray} onClick={exportCSV} title="خروجی برای اکسل">
-            <Download className="w-3.5 h-3.5" /> خروجی CSV
-          </button>
-          <button className={btnGray} onClick={() => fileRef.current?.click()} title="ورود فایل CSV">
-            <Upload className="w-3.5 h-3.5" /> ورود CSV
-          </button>
           <input
             ref={fileRef}
             type="file"
@@ -780,11 +883,11 @@ export default function SpreadsheetTab({ sheets: initialSheets, onChange }: Prop
         </div>
 
         {/* نوار فرمول */}
-        <div className="flex items-stretch gap-2">
-          <div className="bg-slate-100 border border-slate-200 rounded-xl px-3 flex items-center font-mono font-black text-[11px] text-slate-700 min-w-[74px] justify-center">
+        <div className="flex items-stretch gap-1.5 md:gap-2">
+          <div className="bg-slate-100 border border-slate-200 rounded-xl px-2 md:px-3 flex items-center font-mono font-black text-[11px] text-slate-700 min-w-[52px] md:min-w-[74px] justify-center shrink-0">
             {activeKey}
           </div>
-          <div className="flex items-center px-2 bg-slate-100 border border-slate-200 rounded-xl text-amber-600 font-black text-[12px] italic">fx</div>
+          <div className="hidden sm:flex items-center px-2 bg-slate-100 border border-slate-200 rounded-xl text-amber-600 font-black text-[12px] italic shrink-0">fx</div>
           <input
             ref={formulaRef}
             value={editing ? editing.value : activeRaw}
@@ -795,14 +898,17 @@ export default function SpreadsheetTab({ sheets: initialSheets, onChange }: Prop
               if (e.key === "Escape") { e.preventDefault(); cancelEdit(); formulaRef.current?.blur(); }
             }}
             onBlur={() => { if (editing) commitEdit("none"); }}
-            placeholder="محتوای سلول یا فرمول: مثلاً =SUM(A1:A10)  یا  =A1*B1"
-            className="flex-1 bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-900 text-xs font-mono focus:outline-none focus:border-amber-500"
+            placeholder={isMobile ? "محتوا یا فرمول: =SUM(A1:A10)" : "محتوای سلول یا فرمول: مثلاً =SUM(A1:A10)  یا  =A1*B1"}
+            className="flex-1 min-w-0 bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-900 text-xs font-mono focus:outline-none focus:border-amber-500"
             dir="ltr"
           />
         </div>
 
-        <p className="text-[10px] text-slate-500 font-semibold leading-relaxed">
+        {/* راهنما — روی موبایل زیر دکمه «بیشتر» جمع می‌شود تا جای جدول را نگیرد */}
+        <p className={`${showMore ? "block" : "hidden"} md:block text-[10px] text-slate-500 font-semibold leading-relaxed`}>
           راهنما: با کلیک و کشیدن، محدوده انتخاب کنید و دکمه‌های جمع/تفریق/ضرب/تقسیم را بزنید تا فرمول خودکار ساخته شود.
+          روی گوشی، اول کلید <span className="font-bold text-amber-700">انتخاب محدوده</span> را بزنید و بعد انگشت را روی سلول‌ها بکشید؛
+          یک ضربه سلول را انتخاب و ضربه دوم آن را باز می‌کند.
           فرمول دستی با <span className="font-mono text-amber-700">=</span> شروع می‌شود؛ مثل
           <span className="font-mono text-amber-700"> =A1+B2 </span>،
           <span className="font-mono text-amber-700"> =SUM(A1:A10) </span>،
@@ -817,30 +923,40 @@ export default function SpreadsheetTab({ sheets: initialSheets, onChange }: Prop
         ref={containerRef}
         tabIndex={0}
         onKeyDown={handleKeyDown}
-        className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-auto max-h-[68vh] focus:outline-none focus:ring-2 focus:ring-amber-400/40 select-none"
+        onTouchMove={onGridTouchMove}
+        onTouchEnd={onGridTouchEnd}
+        onTouchCancel={() => { touchRef.current = null; }}
+        // در حالت انتخاب، اسکرولِ مرورگر باید خاموش شود وگرنه کشیدن انگشت
+        // به‌جای انتخاب، جدول را جابه‌جا می‌کند.
+        style={{ touchAction: rangeMode ? "none" : "pan-x pan-y" }}
+        className={`bg-white border rounded-2xl shadow-sm overflow-auto max-h-[60vh] md:max-h-[68vh] focus:outline-none focus:ring-2 focus:ring-amber-400/40 select-none ${
+          rangeMode ? "border-amber-400 ring-2 ring-amber-400/30" : "border-slate-200"
+        }`}
       >
         <table className="border-collapse table-fixed" style={{ width: "max-content" }}>
           <colgroup>
-            <col style={{ width: 52 }} />
+            <col style={{ width: isMobile ? 38 : 52 }} />
             {Array.from({ length: sheet.cols }).map((_, c) => (
               <col key={c} style={{ width: sheet.colWidths[c] ?? DEFAULT_W }} />
             ))}
           </colgroup>
           <thead>
             <tr>
-              <th className="sticky top-0 right-0 z-30 bg-slate-100 border border-slate-200 text-[10px] text-slate-400 font-black h-8" />
+              <th className="sticky top-0 right-0 z-30 bg-slate-100 border border-slate-200 text-[10px] text-slate-400 font-black h-9 md:h-8" />
               {Array.from({ length: sheet.cols }).map((_, c) => {
                 const active = c >= c1 && c <= cc;
                 return (
                   <th
                     key={c}
                     onMouseDown={() => setSel({ r: 0, c, r2: sheet.rows - 1, c2: c })}
-                    className={`sticky top-0 z-20 border border-slate-200 text-[11px] font-black h-8 cursor-pointer relative ${active ? "bg-amber-100 text-amber-800" : "bg-slate-100 text-slate-500 hover:bg-slate-200"}`}
+                    className={`sticky top-0 z-20 border border-slate-200 text-[11px] font-black h-9 md:h-8 cursor-pointer relative ${active ? "bg-amber-100 text-amber-800" : "bg-slate-100 text-slate-500 hover:bg-slate-200"}`}
                   >
                     {colToName(c)}
+                    {/* دستگیره‌ی تغییر عرض — روی موبایل پهن‌تر است تا با انگشت گرفته شود */}
                     <span
                       onMouseDown={e => startResize(e, c)}
-                      className="absolute top-0 bottom-0 left-0 w-1.5 cursor-col-resize hover:bg-amber-500/60"
+                      onTouchStart={e => startResize(e, c)}
+                      className="absolute top-0 bottom-0 left-0 w-3 md:w-1.5 cursor-col-resize touch-none hover:bg-amber-500/60 active:bg-amber-500/60"
                     />
                   </th>
                 );
@@ -852,7 +968,7 @@ export default function SpreadsheetTab({ sheets: initialSheets, onChange }: Prop
               <tr key={r}>
                 <th
                   onMouseDown={() => setSel({ r, c: 0, r2: r, c2: sheet.cols - 1 })}
-                  className={`sticky right-0 z-10 border border-slate-200 text-[11px] font-black h-[30px] cursor-pointer ${r >= r1 && r <= rr ? "bg-amber-100 text-amber-800" : "bg-slate-100 text-slate-500 hover:bg-slate-200"}`}
+                  className={`sticky right-0 z-10 border border-slate-200 text-[11px] font-black h-9 md:h-[30px] cursor-pointer ${r >= r1 && r <= rr ? "bg-amber-100 text-amber-800" : "bg-slate-100 text-slate-500 hover:bg-slate-200"}`}
                 >
                   {r + 1}
                 </th>
@@ -879,8 +995,13 @@ export default function SpreadsheetTab({ sheets: initialSheets, onChange }: Prop
                     <td
                       key={c}
                       data-cell={key}
+                      onTouchStart={e => {
+                        const t = e.touches[0];
+                        touchRef.current = { r, c, x: t?.clientX ?? 0, y: t?.clientY ?? 0, moved: false };
+                        if (rangeMode) setSel({ r, c, r2: r, c2: c });
+                      }}
                       onMouseDown={e => {
-                        if (e.shiftKey) { setSel(s => ({ ...s, r2: r, c2: c })); return; }
+                        if (e.shiftKey || rangeMode) { setSel(s => ({ ...s, r2: r, c2: c })); return; }
                         draggingRef.current = true;
                         setSel({ r, c, r2: r, c2: c });
                         if (editing) commitEdit("none");
@@ -891,7 +1012,7 @@ export default function SpreadsheetTab({ sheets: initialSheets, onChange }: Prop
                       }}
                       onDoubleClick={() => startEdit(r, c)}
                       style={{ background: !inRange && data?.bg ? data.bg : undefined }}
-                      className={`border border-slate-200 h-[30px] px-1.5 text-[11.5px] align-middle overflow-hidden whitespace-nowrap cursor-cell relative
+                      className={`border border-slate-200 h-9 md:h-[30px] px-1.5 text-[12px] md:text-[11.5px] align-middle overflow-hidden whitespace-nowrap cursor-cell relative
                         ${data?.b ? "font-black" : "font-medium"}
                         ${isNum ? "text-left font-mono" : "text-right"}
                         ${isErr ? "text-rose-600 font-bold" : "text-slate-800"}
@@ -910,7 +1031,7 @@ export default function SpreadsheetTab({ sheets: initialSheets, onChange }: Prop
                           }}
                           onBlur={() => commitEdit("none")}
                           dir={/^\s*=/.test(editing!.value) ? "ltr" : "auto"}
-                          className="absolute inset-0 w-full h-full px-1.5 text-[11.5px] font-mono border-2 border-amber-500 outline-none bg-white text-slate-900 z-10"
+                          className="absolute inset-0 w-full h-full px-1.5 text-[12px] md:text-[11.5px] font-mono border-2 border-amber-500 outline-none bg-white text-slate-900 z-10"
                         />
                       ) : (
                         <span className="block truncate" title={data?.v && data.v.startsWith("=") ? data.v : undefined}>
@@ -928,11 +1049,15 @@ export default function SpreadsheetTab({ sheets: initialSheets, onChange }: Prop
 
       {/* نوار وضعیت + برگه‌ها */}
       <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-3 flex flex-col lg:flex-row lg:items-center justify-between gap-3">
-        <div className="flex items-center gap-1.5 flex-wrap">
+        {/*
+          روی موبایل تب‌ها به‌جای اینکه در چند سطر بپیچند و نصف صفحه را بگیرند،
+          در یک نوارِ افقیِ اسکرول‌شونده می‌نشینند.
+        */}
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 -mb-1 lg:flex-wrap lg:overflow-visible lg:pb-0 lg:mb-0">
           {sheets.map(s => (
             <div
               key={s.id}
-              className={`flex items-center gap-1 rounded-xl border px-2.5 py-1.5 text-[11px] font-extrabold cursor-pointer transition-all ${
+              className={`flex items-center gap-1 shrink-0 rounded-xl border px-2.5 py-2 lg:py-1.5 text-[11px] font-extrabold cursor-pointer transition-all ${
                 s.id === activeId ? "bg-amber-500 border-amber-500 text-slate-950" : "bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100"
               }`}
               onClick={() => {
@@ -980,20 +1105,25 @@ export default function SpreadsheetTab({ sheets: initialSheets, onChange }: Prop
               )}
             </div>
           ))}
-          <button onClick={addSheet} className={btnGray} title="برگه جدید">
+          <button onClick={addSheet} className={`${btnGray} shrink-0`} title="برگه جدید">
             <Plus className="w-3.5 h-3.5" />
           </button>
         </div>
 
-        <div className="flex items-center gap-3 flex-wrap text-[11px] font-bold text-slate-600 font-mono">
-          <span className="text-slate-400 font-sans">انتخاب:</span>
-          <span className="text-slate-800">{cellKey(r1, c1)}{(r1 !== rr || c1 !== cc) ? `:${cellKey(rr, cc)}` : ""}</span>
-          <span className="text-slate-300">|</span>
+        {/*
+          آمار انتخاب. روی موبایل دو ستونی می‌شود؛ کمترین/بیشترین که کمتر لازم‌اند
+          فقط از تبلت به بالا نشان داده می‌شوند تا نوار کوتاه بماند.
+        */}
+        <div className="grid grid-cols-2 gap-x-3 gap-y-1 sm:flex sm:items-center sm:gap-3 sm:flex-wrap text-[11px] font-bold text-slate-600 font-mono">
+          <span>
+            <span className="text-slate-400 font-sans">انتخاب: </span>
+            <span className="text-slate-800">{cellKey(r1, c1)}{(r1 !== rr || c1 !== cc) ? `:${cellKey(rr, cc)}` : ""}</span>
+          </span>
           <span><span className="text-slate-400 font-sans">جمع: </span><span className="text-emerald-700 font-black">{formatNumber(stats.sum)}</span></span>
           <span><span className="text-slate-400 font-sans">میانگین: </span>{formatNumber(stats.avg)}</span>
           <span><span className="text-slate-400 font-sans">تعداد عدد: </span>{stats.numCount}</span>
-          <span><span className="text-slate-400 font-sans">کمترین: </span>{formatNumber(stats.min)}</span>
-          <span><span className="text-slate-400 font-sans">بیشترین: </span>{formatNumber(stats.max)}</span>
+          <span className="hidden sm:inline"><span className="text-slate-400 font-sans">کمترین: </span>{formatNumber(stats.min)}</span>
+          <span className="hidden sm:inline"><span className="text-slate-400 font-sans">بیشترین: </span>{formatNumber(stats.max)}</span>
         </div>
       </div>
 
