@@ -2,6 +2,7 @@ import React from "react";
 import { Coins, TrendingUp, ShoppingBag, Landmark, Activity } from "lucide-react";
 import { AppSettings, Transaction } from "../types";
 import { formatCurrency, formatWeight, toPersianDigits } from "../utils";
+import { EmptyRow } from "./EmptyState";
 
 interface DashboardTabProps {
   settings: AppSettings;
@@ -109,11 +110,12 @@ export default function DashboardTab({ settings, transactions }: DashboardTabPro
               </thead>
               <tbody className="divide-y divide-slate-100/80">
                 {settings.shops.length === 0 ? (
-                  <tr>
-                    <td colSpan={6} className="py-8 text-center text-slate-500 text-xs">
-                      هیچ مغازه‌ای ثبت نشده است. ابتدا از زبانه "ثبت تراکنش‌ها" یا "تنظیمات" اقدام نمایید.
-                    </td>
-                  </tr>
+                  <EmptyRow
+                    colSpan={6}
+                    image="/brand/empty-sheets.webp"
+                    title="هیچ مغازه‌ای ثبت نشده است."
+                    hint="از زبانه‌ی «تنظیمات» اولین مغازه را اضافه کنید تا داشبورد پر شود."
+                  />
                 ) : (
                   settings.shops.map((shop) => {
                     const sGoldCredit = transactions.filter(t => t.shop === shop.name).reduce((sum, tx) => sum + (tx.goldCredit || 0), 0);

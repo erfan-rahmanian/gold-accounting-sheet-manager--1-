@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Coins, LogIn, UserPlus, Loader2, AlertCircle, KeyRound } from "lucide-react";
+import { LogIn, UserPlus, Loader2, AlertCircle, KeyRound } from "lucide-react";
 
 interface AuthGateProps {
   /** آیا ساخت حساب جدید در حال حاضر مجاز است */
@@ -55,13 +55,21 @@ export default function AuthGate({
   const canRegister = signupOpen;
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] flex flex-col justify-center items-center p-4 animate-fadeIn" dir="rtl">
+    <div
+      className="min-h-screen bg-[#f8fafc] bg-cover bg-center bg-no-repeat flex flex-col justify-center items-center p-4 animate-fadeIn"
+      style={{ backgroundImage: "url('/brand/login-bg.webp')" }}
+      dir="rtl"
+    >
       <div className="w-full max-w-sm">
         {/* لوگو و عنوان */}
         <div className="flex flex-col items-center gap-3 mb-6">
-          <div className="w-14 h-14 bg-gradient-to-tr from-amber-500 to-yellow-400 rounded-2xl flex items-center justify-center text-slate-950 shadow-md">
-            <Coins className="w-7 h-7" />
-          </div>
+          <img
+            src="/brand/logo.png"
+            alt=""
+            width={72}
+            height={72}
+            className="w-[72px] h-[72px] object-contain drop-shadow-sm"
+          />
           <h1 className="text-sm font-black text-slate-900 text-center">
             سیستم مدیریت و حسابداری طلا
           </h1>
@@ -71,7 +79,7 @@ export default function AuthGate({
         </div>
 
         {/* کارت فرم */}
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+        <div className="bg-white/95 backdrop-blur-sm rounded-2xl border border-slate-200 shadow-lg p-5">
           {/* سوییچ ورود / ثبت‌نام */}
           <div className="grid grid-cols-2 gap-1 p-1 bg-slate-100 rounded-xl mb-5">
             <button
@@ -177,7 +185,7 @@ export default function AuthGate({
           )}
         </div>
 
-        <p className="text-center text-[10px] text-slate-400 font-bold mt-5 leading-relaxed">
+        <p className="text-center text-[10px] text-slate-600 font-bold mt-5 leading-relaxed bg-white/70 backdrop-blur-sm rounded-lg py-2 px-3">
           اطلاعات هر حساب کاملاً جداست و فقط با همان نام کاربری قابل دیدن است.
         </p>
       </div>

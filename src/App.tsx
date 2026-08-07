@@ -367,9 +367,13 @@ export default function App() {
               </button>
 
               <div className="flex items-center gap-2">
-                <div className="w-9 h-9 bg-gradient-to-tr from-amber-500 to-yellow-400 rounded-xl hidden sm:flex items-center justify-center text-slate-950 shadow-sm shrink-0">
-                  <Coins className="w-4.5 h-4.5 font-bold" />
-                </div>
+                <img
+                  src="/brand/logo.png"
+                  alt=""
+                  width={36}
+                  height={36}
+                  className="w-9 h-9 hidden sm:block shrink-0 object-contain"
+                />
                 <h1 className="text-xs md:text-sm font-black text-slate-900 tracking-tight leading-none animate-fadeIn">
                   سیستم مدیریت و حسابداری طلا
                 </h1>
@@ -411,9 +415,13 @@ export default function App() {
                 {/* Panel Header */}
                 <div className="p-4 border-b border-slate-100 flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 bg-amber-500 rounded-lg flex items-center justify-center text-slate-950 shadow-sm">
-                      <Coins className="w-4 h-4 font-bold" />
-                    </div>
+                    <img
+                      src="/brand/logo.png"
+                      alt=""
+                      width={32}
+                      height={32}
+                      className="w-8 h-8 shrink-0 object-contain"
+                    />
                     <span className="text-xs font-black text-slate-900">منوی هدایت حسابداری</span>
                   </div>
                   <button 

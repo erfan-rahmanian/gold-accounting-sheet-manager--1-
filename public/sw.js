@@ -1,9 +1,17 @@
-const CACHE_VERSION = 'v3';
+const CACHE_VERSION = 'v4';
 const CACHE_NAME = `gold-ledger-cache-${CACHE_VERSION}`;
+
+// فقط چیزهایی که برای اولین نمایشِ برنامه لازم‌اند از پیش کش می‌شوند.
+// تصاویر حالت خالی و آیکون ۵۱۲ اینجا نیستند چون همیشه لازم نمی‌شوند؛
+// همان بار اولی که مرورگر بخواهدشان، هندلر پایین‌تر خودش کششان می‌کند.
 const urlsToCache = [
   '/',
   '/index.html',
   '/manifest.json',
+  '/favicon.ico',
+  '/icons/icon-192.png',
+  '/brand/logo.png',
+  '/brand/login-bg.webp',
   '/jalalidatepicker.min.css',
   '/jalalidatepicker.min.js'
 ];

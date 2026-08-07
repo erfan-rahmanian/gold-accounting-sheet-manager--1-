@@ -4,12 +4,35 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>سیستم پیشرفته حسابداری طلا</title>
+    <meta name="description" content="ثبت اسناد، گزارش‌گیری و دفترداری معاملات طلا و سکه" />
+
     <link rel="manifest" href="/manifest.json" />
     <meta name="theme-color" content="#f59e0b" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="حسابداری طلا" />
-    <link rel="apple-touch-icon" href="https://img.icons8.com/color/192/gold-bars.png" />
+
+    <!-- آیکون‌ها همه محلی‌اند تا برنامه در حالت آفلاین هم آیکون داشته باشد -->
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png" />
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+
+    <!--
+      پیش‌نمایش لینک در تلگرام، واتساپ و شبکه‌های اجتماعی.
+      og:image باید آدرس کامل باشد؛ اگر روزی دامنه‌ی پروژه عوض شد، این دو خط
+      را هم به‌روز کنید.
+    -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="سیستم پیشرفته حسابداری طلا" />
+    <meta property="og:title" content="سیستم پیشرفته حسابداری طلا" />
+    <meta property="og:description" content="ثبت اسناد، گزارش‌گیری و دفترداری معاملات طلا و سکه" />
+    <meta property="og:locale" content="fa_IR" />
+    <meta property="og:url" content="https://gold-accounting-sheet-manager-1.vercel.app/" />
+    <meta property="og:image" content="https://gold-accounting-sheet-manager-1.vercel.app/brand/og-cover.jpg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+
     <link rel="stylesheet" href="/jalalidatepicker.min.css" />
   </head>
   <body>
@@ -18,4 +41,3 @@
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
-

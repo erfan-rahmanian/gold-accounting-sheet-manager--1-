@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Users, ShoppingBag, FileText, X, Printer, Search, ArrowLeftRight, CheckCircle2, Save, Trash2, Calculator, RotateCcw } from "lucide-react";
 import { AppSettings, Transaction } from "../types";
 import { formatCurrency, formatWeight, toPersianDigits, formatInputWithCommas } from "../utils";
+import { EmptyRow } from "./EmptyState";
 
 interface ReportsTabProps {
   settings: AppSettings;
@@ -950,11 +951,12 @@ export default function ReportsTab({ settings, transactions, onUpdateSettings }:
               </thead>
               <tbody className="divide-y divide-slate-100/80">
                 {dailyTradesData.length === 0 ? (
-                  <tr>
-                    <td colSpan={9} className="py-12 text-center text-slate-400 font-bold">
-                      هیچ تراکنش خرید و فروشی در سیستم حسابداری شما ثبت نشده است.
-                    </td>
-                  </tr>
+                  <EmptyRow
+                    colSpan={9}
+                    image="/brand/empty-reports.webp"
+                    title="هیچ تراکنش خرید و فروشی در سیستم حسابداری شما ثبت نشده است."
+                    hint="پس از ثبت اولین سند، گزارش روزانه همین‌جا ساخته می‌شود."
+                  />
                 ) : (
                   dailyTradesData.map((day, idx) => {
                     const isExpanded = !!expandedDays[day.date];
@@ -1131,11 +1133,12 @@ export default function ReportsTab({ settings, transactions, onUpdateSettings }:
               </thead>
               <tbody className="divide-y-2 divide-slate-300/80 divide-x divide-slate-200 divide-x-reverse font-medium text-slate-700">
                 {filteredLedger.length === 0 ? (
-                  <tr>
-                    <td colSpan={12} className="py-12 text-center text-slate-400 font-bold bg-slate-50/30">
-                      هیچ سندی با معیارهای انتخابی شما در دفتر معین یافت نشد.
-                    </td>
-                  </tr>
+                  <EmptyRow
+                    colSpan={12}
+                    image="/brand/empty-reports.webp"
+                    title="هیچ سندی با معیارهای انتخابی شما در دفتر معین یافت نشد."
+                    hint="بازه‌ی تاریخ یا فیلتر مغازه و شخص را تغییر دهید."
+                  />
                 ) : (
                   filteredLedger.map((row, idx) => (
                     <tr key={row.id} className="hover:bg-slate-50/50 transition-colors text-center">

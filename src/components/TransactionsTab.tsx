@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { Plus, Search, Filter, Coins, CheckCircle2, AlertTriangle, Tag, Trash2 } from "lucide-react";
+import { Plus, Search, Filter, Coins, CheckCircle2, Tag, Trash2 } from "lucide-react";
 import { AppSettings, Transaction, TRANSACTION_TYPES } from "../types";
+import { EmptyState } from "./EmptyState";
 import { calculateTransactionFields, formatCurrency, formatWeight, getTodayJalali, toPersianDigits, formatInputWithCommas } from "../utils";
 
 declare global {
@@ -405,10 +406,11 @@ export default function TransactionsTab({
         </h3>
 
         {filteredTransactions.length === 0 ? (
-          <div className="py-12 text-center text-slate-400 space-y-3">
-            <AlertTriangle className="w-8 h-8 text-amber-500/60 mx-auto" />
-            <p className="text-xs font-bold">هیچ سندی در این گروه تراکنش یافت نشد.</p>
-          </div>
+          <EmptyState
+            image="/brand/empty-transactions.webp"
+            title="هیچ سندی در این گروه تراکنش یافت نشد."
+            hint="با فرم بالا اولین سند خود را ثبت کنید یا فیلترها را تغییر دهید."
+          />
         ) : (
           <div className="overflow-x-auto w-full">
             <table className="w-full text-right text-xs min-w-[900px] border-collapse">

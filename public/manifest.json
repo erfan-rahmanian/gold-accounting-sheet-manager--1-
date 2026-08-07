@@ -1,21 +1,38 @@
 {
   "short_name": "حسابداری طلا",
   "name": "سیستم پیشرفته حسابداری طلا",
+  "description": "ثبت اسناد، گزارش‌گیری و دفترداری معاملات طلا و سکه",
   "icons": [
     {
-      "src": "https://img.icons8.com/color/192/gold-bars.png",
+      "src": "/icons/icon-192.png",
       "type": "image/png",
-      "sizes": "192x192"
+      "sizes": "192x192",
+      "purpose": "any"
     },
     {
-      "src": "https://img.icons8.com/color/512/gold-bars.png",
+      "src": "/icons/icon-512.png",
       "type": "image/png",
-      "sizes": "512x512"
+      "sizes": "512x512",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/maskable-192.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icons/maskable-512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "maskable"
     }
   ],
   "start_url": "/",
-  "background_color": "#ffffff",
+  "background_color": "#f8fafc",
   "theme_color": "#f59e0b",
   "display": "standalone",
-  "orientation": "portrait"
+  "orientation": "portrait",
+  "lang": "fa",
+  "dir": "rtl"
 }
