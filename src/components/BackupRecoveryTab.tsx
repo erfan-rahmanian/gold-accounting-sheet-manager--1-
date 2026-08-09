@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { DownloadSimple, UploadSimple, FileXls, CheckCircle, Warning, ArrowsClockwise, GitMerge } from "@phosphor-icons/react";
 import { AppState, Transaction, Shop, Person, Coin, SheetDoc } from "../types";
 import { formatCurrency, formatWeight, toPersianDigits } from "../utils";
+import { buildXlsx, downloadBlob } from "../xlsx";
 import BrandIcon from "./BrandIcon";
 
 interface BackupRecoveryTabProps {
@@ -188,31 +189,28 @@ export default function BackupRecoveryTab({ appState, onRestoreState }: BackupRe
   const [mergeResult, setMergeResult] = useState<MergeResult | null>(null);
   const [importMode, setImportMode] = useState<"merge" | "replace">("merge");
 
-  // 1. Excel (CSVUTF-8 BOM) Backup Export
+  // 1. Excel (.xlsx) Backup Export — راست‌به‌چپ، برخلاف CSV که همیشه چپ‌به‌راست باز می‌شد
   const exportToExcelCSV = () => {
     try {
-      // BOM character for Persian alignment in MS Excel
-      let csvContent = "\uFEFF";
-      
       // Headers matching the ledger structure
       const headers = [
-        "ردیف", "تاریخ", "مغازه", "نوع معامله", "همکار (شخص)", 
-        "نوع سکه", "تعداد سکه", "وزن آبشده (گرم)", 
-        "بستانکاری طلا (گرم)", "بدهکاری طلا (گرم)", 
-        "بستانکاری ریال (ریال)", "بدهکاری ریال (ریال)", 
+        "ردیف", "تاریخ", "مغازه", "نوع معامله", "همکار (شخص)",
+        "نوع سکه", "تعداد سکه", "وزن آبشده (گرم)",
+        "بستانکاری طلا (گرم)", "بدهکاری طلا (گرم)",
+        "بستانکاری ریال (ریال)", "بدهکاری ریال (ریال)",
         "سود/زیان (ریال)", "توضیحات"
       ];
-      
-      csvContent += headers.join(",") + "\n";
+
+      const grid: (string | number)[][] = [headers];
 
       appState.transactions.forEach((tx, idx) => {
-        const row = [
+        grid.push([
           idx + 1,
           tx.date || "",
-          `"${(tx.shop || "").replace(/"/g, '""')}"`,
-          `"${(tx.type || "").replace(/"/g, '""')}"`,
-          `"${(tx.person || "").replace(/"/g, '""')}"`,
-          `"${(tx.coinType || "").replace(/"/g, '""')}"`,
+          tx.shop || "",
+          tx.type || "",
+          tx.person || "",
+          tx.coinType || "",
           tx.coinCount || 0,
           tx.goldWeight || 0,
           tx.goldCredit || 0,
@@ -220,20 +218,25 @@ export default function BackupRecoveryTab({ appState, onRestoreState }: BackupRe
           tx.irrCredit || 0,
           tx.irrDebit || 0,
           tx.profit || 0,
-          `"${(tx.note || "").replace(/"/g, '""')}"`
-        ];
-        csvContent += row.join(",") + "\n";
+          tx.note || ""
+        ]);
       });
 
-      // Blob creation to prompt instant native download
-      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.setAttribute("href", url);
-      link.setAttribute("download", `دفتر_حسابداری_طلا_${Date.now()}.csv`);
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      const blob = buildXlsx({
+        name: "دفتر حسابداری",
+        rows: grid.length,
+        cols: headers.length,
+        // عرض ستون‌ها بر حسب پیکسل تا متن‌های فارسی جا شوند
+        colWidths: headers.map((_, i) => (i === headers.length - 1 ? 220 : 120)),
+        cell: (r, c) => {
+          if (r === 0) return { v: headers[c] ?? "", bold: true, bg: "#fef9c3" };
+          const v = grid[r]?.[c];
+          if (v === undefined || v === "") return null;
+          return { v };
+        }
+      });
+
+      downloadBlob(blob, `دفتر_حسابداری_طلا_${Date.now()}.xlsx`);
 
       setSuccessMsg("فایل پشتیبان اکسل با موفقیت دانلود شد.");
       setTimeout(() => setSuccessMsg(null), 4000);
@@ -384,8 +387,8 @@ export default function BackupRecoveryTab({ appState, onRestoreState }: BackupRe
               className="w-full flex items-center justify-between p-4 bg-slate-50 border border-slate-200 rounded-2xl hover:bg-slate-100 transition-all cursor-pointer text-right min-h-[50px] active:scale-[0.98]"
             >
               <div className="space-y-0.5">
-                <span className="font-extrabold text-slate-800 block text-xs">دانلود بک‌آپ اکسل (فرمت CSV)</span>
-                <span className="text-[10px] text-slate-400 font-medium">مناسب بارگذاری مستقیم در مایکروسافت اکسل</span>
+                <span className="font-extrabold text-slate-800 block text-xs">دانلود بک‌آپ اکسل (فرمت xlsx)</span>
+                <span className="text-[10px] text-slate-400 font-medium">راست‌به‌چپ، آماده باز شدن در مایکروسافت اکسل</span>
               </div>
               <FileXls className="w-5 h-5 text-amber-600 shrink-0" />
             </button>

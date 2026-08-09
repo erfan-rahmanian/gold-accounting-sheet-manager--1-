@@ -369,7 +369,7 @@ const FUNCTIONS: Record<string, (args: FnArgs) => CellValue | RangeValue> = {
     let kept = 0;
     for (let r = 0; r < arr.rows; r++) {
       const row = arr.values.slice(r * arr.cols, (r + 1) * arr.cols);
-      const key = row.map(v => String(v)).join(" ");
+      const key = row.map(v => String(v)).join("\u0000");
       if (seen.has(key)) continue;
       seen.add(key);
       kept++;

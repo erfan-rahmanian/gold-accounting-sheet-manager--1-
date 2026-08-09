@@ -10,6 +10,7 @@ import {
   shiftFormula, remapFormula, parseNumeric
 } from "../formula";
 import { toPersianDigits } from "../utils";
+import { buildXlsx, downloadBlob } from "../xlsx";
 
 const DEFAULT_ROWS = 30;
 const DEFAULT_COLS = 10;
@@ -684,6 +685,27 @@ export default function SpreadsheetTab({ sheets: initialSheets, onChange }: Prop
     if (renaming) renameRef.current?.select();
   }, [renaming?.id]);
 
+  // ---------- خروجی اکسل (xlsx) ----------
+  // CSV جهتِ صفحه را ذخیره نمی‌کند و همیشه چپ‌به‌راست باز می‌شود؛
+  // فایل xlsx راست‌به‌چپ بودن برگه، درشتی و رنگ خانه‌ها را هم نگه می‌دارد.
+  const exportXlsx = () => {
+    const blob = buildXlsx({
+      name: sheet.name,
+      rows: sheet.rows,
+      cols: sheet.cols,
+      colWidths: sheet.colWidths,
+      cell: (r, c) => {
+        const key = cellKey(r, c);
+        const data = sheet.cells[key];
+        const v = engine.value(key);
+        if ((v === "" || v === null || v === undefined) && !data?.b && !data?.bg) return null;
+        return { v: v ?? "", bold: data?.b, bg: data?.bg };
+      }
+    });
+    downloadBlob(blob, `${sheet.name}.xlsx`);
+    showToast("فایل اکسل راست‌به‌چپ ساخته شد ✓");
+  };
+
   // ---------- خروجی و ورودی CSV ----------
   const exportCSV = () => {
     const rows: string[] = [];
@@ -898,8 +920,11 @@ export default function SpreadsheetTab({ sheets: initialSheets, onChange }: Prop
 
             <span className="w-px h-6 bg-slate-200 mx-1" />
 
-            <button className={btnGray} onClick={exportCSV} title="خروجی برای اکسل">
-              <DownloadSimple className="w-3.5 h-3.5" /> خروجی CSV
+            <button className={btnGray} onClick={exportXlsx} title="خروجی اکسل، راست‌به‌چپ با رنگ و قلم">
+              <DownloadSimple className="w-3.5 h-3.5" /> خروجی اکسل
+            </button>
+            <button className={btnGray} onClick={exportCSV} title="خروجی CSV ساده (بدون جهت و رنگ)">
+              <DownloadSimple className="w-3.5 h-3.5" /> CSV
             </button>
             <button className={btnGray} onClick={() => fileRef.current?.click()} title="ورود فایل CSV">
               <UploadSimple className="w-3.5 h-3.5" /> ورود CSV
