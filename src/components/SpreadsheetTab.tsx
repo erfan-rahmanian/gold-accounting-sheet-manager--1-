@@ -9,6 +9,7 @@ import {
   createEngine, cellKey, colToName, parseRef, formatNumber,
   shiftFormula, remapFormula, parseNumeric
 } from "../formula";
+import { toPersianDigits } from "../utils";
 
 const DEFAULT_ROWS = 30;
 const DEFAULT_COLS = 10;
@@ -100,6 +101,8 @@ export default function SpreadsheetTab({ sheets: initialSheets, onChange }: Prop
   /** آخرین لمس: برای تشخیص «ضربه» از «کشیدن» و باز کردن ویرایش با ضربه دوم */
   const touchRef = useRef<{ r: number; c: number; x: number; y: number; moved: boolean } | null>(null);
   const resizingRef = useRef(false);
+  /** بعد از Ctrl+Enter نباید onBlur دوباره ثبت کند */
+  const suppressBlurRef = useRef(false);
   const firstRender = useRef(true);
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -392,6 +395,33 @@ export default function SpreadsheetTab({ sheets: initialSheets, onChange }: Prop
   const cancelEdit = () => {
     setEditing(null);
     setTimeout(() => containerRef.current?.focus(), 0);
+  };
+
+  /**
+   * محتوای در حال ویرایش را در تمام محدوده‌ی انتخاب‌شده می‌ریزد (Ctrl+Enter).
+   * ارجاع‌های نسبیِ فرمول برای هر خانه جابجا می‌شود، دقیقاً مثل کشیدنِ دستگیره.
+   * برای وقتی است که کاربر کل یک ستون را انتخاب کرده و می‌خواهد فرمول روی
+   * همه‌ی خانه‌های آن اعمال شود.
+   */
+  const fillSelection = () => {
+    if (!editing) return;
+    const { r, c, value } = editing;
+    const { r1, rr, c1, cc } = norm(sel);
+    if (r1 === rr && c1 === cc) { commitEdit("down"); return; }
+
+    // جلوگیری از اینکه onBlur دوباره همان مقدار را ثبت کند و یک گام undo اضافه بسازد
+    suppressBlurRef.current = true;
+
+    const entries: { r: number; c: number; v: string }[] = [];
+    for (let row = r1; row <= rr; row++) {
+      for (let col = c1; col <= cc; col++) {
+        entries.push({ r: row, c: col, v: shiftFormula(value, row - r, col - c) });
+      }
+    }
+    setEditing(null);
+    setCellValues(entries);
+    setTimeout(() => containerRef.current?.focus(), 0);
+    showToast(`فرمول روی ${toPersianDigits(entries.length)} خانه اعمال شد ✓`);
   };
 
   // ---------- ناوبری با کیبورد (چیدمان راست‌به‌چپ) ----------
@@ -747,6 +777,8 @@ export default function SpreadsheetTab({ sheets: initialSheets, onChange }: Prop
 
   const activeKey = cellKey(sel.r, sel.c);
   const activeRaw = sheet.cells[activeKey]?.v ?? "";
+  /** اگر خانه‌ی فعال نتیجه‌ی سرریزِ یک فرمول آرایه‌ای باشد، خانه‌ی مبدأ */
+  const activeSpillFrom = activeRaw === "" ? engine.spilledFrom(activeKey) : null;
   const { r1, rr, c1, cc } = norm(sel);
 
   const btn = "inline-flex items-center justify-center gap-1 px-2.5 py-2 rounded-xl text-[11px] font-extrabold cursor-pointer transition-all border min-h-[38px] md:min-h-[36px] active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed";
@@ -895,11 +927,24 @@ export default function SpreadsheetTab({ sheets: initialSheets, onChange }: Prop
             onChange={e => setEditing({ r: sel.r, c: sel.c, value: e.target.value })}
             onFocus={() => { if (!editing) setEditing({ r: sel.r, c: sel.c, value: activeRaw }); }}
             onKeyDown={e => {
-              if (e.key === "Enter") { e.preventDefault(); commitEdit("down"); formulaRef.current?.blur(); }
+              if (e.key === "Enter") {
+                e.preventDefault();
+                // Ctrl+Enter: اعمال روی کل محدوده‌ی انتخاب‌شده
+                if (e.ctrlKey || e.metaKey) { fillSelection(); formulaRef.current?.blur(); return; }
+                commitEdit("down");
+                formulaRef.current?.blur();
+              }
               if (e.key === "Escape") { e.preventDefault(); cancelEdit(); formulaRef.current?.blur(); }
             }}
-            onBlur={() => { if (editing) commitEdit("none"); }}
-            placeholder={isMobile ? "محتوا یا فرمول: =SUM(A1:A10)" : "محتوای سلول یا فرمول: مثلاً =SUM(A1:A10)  یا  =A1*B1"}
+            onBlur={() => {
+              if (suppressBlurRef.current) { suppressBlurRef.current = false; return; }
+              if (editing) commitEdit("none");
+            }}
+            placeholder={
+              activeSpillFrom
+                ? `نتیجه‌ی سرریزِ فرمول خانه ${activeSpillFrom} — برای ویرایش، همان خانه را باز کنید`
+                : isMobile ? "محتوا یا فرمول: =SUM(A1:A10)" : "محتوای سلول یا فرمول: مثلاً =SUM(A1:A10)  یا  =A1*B1"
+            }
             className="flex-1 min-w-0 bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-900 text-xs font-mono focus:outline-none focus:border-amber-500"
             dir="ltr"
           />
@@ -915,6 +960,14 @@ export default function SpreadsheetTab({ sheets: initialSheets, onChange }: Prop
           <span className="font-mono text-amber-700"> =SUM(A1:A10) </span>،
           <span className="font-mono text-amber-700"> =جمع(B1:B9) </span>،
           <span className="font-mono text-amber-700"> =میانگین(C1:C5) </span>.
+          کل یک ستون را هم می‌شود آدرس داد:
+          <span className="font-mono text-amber-700"> =SUM(C:C) </span>.
+          توابع آرایه‌ای مثل
+          <span className="font-mono text-amber-700"> =FILTER(C:C؛ C:C&lt;&gt;"") </span>
+          را در <span className="font-bold text-amber-700">اولین خانه</span> بنویسید؛ نتیجه خودش در خانه‌های پایین سرریز می‌شود
+          (اگر خانه‌های پایین پر باشند، خطای <span className="font-mono text-amber-700">#SPILL!</span> می‌دهد).
+          برای اعمال یک فرمول معمولی روی کل ستون، ستون را انتخاب کنید، فرمول را بنویسید و
+          <span className="font-bold text-amber-700"> Ctrl+Enter </span> بزنید.
           کپی/چسباندن مستقیم از اکسل هم کار می‌کند.
         </p>
       </div>
@@ -1026,11 +1079,19 @@ export default function SpreadsheetTab({ sheets: initialSheets, onChange }: Prop
                           onChange={e => setEditing({ r, c, value: e.target.value })}
                           onKeyDown={e => {
                             e.stopPropagation();
-                            if (e.key === "Enter") { e.preventDefault(); commitEdit(e.shiftKey ? "up" : "down"); }
+                            if (e.key === "Enter") {
+                              e.preventDefault();
+                              // Ctrl+Enter: اعمال روی کل محدوده‌ی انتخاب‌شده
+                              if (e.ctrlKey || e.metaKey) fillSelection();
+                              else commitEdit(e.shiftKey ? "up" : "down");
+                            }
                             else if (e.key === "Tab") { e.preventDefault(); commitEdit(e.shiftKey ? "left" : "right"); }
                             else if (e.key === "Escape") { e.preventDefault(); cancelEdit(); }
                           }}
-                          onBlur={() => commitEdit("none")}
+                          onBlur={() => {
+                            if (suppressBlurRef.current) { suppressBlurRef.current = false; return; }
+                            commitEdit("none");
+                          }}
                           dir={/^\s*=/.test(editing!.value) ? "ltr" : "auto"}
                           className="absolute inset-0 w-full h-full px-1.5 text-[12px] md:text-[11.5px] font-mono border-2 border-amber-500 outline-none bg-white text-slate-900 z-10"
                         />

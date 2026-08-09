@@ -83,9 +83,70 @@ export function parseNumeric(raw: string): number | null {
 }
 
 // ---------- محدوده ----------
+/**
+ * یک محدوده (آرایه) از مقادیر. مقادیر «سطرْمحور» ذخیره می‌شوند:
+ * اندیس هر خانه = r * cols + c
+ * داشتن rows و cols برای توابعی مثل FILTER لازم است که باید سطرها را
+ * به‌صورت کامل نگه دارند یا حذف کنند.
+ */
 export class RangeValue {
   values: CellValue[];
-  constructor(values: CellValue[]) { this.values = values; }
+  rows: number;
+  cols: number;
+  constructor(values: CellValue[], rows?: number, cols?: number) {
+    this.values = values;
+    this.cols = cols ?? 1;
+    this.rows = rows ?? values.length;
+  }
+}
+
+/** محدوده‌ی تک‌خانه‌ای را به مقدار ساده تبدیل می‌کند */
+function unwrap(v: CellValue | RangeValue): CellValue | RangeValue {
+  if (v instanceof RangeValue && v.values.length === 1) return v.values[0];
+  return v;
+}
+
+/** هر مقدار را به شکل محدوده می‌بیند (برای توابع آرایه‌ای) */
+function asRange(v: CellValue | RangeValue | undefined): RangeValue {
+  if (v instanceof RangeValue) return v;
+  return new RangeValue([v ?? ""], 1, 1);
+}
+
+/**
+ * عملگرهای دوتایی را روی آرایه‌ها هم اعمال می‌کند (مثل اکسل مدرن):
+ *   A1:A9*2      → آرایه‌ای هم‌اندازه
+ *   C1:C9<>""    → آرایه‌ای از درست/غلط، ورودیِ FILTER
+ * اگر هر دو طرف ساده باشند، نتیجه هم ساده است تا رفتار قبلی عوض نشود.
+ */
+function broadcast(
+  l: CellValue | RangeValue,
+  r: CellValue | RangeValue,
+  fn: (a: CellValue, b: CellValue) => CellValue
+): CellValue | RangeValue {
+  const la = l instanceof RangeValue;
+  const ra = r instanceof RangeValue;
+  if (!la && !ra) return fn(l as CellValue, r as CellValue);
+
+  if (la && ra) {
+    const lv = l as RangeValue;
+    const rv = r as RangeValue;
+    const len = Math.min(lv.values.length, rv.values.length);
+    const out: CellValue[] = [];
+    for (let i = 0; i < len; i++) out.push(fn(lv.values[i], rv.values[i]));
+    const sameShape = lv.rows === rv.rows && lv.cols === rv.cols;
+    return unwrap(new RangeValue(out, sameShape ? lv.rows : len, sameShape ? lv.cols : 1));
+  }
+
+  const arr = (la ? l : r) as RangeValue;
+  const scalar = (la ? r : l) as CellValue;
+  const out = arr.values.map(v => (la ? fn(v, scalar) : fn(scalar, v)));
+  return unwrap(new RangeValue(out, arr.rows, arr.cols));
+}
+
+/** عملگر یکانی روی آرایه یا مقدار ساده */
+function mapValue(v: CellValue | RangeValue, fn: (a: CellValue) => CellValue): CellValue | RangeValue {
+  if (v instanceof RangeValue) return unwrap(new RangeValue(v.values.map(fn), v.rows, v.cols));
+  return fn(v);
 }
 
 // ---------- توکنایزر ----------
@@ -119,7 +180,7 @@ function tokenize(src: string): Token[] {
 
     // خطاهای ثابت داخل فرمول (مثل #REF! که بعد از حذف ستون/ردیف جایگزین می‌شود)
     if (ch === "#") {
-      const m = /^#(DIV\/0!|VALUE!|NAME\?|REF!|NUM!|CIRC!|ERROR!|N\/A)/i.exec(s.slice(i));
+      const m = /^#(DIV\/0!|VALUE!|NAME\?|REF!|NUM!|CIRC!|SPILL!|CALC!|ERROR!|N\/A)/i.exec(s.slice(i));
       if (!m) throw new FormulaError("#NAME?");
       out.push({ t: "err", v: m[0].toUpperCase() });
       i += m[0].length;
@@ -222,7 +283,7 @@ function numbersOf(args: (CellValue | RangeValue)[]): number[] {
 // ---------- توابع ----------
 type FnArgs = (CellValue | RangeValue)[];
 
-const FUNCTIONS: Record<string, (args: FnArgs) => CellValue> = {
+const FUNCTIONS: Record<string, (args: FnArgs) => CellValue | RangeValue> = {
   SUM: a => numbersOf(a).reduce((x, y) => x + y, 0),
   PRODUCT: a => { const n = numbersOf(a); return n.length ? n.reduce((x, y) => x * y, 1) : 0; },
   AVERAGE: a => { const n = numbersOf(a); if (!n.length) throw new FormulaError("#DIV/0!"); return n.reduce((x, y) => x + y, 0) / n.length; },
@@ -267,6 +328,83 @@ const FUNCTIONS: Record<string, (args: FnArgs) => CellValue> = {
     const range = a[0] instanceof RangeValue ? (a[0] as RangeValue).values : [a[0] as CellValue];
     const crit = a[1];
     return range.filter(v => matchCriteria(v, crit as CellValue)).length;
+  },
+
+  // ---------- توابع آرایه‌ای (نتیجه در ستون/ردیف سرریز می‌شود) ----------
+
+  /**
+   * FILTER(محدوده؛ شرط؛ [اگر خالی بود])
+   * فقط سطرهایی از محدوده را برمی‌گرداند که شرط برایشان درست است.
+   * مثال: =FILTER(C:C؛ C:C<>"")  → ستون C بدون خانه‌های خالی
+   */
+  FILTER: a => {
+    if (a.length < 2) throw new FormulaError("#VALUE!");
+    const arr = asRange(a[0]);
+    const mask = asRange(a[1]).values;
+    const ifEmpty = a.length > 2 ? a[2] : undefined;
+
+    // شرط باید به تعداد سطرهای محدوده مقدار داشته باشد
+    if (mask.length !== arr.rows && mask.length !== 1) throw new FormulaError("#VALUE!");
+
+    const out: CellValue[] = [];
+    let kept = 0;
+    for (let r = 0; r < arr.rows; r++) {
+      const flag = mask.length === 1 ? mask[0] : mask[r];
+      if (!toBool(flag)) continue;
+      kept++;
+      for (let c = 0; c < arr.cols; c++) out.push(arr.values[r * arr.cols + c]);
+    }
+    if (!kept) {
+      if (ifEmpty === undefined) throw new FormulaError("#CALC!");
+      return ifEmpty;
+    }
+    return unwrap(new RangeValue(out, kept, arr.cols));
+  },
+
+  /** UNIQUE(محدوده) — سطرهای تکراری را حذف می‌کند */
+  UNIQUE: a => {
+    const arr = asRange(a[0]);
+    const seen = new Set<string>();
+    const out: CellValue[] = [];
+    let kept = 0;
+    for (let r = 0; r < arr.rows; r++) {
+      const row = arr.values.slice(r * arr.cols, (r + 1) * arr.cols);
+      const key = row.map(v => String(v)).join(" ");
+      if (seen.has(key)) continue;
+      seen.add(key);
+      kept++;
+      out.push(...row);
+    }
+    return unwrap(new RangeValue(out, kept, arr.cols));
+  },
+
+  /** SORT(محدوده؛ [شماره ستون]؛ [1 صعودی / -1 نزولی]) */
+  SORT: a => {
+    const arr = asRange(a[0]);
+    const byCol = a.length > 1 ? Math.max(1, Math.trunc(toNum(a[1] as CellValue))) - 1 : 0;
+    const dir = a.length > 2 && toNum(a[2] as CellValue) < 0 ? -1 : 1;
+    if (byCol >= arr.cols) throw new FormulaError("#VALUE!");
+
+    const rows: CellValue[][] = [];
+    for (let r = 0; r < arr.rows; r++) rows.push(arr.values.slice(r * arr.cols, (r + 1) * arr.cols));
+    rows.sort((x, y) => {
+      const xv = x[byCol], yv = y[byCol];
+      const xn = typeof xv === "number" ? xv : parseNumeric(String(xv));
+      const yn = typeof yv === "number" ? yv : parseNumeric(String(yv));
+      if (xn !== null && yn !== null) return (xn - yn) * dir;
+      return String(xv).localeCompare(String(yv), "fa") * dir;
+    });
+    return unwrap(new RangeValue(rows.flat(), arr.rows, arr.cols));
+  },
+
+  /** TRANSPOSE(محدوده) — سطر و ستون را جابجا می‌کند */
+  TRANSPOSE: a => {
+    const arr = asRange(a[0]);
+    const out: CellValue[] = [];
+    for (let c = 0; c < arr.cols; c++) {
+      for (let r = 0; r < arr.rows; r++) out.push(arr.values[r * arr.cols + c]);
+    }
+    return unwrap(new RangeValue(out, arr.cols, arr.rows));
   }
 };
 
@@ -338,7 +476,14 @@ const FA_ALIASES: Record<string, string> = {
   "طول": "LEN",
   "درصد": "PERCENT",
   "جمعاگر": "SUMIF",
-  "تعداداگر": "COUNTIF"
+  "تعداداگر": "COUNTIF",
+  "فیلتر": "FILTER",
+  "پالایش": "FILTER",
+  "یکتا": "UNIQUE",
+  "بیتکرار": "UNIQUE",
+  "مرتب": "SORT",
+  "چیدن": "SORT",
+  "ترانهاده": "TRANSPOSE"
 };
 
 export const FUNCTION_NAMES = [
@@ -358,7 +503,14 @@ function resolveFn(name: string) {
 interface Resolver {
   ref: (ref: string) => CellValue;
   range: (a: string, b: string) => RangeValue;
+  /** ارجاع به کل ستون‌ها مثل C:C */
+  colRange: (c1: number, c2: number) => RangeValue;
+  /** ارجاع به کل ردیف‌ها مثل 2:2 */
+  rowRange: (r1: number, r2: number) => RangeValue;
 }
+
+/** فقط حرف (بدون شماره) → نام ستون در ارجاع C:C */
+const COL_ONLY = /^[A-Za-z]{1,3}$/;
 
 class Parser {
   toks: Token[];
@@ -387,19 +539,19 @@ class Parser {
       if (t && t.t === "op" && ["=", "<>", ">", "<", ">=", "<="].includes(t.v)) {
         this.next();
         const right = this.parseConcat();
-        const l = left instanceof RangeValue ? toNum(left) : left;
-        const r = right instanceof RangeValue ? toNum(right) : right;
-        const bothNum = typeof l === "number" && typeof r === "number";
-        const lv: any = bothNum ? l : toStr(l as CellValue);
-        const rv: any = bothNum ? r : toStr(r as CellValue);
-        switch (t.v) {
-          case "=": left = lv === rv; break;
-          case "<>": left = lv !== rv; break;
-          case ">": left = lv > rv; break;
-          case "<": left = lv < rv; break;
-          case ">=": left = lv >= rv; break;
-          case "<=": left = lv <= rv; break;
-        }
+        left = broadcast(left, right, (a, b) => {
+          const bothNum = typeof a === "number" && typeof b === "number";
+          const lv: any = bothNum ? a : toStr(a);
+          const rv: any = bothNum ? b : toStr(b);
+          switch (t.v) {
+            case "=": return lv === rv;
+            case "<>": return lv !== rv;
+            case ">": return lv > rv;
+            case "<": return lv < rv;
+            case ">=": return lv >= rv;
+            default: return lv <= rv;
+          }
+        });
       } else break;
     }
     return left;
@@ -412,7 +564,7 @@ class Parser {
       if (t && t.t === "op" && t.v === "&") {
         this.next();
         const right = this.parseAdd();
-        left = toStr(left) + toStr(right);
+        left = broadcast(left, right, (a, b) => toStr(a) + toStr(b));
       } else break;
     }
     return left;
@@ -425,7 +577,9 @@ class Parser {
       if (t && t.t === "op" && (t.v === "+" || t.v === "-")) {
         this.next();
         const right = this.parseMul();
-        left = t.v === "+" ? toNum(left) + toNum(right) : toNum(left) - toNum(right);
+        left = broadcast(left, right, (a, b) =>
+          t.v === "+" ? toNum(a) + toNum(b) : toNum(a) - toNum(b)
+        );
       } else break;
     }
     return left;
@@ -438,12 +592,12 @@ class Parser {
       if (t && t.t === "op" && (t.v === "*" || t.v === "/")) {
         this.next();
         const right = this.parseUnary();
-        if (t.v === "*") left = toNum(left) * toNum(right);
-        else {
-          const d = toNum(right);
+        left = broadcast(left, right, (a, b) => {
+          if (t.v === "*") return toNum(a) * toNum(b);
+          const d = toNum(b);
           if (d === 0) throw new FormulaError("#DIV/0!");
-          left = toNum(left) / d;
-        }
+          return toNum(a) / d;
+        });
       } else break;
     }
     return left;
@@ -454,7 +608,7 @@ class Parser {
     if (t && t.t === "op" && (t.v === "-" || t.v === "+")) {
       this.next();
       const v = this.parseUnary();
-      return t.v === "-" ? -toNum(v) : toNum(v);
+      return mapValue(v, a => (t.v === "-" ? -toNum(a) : toNum(a)));
     }
     return this.parsePower();
   }
@@ -465,7 +619,7 @@ class Parser {
     if (t && t.t === "op" && t.v === "^") {
       this.next();
       const exp = this.parseUnary();
-      base = Math.pow(toNum(base), toNum(exp));
+      base = broadcast(base, exp, (a, b) => Math.pow(toNum(a), toNum(b)));
     }
     return base;
   }
@@ -474,7 +628,7 @@ class Parser {
     let v = this.parsePrimary();
     while (true) {
       const t = this.peek();
-      if (t && t.t === "op" && t.v === "%") { this.next(); v = toNum(v) / 100; }
+      if (t && t.t === "op" && t.v === "%") { this.next(); v = mapValue(v, a => toNum(a) / 100); }
       else break;
     }
     return v;
@@ -484,7 +638,18 @@ class Parser {
     const t = this.next();
     if (!t) throw new FormulaError("#ERROR!");
 
-    if (t.t === "num") return Number(t.v);
+    if (t.t === "num") {
+      // ارجاع به کل ردیف‌ها: 2:2 یا 2:5
+      const nxt = this.peek();
+      const after = this.toks[this.i + 1];
+      if (nxt && nxt.t === "colon" && after && after.t === "num" &&
+          /^\d+$/.test(t.v) && /^\d+$/.test(after.v)) {
+        this.next();
+        this.next();
+        return this.res.rowRange(Number(t.v) - 1, Number(after.v) - 1);
+      }
+      return Number(t.v);
+    }
     if (t.t === "str") return t.v;
     if (t.t === "err") throw new FormulaError(t.v);
 
@@ -516,6 +681,19 @@ class Parser {
 
       const bare = t.v.replace(/\$/g, "").toUpperCase();
 
+      // ارجاع به کل ستون‌ها: C:C یا A:D
+      if (nxt && nxt.t === "colon" && COL_ONLY.test(bare)) {
+        const after = this.toks[this.i + 1];
+        if (after && after.t === "ident") {
+          const endCol = after.v.replace(/\$/g, "").toUpperCase();
+          if (COL_ONLY.test(endCol)) {
+            this.next();
+            this.next();
+            return this.res.colRange(nameToColIdx(bare), nameToColIdx(endCol));
+          }
+        }
+      }
+
       // محدوده A1:B5
       if (nxt && nxt.t === "colon" && parseRef(bare)) {
         this.next();
@@ -542,13 +720,37 @@ class Parser {
 export interface Engine {
   value: (ref: string) => CellValue;
   display: (ref: string) => string;
+  /** اگر این خانه نتیجه‌ی سرریزِ فرمولِ خانه‌ی دیگری باشد، ارجاع آن خانه */
+  spilledFrom: (ref: string) => string | null;
 }
 
 const MAX_RANGE_CELLS = 200000;
+/** سقف تعداد خانه‌هایی که یک فرمول آرایه‌ای می‌تواند پر کند */
+const MAX_SPILL_CELLS = 5000;
 
 export function createEngine(cells: Cells): Engine {
   const cache = new Map<string, CellValue>();
+  const arrays = new Map<string, RangeValue>();
   const stack = new Set<string>();
+
+  /** نتیجه‌ی سرریزِ فرمول‌های آرایه‌ای: خانه‌ی مقصد → مقدار */
+  let spill = new Map<string, CellValue>();
+  /** خانه‌ی مقصد → خانه‌ی فرمول‌دار */
+  let spillOwner = new Map<string, string>();
+  /** فرمول‌هایی که جای کافی برای سرریز ندارند */
+  let blocked = new Set<string>();
+
+  // محدوده‌ی پرشده‌ی برگه: ارجاع C:C نباید کل ۲۰۰۰ ردیف را بخواند،
+  // فقط تا آخرین ردیفی که واقعاً داده دارد.
+  let usedRow = 0;
+  let usedCol = 0;
+  for (const k of Object.keys(cells)) {
+    if ((cells[k]?.v ?? "") === "") continue;
+    const p = parseRef(k);
+    if (!p) continue;
+    if (p.r > usedRow) usedRow = p.r;
+    if (p.c > usedCol) usedCol = p.c;
+  }
 
   const getValue = (refRaw: string): CellValue => {
     const ref = refRaw.replace(/\$/g, "").toUpperCase();
@@ -559,16 +761,24 @@ export function createEngine(cells: Cells): Engine {
     let val: CellValue;
 
     if (raw === "" || raw == null) {
-      val = "";
+      // خانه‌ی خالی ممکن است مقصدِ سرریزِ یک فرمول آرایه‌ای باشد
+      val = spill.has(ref) ? spill.get(ref)! : "";
     } else if (raw.trim().startsWith("=")) {
       stack.add(ref);
       try {
         const toks = tokenize(raw.trim().slice(1));
         if (!toks.length) val = "";
         else {
-          const parser = new Parser(toks, { ref: getValue, range: getRange });
+          const parser = new Parser(toks, { ref: getValue, range: getRange, colRange, rowRange });
           const out = parser.parse();
-          val = out instanceof RangeValue ? toNum(out) : out;
+          if (out instanceof RangeValue) {
+            // نتیجه آرایه است: خودِ خانه اولین مقدار را نشان می‌دهد و
+            // بقیه در خانه‌های پایین‌تر سرریز می‌شود.
+            arrays.set(ref, out);
+            val = out.values.length ? out.values[0] : "";
+          } else {
+            val = out;
+          }
         }
       } catch (e) {
         val = e instanceof FormulaError ? e.code : "#ERROR!";
@@ -584,31 +794,111 @@ export function createEngine(cells: Cells): Engine {
     return val;
   };
 
+  const buildRange = (r1: number, r2: number, c1: number, c2: number): RangeValue => {
+    if (r1 < 0 || c1 < 0) throw new FormulaError("#REF!");
+    const rows = r2 - r1 + 1;
+    const cols = c2 - c1 + 1;
+    if (rows * cols > MAX_RANGE_CELLS) throw new FormulaError("#REF!");
+    const values: CellValue[] = [];
+    for (let r = r1; r <= r2; r++) {
+      for (let c = c1; c <= c2; c++) values.push(getValue(cellKey(r, c)));
+    }
+    return new RangeValue(values, rows, cols);
+  };
+
   const getRange = (a: string, b: string): RangeValue => {
     const pa = parseRef(a);
     const pb = parseRef(b);
     if (!pa || !pb) throw new FormulaError("#REF!");
-    const r1 = Math.min(pa.r, pb.r), r2 = Math.max(pa.r, pb.r);
-    const c1 = Math.min(pa.c, pb.c), c2 = Math.max(pa.c, pb.c);
-    if ((r2 - r1 + 1) * (c2 - c1 + 1) > MAX_RANGE_CELLS) throw new FormulaError("#REF!");
-    const values: CellValue[] = [];
-    for (let r = r1; r <= r2; r++) {
-      for (let c = c1; c <= c2; c++) {
-        values.push(getValue(cellKey(r, c)));
+    return buildRange(
+      Math.min(pa.r, pb.r), Math.max(pa.r, pb.r),
+      Math.min(pa.c, pb.c), Math.max(pa.c, pb.c)
+    );
+  };
+
+  const colRange = (a: number, b: number): RangeValue =>
+    buildRange(0, usedRow, Math.min(a, b), Math.max(a, b));
+
+  const rowRange = (a: number, b: number): RangeValue =>
+    buildRange(Math.min(a, b), Math.max(a, b), 0, usedCol);
+
+  /**
+   * فرمول‌های آرایه‌ای را پیدا می‌کند و مقصدِ سرریزشان را می‌سازد.
+   * اگر خانه‌ی مقصد پر باشد، آن فرمول #SPILL! می‌گیرد (مثل اکسل).
+   */
+  const computeSpills = () => {
+    const nextSpill = new Map<string, CellValue>();
+    const nextOwner = new Map<string, string>();
+    const nextBlocked = new Set<string>();
+
+    const anchors = Object.keys(cells)
+      .filter(k => (cells[k]?.v ?? "").trim().startsWith("=") && parseRef(k))
+      .sort((x, y) => {
+        const px = parseRef(x)!, py = parseRef(y)!;
+        return px.r - py.r || px.c - py.c;
+      });
+
+    for (const ref of anchors) {
+      const base = parseRef(ref)!;
+      getValue(ref);                       // تا arrays پر شود
+      const arr = arrays.get(ref);
+      if (!arr || arr.values.length <= 1) continue;
+      if (arr.values.length > MAX_SPILL_CELLS) { nextBlocked.add(ref); continue; }
+
+      const pending: { k: string; v: CellValue }[] = [];
+      let conflict = false;
+      for (let i = 0; i < arr.values.length; i++) {
+        const r = base.r + Math.floor(i / arr.cols);
+        const c = base.c + (i % arr.cols);
+        const k = cellKey(r, c);
+        if (k === ref) continue;                       // خودِ خانه‌ی فرمول
+        if ((cells[k]?.v ?? "") !== "" || nextSpill.has(k)) { conflict = true; break; }
+        pending.push({ k, v: arr.values[i] });
+      }
+      if (conflict) { nextBlocked.add(ref); continue; }
+      for (const p of pending) {
+        nextSpill.set(p.k, p.v);
+        nextOwner.set(p.k, ref);
       }
     }
-    return new RangeValue(values);
+    return { nextSpill, nextOwner, nextBlocked };
+  };
+
+  // چند دور تکرار تا وضعیت سرریز ثابت شود (فرمولی که به خانه‌ی سرریزشده
+  // ارجاع می‌دهد در دور بعد مقدار درست را می‌بیند).
+  for (let pass = 0; pass < 3; pass++) {
+    const res = computeSpills();
+    const stable =
+      res.nextSpill.size === spill.size &&
+      [...res.nextSpill.keys()].every(k => spill.has(k));
+    spill = res.nextSpill;
+    spillOwner = res.nextOwner;
+    blocked = res.nextBlocked;
+    cache.clear();
+    arrays.clear();
+    if (stable) break;
+  }
+
+  const publicValue = (refRaw: string): CellValue => {
+    const ref = refRaw.replace(/\$/g, "").toUpperCase();
+    if (blocked.has(ref)) return "#SPILL!";
+    return getValue(ref);
   };
 
   const display = (ref: string): string => {
-    const v = getValue(ref);
+    const v = publicValue(ref);
     if (v === "" || v === null || v === undefined) return "";
     if (typeof v === "boolean") return v ? "درست" : "غلط";
     if (typeof v === "number") return formatNumber(v);
     return String(v);
   };
 
-  return { value: getValue, display };
+  const spilledFrom = (refRaw: string): string | null => {
+    const ref = refRaw.replace(/\$/g, "").toUpperCase();
+    return spillOwner.get(ref) ?? null;
+  };
+
+  return { value: publicValue, display, spilledFrom };
 }
 
 /** نمایش عدد با جداکننده هزارگان و حداکثر ۶ رقم اعشار */
