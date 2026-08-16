@@ -822,6 +822,169 @@ export function createEngine(cells: Cells): Engine {
   const rowRange = (a: number, b: number): RangeValue =>
     buildRange(Math.min(a, b), Math.max(a, b), 0, usedCol);
 
+  // ---------- گراف وابستگی و ترتیب محاسبه ----------
+  // ارزیابی به‌صورت «درخواستی» است، پس ترتیبِ درستِ محاسبه خودبه‌خود رعایت
+  // می‌شود؛ اما در زنجیره‌ی بلند (مثل D3=D2+C3 که تا D2000 پر شده) بازگشتِ
+  // تودرتو پشته‌ی جاوااسکریپت را سرریز می‌کرد و همه‌ی خانه‌ها #ERROR! می‌شدند.
+  // این بخش وابستگی‌ها را از پیش می‌سازد و خانه‌ها را به ترتیب توپولوژیک
+  // (وابسته‌ها بعد از وابستگی‌ها) گرم می‌کند تا عمق بازگشت همیشه کم بماند.
+  const MAX_DEP_WORK = 400000;
+
+  /** فقط خانه‌های فرمول‌دار گره‌ی گراف‌اند؛ ارجاع به مقدار ثابت ترتیب‌ساز نیست */
+  const formulaCells = new Set<string>();
+  for (const k of Object.keys(cells)) {
+    const key = k.replace(/\$/g, "").toUpperCase();
+    if ((cells[k]?.v ?? "").trim().startsWith("=") && parseRef(key)) formulaCells.add(key);
+  }
+
+  const buildDepGraph = (): Map<string, string[]> | null => {
+    const graph = new Map<string, string[]>();
+    let budget = MAX_DEP_WORK;
+
+    const addRect = (r1: number, r2: number, c1: number, c2: number, out: Set<string>): boolean => {
+      if (r1 < 0 || c1 < 0) return true;
+      const area = (r2 - r1 + 1) * (c2 - c1 + 1);
+      if (area < 0 || area > budget) return false;
+      budget -= area;
+      for (let r = r1; r <= r2; r++) {
+        for (let c = c1; c <= c2; c++) {
+          const k = cellKey(r, c);
+          if (formulaCells.has(k)) out.add(k);
+        }
+      }
+      return true;
+    };
+
+    for (const ref of formulaCells) {
+      const out = new Set<string>();
+      let toks: Token[];
+      try {
+        toks = tokenize((cells[ref]?.v ?? "").trim().slice(1));
+      } catch {
+        graph.set(ref, []);          // فرمول خراب: خطایش موقع ارزیابی داده می‌شود
+        continue;
+      }
+      if ((budget -= toks.length) < 0) return null;
+
+      for (let i = 0; i < toks.length; i++) {
+        const t = toks[i];
+        const nxt = toks[i + 1];
+        const after = toks[i + 2];
+
+        // ارجاع به کل ردیف‌ها: 2:2 یا 2:5
+        if (t.t === "num") {
+          if (nxt && nxt.t === "colon" && after && after.t === "num" &&
+              /^\d+$/.test(t.v) && /^\d+$/.test(after.v)) {
+            if (!addRect(Number(t.v) - 1, Number(after.v) - 1, 0, usedCol, out)) return null;
+            i += 2;
+          }
+          continue;
+        }
+
+        if (t.t !== "ident") continue;
+        if (nxt && nxt.t === "lp") continue;         // نام تابع، نه ارجاع
+
+        const bare = t.v.replace(/\$/g, "").toUpperCase();
+
+        if (nxt && nxt.t === "colon" && after && after.t === "ident") {
+          const end = after.v.replace(/\$/g, "").toUpperCase();
+          if (COL_ONLY.test(bare) && COL_ONLY.test(end)) {
+            const ca = nameToColIdx(bare), cb = nameToColIdx(end);
+            if (!addRect(0, usedRow, Math.min(ca, cb), Math.max(ca, cb), out)) return null;
+            i += 2;
+            continue;
+          }
+          const pa = parseRef(bare), pb = parseRef(end);
+          if (pa && pb) {
+            if (!addRect(
+              Math.min(pa.r, pb.r), Math.max(pa.r, pb.r),
+              Math.min(pa.c, pb.c), Math.max(pa.c, pb.c), out
+            )) return null;
+            i += 2;
+            continue;
+          }
+        }
+
+        if (formulaCells.has(bare) && parseRef(bare)) out.add(bare);
+      }
+      graph.set(ref, [...out]);
+    }
+    return graph;
+  };
+
+  /**
+   * مؤلفه‌های قویاً همبند (الگوریتم تارجان، پیاده‌سازی حلقه‌ای نه بازگشتی).
+   * خروجی به ترتیب «وابستگی‌ها اول» است و هر مؤلفه‌ی بزرگ‌تر از یک خانه
+   * (یا خانه‌ای که به خودش ارجاع می‌دهد) یعنی حلقه‌ی دوری.
+   */
+  const buildOrder = (): { scc: string[]; cyclic: boolean }[] | null => {
+    const graph = buildDepGraph();
+    if (!graph) return null;
+
+    const idx = new Map<string, number>();
+    const low = new Map<string, number>();
+    const onStack = new Set<string>();
+    const st: string[] = [];
+    const out: { scc: string[]; cyclic: boolean }[] = [];
+    let counter = 0;
+
+    for (const root of graph.keys()) {
+      if (idx.has(root)) continue;
+      idx.set(root, counter); low.set(root, counter); counter++;
+      st.push(root); onStack.add(root);
+      const work: { v: string; i: number }[] = [{ v: root, i: 0 }];
+
+      while (work.length) {
+        const frame = work[work.length - 1];
+        const edges = graph.get(frame.v) ?? [];
+        if (frame.i < edges.length) {
+          const w = edges[frame.i++];
+          if (!idx.has(w)) {
+            idx.set(w, counter); low.set(w, counter); counter++;
+            st.push(w); onStack.add(w);
+            work.push({ v: w, i: 0 });
+          } else if (onStack.has(w)) {
+            low.set(frame.v, Math.min(low.get(frame.v)!, idx.get(w)!));
+          }
+        } else {
+          if (low.get(frame.v) === idx.get(frame.v)) {
+            const comp: string[] = [];
+            for (;;) {
+              const w = st.pop()!;
+              onStack.delete(w);
+              comp.push(w);
+              if (w === frame.v) break;
+            }
+            const selfLoop = comp.length === 1 && (graph.get(comp[0]) ?? []).includes(comp[0]);
+            out.push({ scc: comp, cyclic: comp.length > 1 || selfLoop });
+          }
+          work.pop();
+          if (work.length) {
+            const p = work[work.length - 1];
+            low.set(p.v, Math.min(low.get(p.v)!, low.get(frame.v)!));
+          }
+        }
+      }
+    }
+    return out;
+  };
+
+  // گراف فقط به cells بستگی دارد، پس یک‌بار ساخته می‌شود؛ ولی چون cache در هر
+  // دورِ سرریز پاک می‌شود، گرم‌کردن باید دوباره انجام شود.
+  let order: { scc: string[]; cyclic: boolean }[] | null | undefined;
+
+  const warmUp = () => {
+    if (order === undefined) order = buildOrder();
+    if (!order) return;              // گراف بیش از حد بزرگ: همان مسیر تنبلِ قبلی
+    for (const g of order) {
+      if (g.cyclic) {
+        for (const k of g.scc) cache.set(k, "#CIRC!");
+      } else if (!cache.has(g.scc[0])) {
+        getValue(g.scc[0]);
+      }
+    }
+  };
+
   /**
    * فرمول‌های آرایه‌ای را پیدا می‌کند و مقصدِ سرریزشان را می‌سازد.
    * اگر خانه‌ی مقصد پر باشد، آن فرمول #SPILL! می‌گیرد (مثل اکسل).
@@ -830,6 +993,9 @@ export function createEngine(cells: Cells): Engine {
     const nextSpill = new Map<string, CellValue>();
     const nextOwner = new Map<string, string>();
     const nextBlocked = new Set<string>();
+
+    // زنجیره‌ها را به ترتیب توپولوژیک گرم کن تا ارزیابی هیچ‌وقت عمیق نشود
+    warmUp();
 
     const anchors = Object.keys(cells)
       .filter(k => (cells[k]?.v ?? "").trim().startsWith("=") && parseRef(k))
@@ -882,6 +1048,7 @@ export function createEngine(cells: Cells): Engine {
   const publicValue = (refRaw: string): CellValue => {
     const ref = refRaw.replace(/\$/g, "").toUpperCase();
     if (blocked.has(ref)) return "#SPILL!";
+    if (!cache.has(ref)) warmUp();
     return getValue(ref);
   };
 
