@@ -715,7 +715,7 @@ export default function SpreadsheetTab({ sheets: initialSheets, onChange }: Prop
         }
         return { v: exportValue, bold: data?.b, bg: data?.bg };
       }
-    });
+    }, true);
     downloadBlob(blob, `${sheet.name}.xlsx`);
     showToast("فایل اکسل راست‌به‌چپ ساخته شد ✓");
   };

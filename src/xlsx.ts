@@ -264,11 +264,17 @@ export function buildXlsx(sheet: XlsxSheet, rtl = true): Blob {
     ? `<dimension ref="A1:${colToName(sheet.cols - 1)}${sheet.rows}"/>`
     : "";
 
+  // rightToLeft باید روی خودِ sheetView باشد؛ Excel موبایل این فلگ را
+  // فقط از همین بخش می‌خواند و با نبودنش ستون اول را سمت چپ می‌گذارد.
+  const sheetViewsXml = rtl
+    ? '<sheetViews><sheetView workbookViewId="0" rightToLeft="1" tabSelected="1"/></sheetViews>'
+    : '<sheetViews><sheetView workbookViewId="0"/></sheetViews>';
+
   const sheetXml =
     XML +
     '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">' +
     dim +
-    `<sheetViews><sheetView${rtl ? ' rightToLeft="1"' : ""} workbookViewId="0"/></sheetViews>` +
+    sheetViewsXml +
     '<sheetFormatPr defaultRowHeight="15"/>' +
     colsXml +
     `<sheetData>${body.join("")}</sheetData>` +
