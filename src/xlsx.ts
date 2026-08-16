@@ -9,6 +9,8 @@ import { CellValue, colToName } from "./formula";
 
 export interface XlsxCell {
   v: CellValue | null;
+  /** فرمول بدون علامت =؛ خروجی اکسل آن را به‌عنوان فرمول واقعی می‌نویسد. */
+  formula?: string;
   bold?: boolean;
   bg?: string;
 }
@@ -173,6 +175,27 @@ function toARGB(color: string): string | null {
 }
 
 const XML = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n';
+const FIXED_DEFAULT_COLUMN_WIDTH_PX = 112;
+
+/**
+ * فرمول‌های فارسی داخلی را برای Excel به نام تابع انگلیسی تبدیل می‌کند.
+ * جداکننده‌های فارسی هم به جداکننده‌ی استاندارد Excel تبدیل می‌شوند.
+ */
+export function toExcelFormula(formula: string): string {
+  const aliases: Record<string, string> = {
+    "جمع": "SUM", "مجموع": "SUM", "میانگین": "AVERAGE", "متوسط": "AVERAGE",
+    "کمترین": "MIN", "حداقل": "MIN", "بیشترین": "MAX", "حداکثر": "MAX",
+    "تعداد": "COUNT", "شمارش": "COUNTA", "ضرب": "PRODUCT", "حاصلضرب": "PRODUCT",
+    "قدرمطلق": "ABS", "گردکردن": "ROUND", "گرد": "ROUND", "جذر": "SQRT",
+    "توان": "POWER", "باقیمانده": "MOD", "اگر": "IF", "و": "AND", "یا": "OR",
+    "چسباندن": "CONCAT", "طول": "LEN", "درصد": "PERCENT", "جمعاگر": "SUMIF",
+    "تعداداگر": "COUNTIF", "فیلتر": "FILTER", "پالایش": "FILTER", "یکتا": "UNIQUE",
+    "بیتکرار": "UNIQUE", "مرتب": "SORT", "چیدن": "SORT", "ترانهاده": "TRANSPOSE"
+  };
+  return formula
+    .replace(/[،؛]/g, ",")
+    .replace(/[A-Za-zؠ-ۿ]+(?=\s*\()/g, (name) => aliases[name] || name.toUpperCase());
+}
 
 /**
  * ساخت فایل xlsx از یک برگه.
@@ -230,8 +253,15 @@ export function buildXlsx(sheet: XlsxSheet, rtl = true): Blob {
 
       const ref = `${colToName(c)}${r + 1}`;
       const sa = s ? ` s="${s}"` : "";
-      if (empty) {
+      if (empty && !cell.formula) {
         cells.push(`<c r="${ref}"${sa}/>`);
+      } else if (cell.formula) {
+        const formula = esc(cell.formula.replace(/^=/, ""));
+        const typeAttr = typeof raw === "string" ? ' t="str"' : "";
+        const cached = raw === null || raw === undefined || raw === ""
+          ? ""
+          : `<v>${esc(String(raw))}</v>`;
+        cells.push(`<c r="${ref}"${sa}${typeAttr}><f>${formula}</f>${cached}</c>`);
       } else if (isNumeric) {
         // اکسل نماد نمایی را با E بزرگ می‌نویسد
         cells.push(`<c r="${ref}"${sa}><v>${String(raw).replace("e", "E")}</v></c>`);
@@ -247,11 +277,13 @@ export function buildXlsx(sheet: XlsxSheet, rtl = true): Blob {
 
   // --- عرض ستون‌ها: پیکسل ⟵ واحد اکسل (تقریبِ استاندارد ۷ پیکسل برای هر نویسه) ---
   let colsXml = "";
-  if (sheet.colWidths && sheet.colWidths.length) {
+  if (sheet.cols > 0) {
     const defs: string[] = [];
     for (let c = 0; c < sheet.cols; c++) {
-      const px = sheet.colWidths[c];
-      if (!px || !Number.isFinite(px)) continue;
+      const configuredWidth = sheet.colWidths[c];
+      const px = configuredWidth && Number.isFinite(configuredWidth)
+        ? configuredWidth
+        : FIXED_DEFAULT_COLUMN_WIDTH_PX;
       // عرض کافی برای اعداد بزرگ؛ در Excel موبایل مقدارهای طولانی نباید #### شوند.
       const minChars = Math.min(40, Math.max(12, contentWidths[c] + 2));
       const w = Math.max(1, Math.round(Math.max(((px - 5) / 7), minChars) * 100) / 100);

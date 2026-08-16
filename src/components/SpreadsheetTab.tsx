@@ -10,10 +10,10 @@ import {
   shiftFormula, remapFormula, parseNumeric
 } from "../formula";
 import { toPersianDigits } from "../utils";
-import { buildXlsx, downloadBlob } from "../xlsx";
+import { buildXlsx, downloadBlob, toExcelFormula } from "../xlsx";
 
 const DEFAULT_ROWS = 30;
-const DEFAULT_COLS = 10;
+const DEFAULT_COLS = 9;
 const DEFAULT_W = 112;
 const MIN_W = 56;
 const MAX_ROWS = 2000;
@@ -29,6 +29,30 @@ const FILL_COLORS = [
   { label: "نارنجی", value: "#ffedd5" }
 ];
 
+const LEDGER_HEADERS = ["تاریخ", "اصل سرمایه", "سود", "مجموع سود"];
+
+function ledgerTemplateCells(rows: number): Record<string, SheetCell> {
+  const cells: Record<string, SheetCell> = {};
+  LEDGER_HEADERS.forEach((value, c) => { cells[cellKey(0, c)] = { v: value }; });
+  for (let row = 2; row <= rows; row++) {
+    const formula = row === 2
+      ? '=IF(C2="","",C2)'
+      : `=IF(C${row}="","",D${row - 1}+C${row})`;
+    cells[`D${row}`] = { v: formula };
+  }
+  return cells;
+}
+
+function ensureLedgerTemplate(sheet: SheetDoc): SheetDoc {
+  if (sheet.template !== "ledger") return sheet;
+  const cells = { ...sheet.cells };
+  const templateCells = ledgerTemplateCells(sheet.rows);
+  for (const key of Object.keys(templateCells)) {
+    cells[key] = { ...cells[key], v: templateCells[key].v };
+  }
+  return { ...sheet, cols: Math.max(sheet.cols, DEFAULT_COLS), cells };
+}
+
 export function makeSheet(name: string): SheetDoc {
   return {
     id: "sh-" + Math.random().toString(36).slice(2, 9) + "-" + name.length,
@@ -36,7 +60,8 @@ export function makeSheet(name: string): SheetDoc {
     rows: DEFAULT_ROWS,
     cols: DEFAULT_COLS,
     colWidths: Array(DEFAULT_COLS).fill(DEFAULT_W),
-    cells: {}
+    cells: ledgerTemplateCells(DEFAULT_ROWS),
+    template: "ledger"
   };
 }
 
@@ -138,7 +163,7 @@ export default function SpreadsheetTab({ sheets: initialSheets, onChange }: Prop
   }, [sheets]);
 
   const updateSheet = useCallback((mut: (s: SheetDoc) => SheetDoc) => {
-    commit(sheets.map(s => (s.id === sheet.id ? mut(s) : s)));
+    commit(sheets.map(s => (s.id === sheet.id ? ensureLedgerTemplate(mut(s)) : s)));
   }, [commit, sheets, sheet]);
 
   const undo = () => {
@@ -698,12 +723,13 @@ export default function SpreadsheetTab({ sheets: initialSheets, onChange }: Prop
         const key = cellKey(r, c);
         const data = sheet.cells[key];
         const v = engine.value(key);
-        if ((v === "" || v === null || v === undefined) && !data?.b && !data?.bg) return null;
+        const raw = data?.v?.trim() || "";
+        const formula = raw.startsWith("=") ? toExcelFormula(raw.slice(1)) : undefined;
+        if ((v === "" || v === null || v === undefined) && !data?.b && !data?.bg && !formula) return null;
 
         // اعداد بزرگ‌تر از دقت امن جاوااسکریپت را به‌صورت متن دقیق صادر می‌کنیم
         // تا رقم‌هایشان در Excel موبایل گرد یا ناقص نشود.
         let exportValue: string | number | boolean = v ?? "";
-        const raw = data?.v?.trim() || "";
         if (raw && !raw.startsWith("=") && typeof v === "number") {
           const normalized = raw
             .replace(/[۰-۹]/g, d => String("۰۱۲۳۴۵۶۷۸۹".indexOf(d)))
@@ -713,7 +739,7 @@ export default function SpreadsheetTab({ sheets: initialSheets, onChange }: Prop
             exportValue = normalized;
           }
         }
-        return { v: exportValue, bold: data?.b, bg: data?.bg };
+        return { v: exportValue, formula, bold: data?.b, bg: data?.bg };
       }
     }, true);
     downloadBlob(blob, `${sheet.name}.xlsx`);

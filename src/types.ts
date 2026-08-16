@@ -63,6 +63,7 @@ export interface SheetDoc {
   cols: number;
   colWidths: number[];
   cells: Record<string, SheetCell>;
+  template?: "ledger";
 }
 
 export interface AppState {
