@@ -26,6 +26,8 @@ export default function App() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [isLocalMode, setIsLocalMode] = useState(false);
   const [isOffline, setIsOffline] = useState(() => typeof navigator !== "undefined" && !navigator.onLine);
+  // ارسال‌ها پشت سر هم انجام می‌شوند تا ثبت سریع چند سند، داده‌ی قبلی را overwrite نکند.
+  const saveQueueRef = React.useRef<Promise<void>>(Promise.resolve());
 
   // ---- احراز هویت ----
   const [authUser, setAuthUser] = useState<string | null>(null);
@@ -258,31 +260,33 @@ export default function App() {
     setAuthUser(next);
   };
 
-  // Saves state to the server (and mirrors to localStorage instantly)
-  const saveState = async (updatedState: AppState) => {
+  // ذخیره‌ی فوری در رابط کاربری و ارسال صف‌بندی‌شده به سرور در پس‌زمینه
+  const saveState = (updatedState: AppState) => {
     setAppState(updatedState); // optimistic update
     if (authUser) localStorage.setItem(cacheKey(authUser), JSON.stringify(updatedState));
 
-    try {
-      const res = await fetch("/api/data", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(updatedState)
-      });
-      if (res.status === 401) {
-        setAuthUser(null);
-        setAppState(null);
-        return;
+    saveQueueRef.current = saveQueueRef.current.then(async () => {
+      try {
+        const res = await fetch("/api/data", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(updatedState)
+        });
+        if (res.status === 401) {
+          setAuthUser(null);
+          setAppState(null);
+          return;
+        }
+        if (!res.ok) throw new Error("مشکل در ذخیره‌سازی اطلاعات.");
+        const result = await res.json();
+        setAppState(result.data);
+        setIsLocalMode(false);
+      } catch (err: any) {
+        console.warn("Server unavailable. Saving state locally in browser...", err);
+        setIsLocalMode(true);
+        if (!navigator.onLine) setIsOffline(true);
       }
-      if (!res.ok) throw new Error("مشکل در ذخیره‌سازی اطلاعات.");
-      const result = await res.json();
-      setAppState(result.data);
-      setIsLocalMode(false);
-    } catch (err: any) {
-      console.warn("Server unavailable. Saving state locally in browser...", err);
-      setIsLocalMode(true);
-      if (!navigator.onLine) setIsOffline(true);
-    }
+    });
   };
 
   const handleUpdateSettings = async (newSettings: AppSettings) => {

@@ -186,9 +186,10 @@ export function buildXlsx(sheet: XlsxSheet, rtl = true): Blob {
   const fills: string[] = [];       // ARGB ها؛ ایندکس ۰ و ۱ در اکسل رزرو است
   const fillIdx = new Map<string, number>();
   const xfKey = new Map<string, number>();
-  const xfs: { bold: boolean; fill: number }[] = [{ bold: false, fill: 0 }];
+  const xfs: { bold: boolean; fill: number; number: boolean }[] = [{ bold: false, fill: 0, number: false }];
+  const contentWidths = Array(sheet.cols).fill(0);
 
-  const styleOf = (bold: boolean, bg?: string): number => {
+  const styleOf = (bold: boolean, bg?: string, number = false): number => {
     const argb = bg ? toARGB(bg) : null;
     if (!bold && !argb) return 0;
     let fi = 0;
@@ -199,11 +200,11 @@ export function buildXlsx(sheet: XlsxSheet, rtl = true): Blob {
       }
       fi = fillIdx.get(argb)!;
     }
-    const key = `${bold ? 1 : 0}:${fi}`;
+    const key = `${bold ? 1 : 0}:${fi}:${number ? 1 : 0}`;
     let idx = xfKey.get(key);
     if (idx === undefined) {
       idx = xfs.length;
-      xfs.push({ bold, fill: fi });
+      xfs.push({ bold, fill: fi, number });
       xfKey.set(key, idx);
     }
     return idx;
@@ -218,14 +219,20 @@ export function buildXlsx(sheet: XlsxSheet, rtl = true): Blob {
       if (!cell) continue;
       const raw = cell.v;
       const empty = raw === null || raw === undefined || raw === "";
-      const s = styleOf(!!cell.bold, cell.bg);
+      const isNumeric = typeof raw === "number" && Number.isFinite(raw);
+      const s = styleOf(!!cell.bold, cell.bg, isNumeric);
       if (empty && !s) continue;
+
+      if (!empty) {
+        const displayWidth = isNumeric ? String(raw).replace(/[eE].*$/, "").length : String(raw).length;
+        contentWidths[c] = Math.max(contentWidths[c], displayWidth);
+      }
 
       const ref = `${colToName(c)}${r + 1}`;
       const sa = s ? ` s="${s}"` : "";
       if (empty) {
         cells.push(`<c r="${ref}"${sa}/>`);
-      } else if (typeof raw === "number" && Number.isFinite(raw)) {
+      } else if (isNumeric) {
         // اکسل نماد نمایی را با E بزرگ می‌نویسد
         cells.push(`<c r="${ref}"${sa}><v>${String(raw).replace("e", "E")}</v></c>`);
       } else if (typeof raw === "boolean") {
@@ -245,7 +252,9 @@ export function buildXlsx(sheet: XlsxSheet, rtl = true): Blob {
     for (let c = 0; c < sheet.cols; c++) {
       const px = sheet.colWidths[c];
       if (!px || !Number.isFinite(px)) continue;
-      const w = Math.max(1, Math.round(((px - 5) / 7) * 100) / 100);
+      // عرض کافی برای اعداد بزرگ؛ در Excel موبایل مقدارهای طولانی نباید #### شوند.
+      const minChars = Math.min(40, Math.max(12, contentWidths[c] + 2));
+      const w = Math.max(1, Math.round(Math.max(((px - 5) / 7), minChars) * 100) / 100);
       defs.push(`<col min="${c + 1}" max="${c + 1}" width="${w}" customWidth="1"/>`);
     }
     if (defs.length) colsXml = `<cols>${defs.join("")}</cols>`;
@@ -275,6 +284,7 @@ export function buildXlsx(sheet: XlsxSheet, rtl = true): Blob {
   const stylesXml =
     XML +
     '<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">' +
+    '<numFmts count="1"><numFmt numFmtId="164" formatCode="#,##0.####################"/></numFmts>' +
     '<fonts count="2">' +
     '<font><sz val="11"/><name val="Calibri"/></font>' +
     '<font><b/><sz val="11"/><name val="Calibri"/></font>' +
@@ -285,8 +295,8 @@ export function buildXlsx(sheet: XlsxSheet, rtl = true): Blob {
     `<cellXfs count="${xfs.length}">` +
     xfs
       .map(x =>
-        `<xf numFmtId="0" fontId="${x.bold ? 1 : 0}" fillId="${x.fill}" borderId="0" xfId="0"` +
-        `${x.bold ? ' applyFont="1"' : ""}${x.fill ? ' applyFill="1"' : ""}/>`
+        `<xf numFmtId="${x.number ? 164 : 0}" fontId="${x.bold ? 1 : 0}" fillId="${x.fill}" borderId="0" xfId="0"` +
+        `${x.bold ? ' applyFont="1"' : ""}${x.fill ? ' applyFill="1"' : ""}${x.number ? ' applyNumberFormat="1"' : ""}/>`
       )
       .join("") +
     "</cellXfs>" +

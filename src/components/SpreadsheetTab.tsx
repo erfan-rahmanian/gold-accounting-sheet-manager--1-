@@ -699,7 +699,21 @@ export default function SpreadsheetTab({ sheets: initialSheets, onChange }: Prop
         const data = sheet.cells[key];
         const v = engine.value(key);
         if ((v === "" || v === null || v === undefined) && !data?.b && !data?.bg) return null;
-        return { v: v ?? "", bold: data?.b, bg: data?.bg };
+
+        // اعداد بزرگ‌تر از دقت امن جاوااسکریپت را به‌صورت متن دقیق صادر می‌کنیم
+        // تا رقم‌هایشان در Excel موبایل گرد یا ناقص نشود.
+        let exportValue: string | number | boolean = v ?? "";
+        const raw = data?.v?.trim() || "";
+        if (raw && !raw.startsWith("=") && typeof v === "number") {
+          const normalized = raw
+            .replace(/[۰-۹]/g, d => String("۰۱۲۳۴۵۶۷۸۹".indexOf(d)))
+            .replace(/[٬,\s]/g, "");
+          const integerDigits = normalized.replace(/^[+-]/, "").split(".")[0].replace(/^0+/, "");
+          if (/^[+-]?\d+(?:\.\d+)?$/.test(normalized) && integerDigits.length > 15) {
+            exportValue = normalized;
+          }
+        }
+        return { v: exportValue, bold: data?.b, bg: data?.bg };
       }
     });
     downloadBlob(blob, `${sheet.name}.xlsx`);

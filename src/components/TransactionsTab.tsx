@@ -96,6 +96,27 @@ export default function TransactionsTab({
     return () => input.removeEventListener("change", handler);
   }, [showAddForm]);
 
+  const handleFormKeyDown = (e: React.KeyboardEvent<HTMLFormElement>) => {
+    if (e.key !== "Enter" || e.shiftKey || e.ctrlKey || e.altKey || e.metaKey) return;
+    const target = e.target as HTMLElement;
+    if (!(target instanceof HTMLInputElement || target instanceof HTMLSelectElement || target instanceof HTMLTextAreaElement)) return;
+
+    const fields = Array.from(e.currentTarget.querySelectorAll(
+      "input:not([type='hidden']):not([disabled]), select:not([disabled]), textarea:not([disabled])"
+    )) as HTMLElement[];
+    const currentIndex = fields.indexOf(target);
+    if (currentIndex < 0) return;
+
+    e.preventDefault();
+    const nextField = fields[currentIndex + 1];
+    if (!nextField) {
+      e.currentTarget.requestSubmit();
+      return;
+    }
+    nextField.focus();
+    if (nextField instanceof HTMLInputElement) nextField.select();
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -210,7 +231,7 @@ export default function TransactionsTab({
 
       {/* Slide down Add form in Light mode, fully mobile responsive with decimal numeric inputs */}
       {showAddForm && (
-        <form onSubmit={handleSubmit} className="bg-white border border-slate-200 rounded-3xl p-5 md:p-6 shadow-md text-xs space-y-4 max-w-4xl mx-auto animate-fadeIn">
+        <form onSubmit={handleSubmit} onKeyDown={handleFormKeyDown} className="bg-white border border-slate-200 rounded-3xl p-5 md:p-6 shadow-md text-xs space-y-4 max-w-4xl mx-auto animate-fadeIn">
           <h3 className="text-sm font-extrabold text-slate-900 border-b border-slate-100 pb-3 flex items-center gap-2">
             <BrandIcon name="transaction" size={20} />
             {editingId ? "ویرایش سند حسابداری طلا" : "سند جدید حسابداری طلا"}
