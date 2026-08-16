@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Plus, MagnifyingGlass, CheckCircle, Tag, Trash } from "@phosphor-icons/react";
+import { Plus, MagnifyingGlass, CheckCircle, Tag, Trash, PencilSimple } from "@phosphor-icons/react";
 import { AppSettings, Transaction, TRANSACTION_TYPES } from "../types";
 import { EmptyState } from "./EmptyState";
 import BrandIcon from "./BrandIcon";
@@ -20,6 +20,7 @@ interface TransactionsTabProps {
   settings: AppSettings;
   transactions: Transaction[];
   onAddTransaction: (tx: Transaction) => Promise<void>;
+  onUpdateTransaction?: (tx: Transaction) => Promise<void>;
   onRemoveTransaction?: (id: string) => Promise<void>;
 }
 
@@ -27,6 +28,7 @@ export default function TransactionsTab({
   settings,
   transactions,
   onAddTransaction,
+  onUpdateTransaction,
   onRemoveTransaction
 }: TransactionsTabProps) {
   // Search state
@@ -34,6 +36,7 @@ export default function TransactionsTab({
 
   // Transition animation for adding transactions
   const [showAddForm, setShowAddForm] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   // New Transaction draft state
   const [txDate, setTxDate] = useState(getTodayJalali());
@@ -98,7 +101,7 @@ export default function TransactionsTab({
     
     // Draft item
     const draftTx: Partial<Transaction> = {
-      id: "tx-" + Date.now(),
+      id: editingId || "tx-" + Date.now(),
       date: txDate,
       shop: txShop,
       type: txType,
@@ -121,7 +124,11 @@ export default function TransactionsTab({
     // Auto-calculate outputs using gold standard formula ruleset
     const finalizedTx = calculateTransactionFields(draftTx, settings.coins) as Transaction;
     
-    await onAddTransaction(finalizedTx);
+    if (editingId && onUpdateTransaction) {
+      await onUpdateTransaction(finalizedTx);
+    } else {
+      await onAddTransaction(finalizedTx);
+    }
 
     // Reset draft fields
     setTxGoldWeight("");
@@ -133,7 +140,30 @@ export default function TransactionsTab({
     setManualIRRCredit("");
     setManualIRRDebit("");
     setManualProfit("");
+    setEditingId(null);
     setShowAddForm(false);
+  };
+
+  const startEditing = (tx: Transaction) => {
+    setEditingId(tx.id);
+    setShowAddForm(true);
+    setTxDate(tx.date || getTodayJalali());
+    setTxShop(tx.shop || "");
+    setTxType(tx.type || "خرید طلا");
+    setTxSubType(tx.subType || "");
+    setTxCoinType(tx.coinType || settings.coins[0]?.name || "");
+    setTxCoinCount(String(tx.coinCount || ""));
+    setTxPerson(tx.person || "");
+    setTxGoldWeight(String(tx.goldWeight || ""));
+    setTxAmount(String(tx.amount || ""));
+    setTxSalesAmount(String(tx.salesAmount || ""));
+    setTxNote(tx.note || "");
+    setManualGoldCredit(String(tx.goldCredit || ""));
+    setManualGoldDebit(String(tx.goldDebit || ""));
+    setManualIRRCredit(String(tx.irrCredit || ""));
+    setManualIRRDebit(String(tx.irrDebit || ""));
+    setManualProfit(String(tx.profit || ""));
+    window.setTimeout(() => document.querySelector("form")?.scrollIntoView({ behavior: "smooth", block: "start" }), 0);
   };
 
   // Filters logic
@@ -183,7 +213,7 @@ export default function TransactionsTab({
         <form onSubmit={handleSubmit} className="bg-white border border-slate-200 rounded-3xl p-5 md:p-6 shadow-md text-xs space-y-4 max-w-4xl mx-auto animate-fadeIn">
           <h3 className="text-sm font-extrabold text-slate-900 border-b border-slate-100 pb-3 flex items-center gap-2">
             <BrandIcon name="transaction" size={20} />
-            سند جدید حسابداری طلا
+            {editingId ? "ویرایش سند حسابداری طلا" : "سند جدید حسابداری طلا"}
           </h3>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
@@ -393,7 +423,7 @@ export default function TransactionsTab({
               className="bg-amber-500 text-slate-950 font-extrabold px-8 py-3.5 rounded-2xl text-xs hover:bg-amber-400 cursor-pointer transition-all flex items-center gap-2 shadow-sm shadow-amber-500/20 active:scale-[0.98] min-h-[44px]"
             >
               <CheckCircle className="w-4 h-4 stroke-[2.5]" />
-              ثبت نهایی و سند زدن در دفتر حسابداری طلا
+              {editingId ? "ذخیره تغییرات سند" : "ثبت نهایی و سند زدن در دفتر حسابداری طلا"}
             </button>
           </div>
         </form>
@@ -429,7 +459,7 @@ export default function TransactionsTab({
                   <th className="py-3 px-2 text-rose-600">بدهکاری ریال</th>
                   <th className="py-3 px-2 text-amber-600">سود/زیان</th>
                   <th className="py-3 px-2 max-w-[150px]">توضیحات</th>
-                  {onRemoveTransaction && <th className="py-3 px-2 text-center w-16">عملیات</th>}
+                  {(onRemoveTransaction || onUpdateTransaction) && <th className="py-3 px-2 text-center w-24">عملیات</th>}
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100/80">
@@ -470,8 +500,20 @@ export default function TransactionsTab({
                     <td className="py-3 px-2 text-slate-500 max-w-[150px] truncate font-medium" title={tx.note}>
                       {tx.note || "-"}
                     </td>
-                    {onRemoveTransaction && (
+                    {(onRemoveTransaction || onUpdateTransaction) && (
                       <td className="py-3 px-2 text-center">
+                        <div className="flex items-center justify-center gap-1.5">
+                        {onUpdateTransaction && (
+                          <button
+                            onClick={() => startEditing(tx)}
+                            className="text-amber-600 hover:text-white border border-amber-100 hover:border-amber-500 bg-amber-50 hover:bg-amber-500 p-1.5 rounded-lg cursor-pointer transition-all inline-flex items-center justify-center"
+                            title="ویرایش سند"
+                            aria-label="ویرایش سند"
+                          >
+                            <PencilSimple className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                        {onRemoveTransaction && (
                         <button
                           onClick={() => {
                             if (window.confirm("آیا از حذف این سند حسابداری طلا اطمینان کامل دارید؟")) {
@@ -483,6 +525,8 @@ export default function TransactionsTab({
                         >
                           <Trash className="w-3.5 h-3.5" />
                         </button>
+                        )}
+                        </div>
                       </td>
                     )}
                   </tr>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { ShieldWarning, List, X, SignOut } from "@phosphor-icons/react";
+import { ShieldWarning, List, X, SignOut, ArrowClockwise, WifiSlash } from "@phosphor-icons/react";
 import { AppState, AppSettings, Transaction, SheetDoc } from "./types";
 import { formatCurrency, toPersianDigits } from "./utils";
 import DashboardTab from "./components/DashboardTab";
@@ -13,11 +13,19 @@ import ProfileTab from "./components/ProfileTab";
 
 export default function App() {
   const [appState, setAppState] = useState<AppState | null>(null);
-  const [activeTab, setActiveTab] = useState<"dashboard" | "transactions" | "reports" | "sheets" | "settings" | "backup" | "profile">("dashboard");
+  type TabKey = "dashboard" | "transactions" | "reports" | "sheets" | "settings" | "backup" | "profile";
+  const tabStorageKey = "gold_accounting_active_tab";
+  const [activeTab, setActiveTab] = useState<TabKey>(() => {
+    const saved = localStorage.getItem(tabStorageKey) as TabKey | null;
+    return saved && ["dashboard", "transactions", "reports", "sheets", "settings", "backup", "profile"].includes(saved)
+      ? saved
+      : "dashboard";
+  });
   const [fetching, setFetching] = useState(true);
   const [networkError, setNetworkError] = useState<string | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [isLocalMode, setIsLocalMode] = useState(false);
+  const [isOffline, setIsOffline] = useState(() => typeof navigator !== "undefined" && !navigator.onLine);
 
   // ---- احراز هویت ----
   const [authUser, setAuthUser] = useState<string | null>(null);
@@ -33,6 +41,21 @@ export default function App() {
   // Scroll to hide logic on mobile
   const [showHeader, setShowHeader] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
+
+  useEffect(() => {
+    const goOffline = () => setIsOffline(true);
+    const goOnline = () => setIsOffline(false);
+    window.addEventListener("offline", goOffline);
+    window.addEventListener("online", goOnline);
+    return () => {
+      window.removeEventListener("offline", goOffline);
+      window.removeEventListener("online", goOnline);
+    };
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem(tabStorageKey, activeTab);
+  }, [activeTab]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -116,6 +139,7 @@ export default function App() {
       localStorage.setItem(cacheKey(user), JSON.stringify(fixed));
     } catch (err: any) {
       console.warn("Could not connect to database server. Using localStorage fallback mode...", err);
+      if (!navigator.onLine) setIsOffline(true);
       setIsLocalMode(true);
       const cached = localStorage.getItem(cacheKey(user));
       if (cached) {
@@ -257,6 +281,7 @@ export default function App() {
     } catch (err: any) {
       console.warn("Server unavailable. Saving state locally in browser...", err);
       setIsLocalMode(true);
+      if (!navigator.onLine) setIsOffline(true);
     }
   };
 
@@ -287,6 +312,14 @@ export default function App() {
       transactions: updatedTxs
     };
     await saveState(updated);
+  };
+
+  const handleUpdateTransaction = async (transaction: Transaction) => {
+    if (!appState) return;
+    await saveState({
+      ...appState,
+      transactions: appState.transactions.map((tx) => tx.id === transaction.id ? transaction : tx)
+    });
   };
 
   // Dedicated restore function for backups
@@ -384,6 +417,17 @@ export default function App() {
 
             {/* Right side: Database Synchronicity Status Card */}
             <div className="flex items-center gap-2">
+              <button
+                onClick={() => {
+                  localStorage.setItem(tabStorageKey, activeTab);
+                  window.location.reload();
+                }}
+                className="p-2 bg-slate-100 hover:bg-amber-100 rounded-xl text-slate-700 hover:text-amber-700 transition-colors cursor-pointer min-h-[40px] min-w-[40px] flex items-center justify-center border border-slate-200"
+                title="رفرش صفحه"
+                aria-label="رفرش صفحه"
+              >
+                <ArrowClockwise className="w-5 h-5" />
+              </button>
               {isLocalMode ? (
                 <div className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-500/10 border border-amber-200 rounded-xl text-[10px] sm:text-xs font-black text-amber-805">
                   <span className="w-2 h-2 rounded-full bg-amber-550 block shrink-0 animate-pulse"></span>
@@ -398,6 +442,13 @@ export default function App() {
             </div>
           </div>
         </header>
+
+        {isOffline && (
+          <div className="fixed top-[60px] md:top-[68px] left-0 right-0 z-40 bg-rose-600 text-white px-4 py-2.5 text-center text-xs font-extrabold shadow-md flex items-center justify-center gap-2" role="alert">
+            <WifiSlash className="w-4 h-4" />
+            اتصال اینترنت قطع است؛ تغییرات فعلاً در حافظه محلی مرورگر ذخیره می‌شوند.
+          </div>
+        )}
 
         {/* Scroll Margin Spacer only visible on mobile when header is fixed */}
         <div className="h-[60px] md:hidden"></div>
@@ -520,6 +571,7 @@ export default function App() {
                 settings={appState.settings}
                 transactions={appState.transactions}
                 onAddTransaction={handleAddTransaction}
+                onUpdateTransaction={handleUpdateTransaction}
                 onRemoveTransaction={handleRemoveTransaction}
               />
             )}
