@@ -1,11 +1,11 @@
-@import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 body {
   font-family: var(--font-sans);
-  background-color: #f8fafc; /* light theme slate-50 */
+  background-color: #f5f6f8; /* neutral canvas so white cards read as panels */
   color: #0f172a; /* deep slate-900 */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -42,10 +42,10 @@ input[type=number] {
   -moz-appearance: textfield;
 }
 
-/* Custom golden-orange scrollbar styles across the entire application */
+/* Quiet neutral scrollbar so it stays out of the way of the blue accent */
 * {
   scrollbar-width: thin;
-  scrollbar-color: #f59e0b #f1f5f9; /* amber-500 thumb, slate-100 track */
+  scrollbar-color: #cbd5e1 #f1f5f9; /* slate-300 thumb, slate-100 track */
 }
 
 /* Chrome, Edge, Safari and other webkit-based browsers */
@@ -59,13 +59,13 @@ input[type=number] {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #f59e0b; /* amber-500 */
-  border-radius: 9999px;
+  background: #cbd5e1; /* slate-300 */
+  border-radius: 4px;
   border: 2px solid #f1f5f9; /* adds space around scrollbar thumb */
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #d97706; /* amber-600 */
+  background: #94a3b8; /* slate-400 */
 }
 
 @media (max-width: 767px) {

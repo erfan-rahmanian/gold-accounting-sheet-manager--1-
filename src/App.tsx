@@ -340,8 +340,8 @@ export default function App() {
   if (fetching || !authChecked) {
     return (
       <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col justify-center items-center gap-4 animate-fadeIn" dir="rtl">
-        <div className="w-12 h-12 border-4 border-amber-500 border-t-transparent rounded-full animate-spin"></div>
-        <p className="text-sm font-semibold text-slate-500">درحال فراخوانی اسناد و دفاتر حسابداری طلا...</p>
+        <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+        <p className="text-sm font-medium text-slate-500">درحال فراخوانی اسناد و دفاتر حسابداری طلا...</p>
       </div>
     );
   }
@@ -365,10 +365,10 @@ export default function App() {
     return (
       <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col justify-center items-center p-6 text-center animate-fadeIn" dir="rtl">
         <ShieldWarning className="w-12 h-12 text-rose-500 mb-4" />
-        <p className="text-base font-bold text-rose-600 mb-3">{networkError || "کال بک دیتابیس با مشکل روبرو شد."}</p>
+        <p className="text-base font-semibold text-rose-600 mb-3">{networkError || "کال بک دیتابیس با مشکل روبرو شد."}</p>
         <button
           onClick={() => fetchData(authUser)}
-          className="bg-amber-500 text-slate-950 font-extrabold px-6 py-3 rounded-2xl text-xs hover:bg-amber-400 cursor-pointer shadow-sm active:scale-95"
+          className="bg-blue-600 text-white font-semibold px-6 py-3 rounded text-xs hover:bg-blue-700 cursor-pointer active:scale-95"
         >
           تلاش مجدد اتصال
         </button>
@@ -392,14 +392,14 @@ export default function App() {
     <div className="min-h-screen bg-[#f8fafc] text-slate-900 flex flex-col justify-between" dir="rtl">
       <div>
         {/* Dynamic Header with scroll-to-hide support on mobile */}
-        <header className={`fixed md:sticky top-0 right-0 left-0 z-50 bg-white/95 backdrop-blur-md border-b border-slate-200/80 px-4 py-3 shadow-md transition-transform duration-300 ${showHeader ? "translate-y-0" : "-translate-y-full"}`}>
+        <header className={`fixed md:sticky top-0 right-0 left-0 z-50 bg-white border-b border-slate-200 px-4 py-3 transition-transform duration-300 ${showHeader ? "translate-y-0" : "-translate-y-full"}`}>
           <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
             {/* Left side: Hamburger + Title */}
             <div className="flex items-center gap-3">
               {/* Hamburger Button */}
               <button
                 onClick={() => setMenuOpen(true)}
-                className="p-2 bg-slate-100 hover:bg-slate-200 rounded-xl text-slate-700 transition-colors cursor-pointer mr-0.5 min-h-[40px] min-w-[40px] flex items-center justify-center border border-slate-200"
+                className="p-2 bg-white hover:bg-slate-100 rounded text-slate-600 transition-colors cursor-pointer mr-0.5 min-h-[40px] min-w-[40px] flex items-center justify-center border border-slate-200"
                 title="منوی اصلی"
               >
                 <List className="w-5 h-5" />
@@ -413,7 +413,7 @@ export default function App() {
                   height={36}
                   className="w-9 h-9 hidden sm:block shrink-0 object-contain"
                 />
-                <h1 className="text-xs md:text-sm font-black text-slate-900 tracking-tight leading-none animate-fadeIn">
+                <h1 className="text-xs md:text-sm font-bold text-slate-900 tracking-tight leading-none animate-fadeIn">
                   سیستم مدیریت و حسابداری طلا
                 </h1>
               </div>
@@ -426,20 +426,20 @@ export default function App() {
                   localStorage.setItem(tabStorageKey, activeTab);
                   window.location.reload();
                 }}
-                className="p-2 bg-slate-100 hover:bg-amber-100 rounded-xl text-slate-700 hover:text-amber-700 transition-colors cursor-pointer min-h-[40px] min-w-[40px] flex items-center justify-center border border-slate-200"
+                className="p-2 bg-white hover:bg-blue-50 rounded text-slate-600 hover:text-blue-600 transition-colors cursor-pointer min-h-[40px] min-w-[40px] flex items-center justify-center border border-slate-200"
                 title="رفرش صفحه"
                 aria-label="رفرش صفحه"
               >
                 <ArrowClockwise className="w-5 h-5" />
               </button>
               {isLocalMode ? (
-                <div className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-500/10 border border-amber-200 rounded-xl text-[10px] sm:text-xs font-black text-amber-805">
-                  <span className="w-2 h-2 rounded-full bg-amber-550 block shrink-0 animate-pulse"></span>
+                <div className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded text-[10px] sm:text-xs font-semibold text-slate-600">
+                  <span className="w-2 h-2 rounded-full bg-blue-500 block shrink-0 animate-pulse"></span>
                   <span>حافظه محلی مرورگر (فعال)</span>
                 </div>
               ) : (
-                <div className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500/10 border border-emerald-250 rounded-xl text-[10px] sm:text-xs font-black text-emerald-805">
-                  <span className="w-2 h-2 rounded-full bg-emerald-550 block shrink-0 animate-pulse"></span>
+                <div className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded text-[10px] sm:text-xs font-semibold text-slate-600">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 block shrink-0 animate-pulse"></span>
                   <span>متصل و همگام با سرور</span>
                 </div>
               )}
@@ -448,7 +448,7 @@ export default function App() {
         </header>
 
         {isOffline && (
-          <div className="fixed top-[60px] md:top-[68px] left-0 right-0 z-40 bg-rose-600 text-white px-4 py-2.5 text-center text-xs font-extrabold shadow-md flex items-center justify-center gap-2" role="alert">
+          <div className="fixed top-[60px] md:top-[68px] left-0 right-0 z-40 bg-rose-600 text-white px-4 py-2.5 text-center text-xs font-bold shadow-sm flex items-center justify-center gap-2" role="alert">
             <WifiSlash className="w-4 h-4" />
             اتصال اینترنت قطع است؛ تغییرات فعلاً در حافظه محلی مرورگر ذخیره می‌شوند.
           </div>
@@ -467,7 +467,7 @@ export default function App() {
             ></div>
 
             {/* Nav Panel Drawer */}
-            <div className="absolute right-0 top-0 bottom-0 w-[280px] max-w-full bg-white shadow-2xl flex flex-col justify-between border-l border-slate-200 animate-slideInRight">
+            <div className="absolute right-0 top-0 bottom-0 w-[280px] max-w-full bg-slate-50 shadow-lg flex flex-col justify-between border-l border-slate-200 animate-slideInRight">
               {/*
                 روی نمایشگرهای کوتاه (یا گوشی در حالت افقی) فهرست بلندتر از صفحه
                 می‌شود؛ با اسکرول شدنِ همین بخش، بخش پایینی (حساب کاربری و خروج)
@@ -475,7 +475,7 @@ export default function App() {
               */}
               <div className="min-h-0 overflow-y-auto">
                 {/* Panel Header */}
-                <div className="p-4 border-b border-slate-100 flex items-center justify-between">
+                <div className="p-4 bg-white border-b border-slate-200 flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <img
                       src="/brand/logo.png"
@@ -484,18 +484,18 @@ export default function App() {
                       height={32}
                       className="w-8 h-8 shrink-0 object-contain"
                     />
-                    <span className="text-xs font-black text-slate-900">منوی هدایت حسابداری</span>
+                    <span className="text-xs font-bold text-slate-900">منوی هدایت حسابداری</span>
                   </div>
-                  <button 
+                  <button
                     onClick={() => setMenuOpen(false)}
-                    className="p-1.5 bg-slate-100 hover:bg-rose-100 text-slate-500 hover:text-rose-700 rounded-lg transition-all cursor-pointer min-h-[32px] min-w-[32px] flex items-center justify-center"
+                    className="p-1.5 bg-white border border-slate-200 hover:bg-rose-50 text-slate-500 hover:text-rose-600 rounded transition-all cursor-pointer min-h-[32px] min-w-[32px] flex items-center justify-center"
                   >
                     <X className="w-[18px] h-[18px]" />
                   </button>
                 </div>
 
                 {/* Panel Nav Links */}
-                <div className="p-3 space-y-1">
+                <div className="p-2 space-y-0.5">
                   {navItems.map((item) => {
                     const isActive = activeTab === item.key;
                     return (
@@ -505,18 +505,18 @@ export default function App() {
                           setActiveTab(item.key);
                           setMenuOpen(false);
                         }}
-                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-extrabold text-xs cursor-pointer ${
+                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded transition-colors text-xs cursor-pointer border-r-2 ${
                           isActive
-                            ? "bg-amber-500 text-slate-950 shadow-sm"
-                            : "text-slate-650 hover:bg-slate-50 hover:text-slate-950"
+                            ? "bg-white border-blue-600 text-blue-700 font-bold"
+                            : "border-transparent text-slate-600 font-medium hover:bg-white hover:text-slate-900"
                         }`}
                       >
                         {/*
-                          آیکون روی کارت سفید می‌نشیند تا وقتی گزینه فعال است و
-                          پس‌زمینه کهربایی می‌شود، رنگ‌های خودِ آیکون گم نشوند.
+                          آیکون روی کارت سفید می‌نشیند تا رنگ‌های خودِ آیکون
+                          در هر دو حالت فعال و غیرفعال خوانا بماند.
                         */}
-                        <span className={`w-8 h-8 shrink-0 rounded-lg flex items-center justify-center transition-all ${
-                          isActive ? "bg-white/85 shadow-sm" : "bg-slate-50 border border-slate-150"
+                        <span className={`w-8 h-8 shrink-0 rounded flex items-center justify-center transition-colors ${
+                          isActive ? "bg-blue-50 border border-blue-100" : "bg-white border border-slate-200"
                         }`}>
                           <img
                             src={item.icon}
@@ -534,24 +534,24 @@ export default function App() {
               </div>
 
               {/* Drawer footer: حساب کاربری و خروج */}
-              <div className="p-3 border-t border-slate-150 bg-slate-50/50 space-y-2">
+              <div className="p-3 border-t border-slate-200 bg-white space-y-2">
                 <div className="flex items-center gap-2 px-2 py-1.5">
-                  <div className="w-7 h-7 rounded-lg bg-amber-500/15 border border-amber-200 flex items-center justify-center text-[11px] font-black text-amber-700 shrink-0 uppercase">
+                  <div className="w-7 h-7 rounded bg-blue-50 border border-blue-100 flex items-center justify-center text-[11px] font-bold text-blue-700 shrink-0 uppercase">
                     {authUser.slice(0, 1)}
                   </div>
                   <div className="min-w-0">
-                    <div className="text-[10px] text-slate-400 font-bold leading-none mb-1">وارد شده با</div>
-                    <div className="text-[11px] font-black text-slate-800 truncate" dir="ltr">{authUser}</div>
+                    <div className="text-[10px] text-slate-400 font-medium leading-none mb-1">وارد شده با</div>
+                    <div className="text-[11px] font-semibold text-slate-800 truncate" dir="ltr">{authUser}</div>
                   </div>
                 </div>
                 <button
                   onClick={handleLogout}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-[11px] font-extrabold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 cursor-pointer transition-all active:scale-95"
+                  className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded text-[11px] font-semibold text-rose-600 bg-white hover:bg-rose-50 border border-rose-200 cursor-pointer transition-colors"
                 >
                   <SignOut className="w-3.5 h-3.5" />
                   خروج از حساب
                 </button>
-                <div className="text-center text-[10px] text-slate-400 font-bold pt-1">
+                <div className="text-center text-[10px] text-slate-400 font-medium pt-1">
                   نسخه آفلاین طلا PWA و اکسل
                 </div>
               </div>

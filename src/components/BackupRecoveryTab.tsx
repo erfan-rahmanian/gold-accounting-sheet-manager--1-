@@ -347,26 +347,26 @@ export default function BackupRecoveryTab({ appState, onRestoreState }: BackupRe
   return (
     <div className="space-y-6 animate-fadeIn" dir="rtl">
       {/* Introduction Banner with Premium Golden Highlights */}
-      <div className="bg-white border border-slate-200 rounded-3xl p-5 shadow-sm space-y-3">
-        <h2 className="text-sm font-extrabold text-slate-900 flex items-center gap-2">
+      <div className="bg-white border border-slate-200 rounded-md p-5 shadow-sm space-y-3">
+        <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
           <BrandIcon name="backup" size={22} />
           مرکز پشتیبان‌گیری و بازیابی دفاتر حسابداری طلا
         </h2>
-        <p className="text-xs text-slate-500 leading-relaxed font-semibold">
+        <p className="text-xs text-slate-500 leading-relaxed font-medium">
           داده‌های حسابداری طلا به صورت محلی در حافظه مرورگر امن شما و سرور محلی ذخیره می‌شوند. جهت جلوگیری از بروز حوادث غیرمترقبه یا پاک شدن کش‌ها، می‌توانید در چند ثانیه بک‌آپ کامل بگیرید و یا در صورت نیاز کل فاکتورها و دفاتر معین مغازه‌ها را بازگردانی کنید.
         </p>
       </div>
 
       {/* Trigger messages */}
       {successMsg && (
-        <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-2xl p-4 flex items-center gap-3 text-xs font-bold animate-fadeIn">
+        <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-md p-4 flex items-center gap-3 text-xs font-semibold animate-fadeIn">
           <CheckCircle className="w-5 h-5 text-emerald-600 shrink-0" />
           <span>{successMsg}</span>
         </div>
       )}
 
       {errorMsg && (
-        <div className="bg-rose-50 border border-rose-200 text-rose-800 rounded-2xl p-4 flex items-center gap-3 text-xs font-bold animate-fadeIn">
+        <div className="bg-rose-50 border border-rose-200 text-rose-800 rounded-md p-4 flex items-center gap-3 text-xs font-semibold animate-fadeIn">
           <Warning className="w-5 h-5 text-rose-600 shrink-0" />
           <span>{errorMsg}</span>
         </div>
@@ -374,32 +374,32 @@ export default function BackupRecoveryTab({ appState, onRestoreState }: BackupRe
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Export backups panel */}
-        <div className="bg-white border border-slate-200 rounded-3xl p-5 md:p-6 shadow-sm space-y-4">
-          <h3 className="text-xs font-extrabold text-slate-800 border-b border-slate-100 pb-3 flex items-center gap-2">
-            <DownloadSimple className="w-[18px] h-[18px] text-amber-500" />
+        <div className="bg-white border border-slate-200 rounded-md p-5 md:p-6 shadow-sm space-y-4">
+          <h3 className="text-xs font-bold text-slate-800 border-b border-slate-100 pb-3 flex items-center gap-2">
+            <DownloadSimple className="w-[18px] h-[18px] text-blue-500" />
             تهیه نسخه پشتیبان (خروجی گرفتن)
           </h3>
 
-          <div className="space-y-3 text-xs font-semibold">
+          <div className="space-y-3 text-xs font-medium">
             {/* CSV Excel Backup */}
             <button
               onClick={exportToExcelCSV}
-              className="w-full flex items-center justify-between p-4 bg-slate-50 border border-slate-200 rounded-2xl hover:bg-slate-100 transition-all cursor-pointer text-right min-h-[50px] active:scale-[0.98]"
+              className="w-full flex items-center justify-between p-4 bg-slate-50 border border-slate-200 rounded-md hover:bg-slate-100 transition-all cursor-pointer text-right min-h-[50px] active:scale-[0.98]"
             >
               <div className="space-y-0.5">
-                <span className="font-extrabold text-slate-800 block text-xs">دانلود بک‌آپ اکسل (فرمت xlsx)</span>
+                <span className="font-bold text-slate-800 block text-xs">دانلود بک‌آپ اکسل (فرمت xlsx)</span>
                 <span className="text-[10px] text-slate-400 font-medium">راست‌به‌چپ، آماده باز شدن در مایکروسافت اکسل</span>
               </div>
-              <FileXls className="w-5 h-5 text-amber-600 shrink-0" />
+              <FileXls className="w-5 h-5 text-blue-600 shrink-0" />
             </button>
 
             {/* JSON Full Backup */}
             <button
               onClick={exportToJSON}
-              className="w-full flex items-center justify-between p-4 bg-slate-50 border border-slate-200 rounded-2xl hover:bg-slate-100 transition-all cursor-pointer text-right min-h-[50px] active:scale-[0.98]"
+              className="w-full flex items-center justify-between p-4 bg-slate-50 border border-slate-200 rounded-md hover:bg-slate-100 transition-all cursor-pointer text-right min-h-[50px] active:scale-[0.98]"
             >
               <div className="space-y-0.5">
-                <span className="font-extrabold text-slate-800 block text-xs">دانلود بک‌آپ کامل نرم‌افزار (.json)</span>
+                <span className="font-bold text-slate-800 block text-xs">دانلود بک‌آپ کامل نرم‌افزار (.json)</span>
                 <span className="text-[10px] text-slate-400 font-medium">شامل تنظیمات اولیه غرفه‌ها، اشخاص، کل اسناد و برگه‌های صفحه‌گسترده (اکسل داخلی)</span>
               </div>
               <DownloadSimple className="w-5 h-5 text-slate-600 shrink-0" />
@@ -408,69 +408,69 @@ export default function BackupRecoveryTab({ appState, onRestoreState }: BackupRe
         </div>
 
         {/* Restore backup panel */}
-        <div className="bg-white border border-slate-200 rounded-3xl p-5 md:p-6 shadow-sm space-y-4">
-          <h3 className="text-xs font-extrabold text-slate-800 border-b border-slate-100 pb-3 flex items-center gap-2">
-            <UploadSimple className="w-[18px] h-[18px] text-amber-500" />
+        <div className="bg-white border border-slate-200 rounded-md p-5 md:p-6 shadow-sm space-y-4">
+          <h3 className="text-xs font-bold text-slate-800 border-b border-slate-100 pb-3 flex items-center gap-2">
+            <UploadSimple className="w-[18px] h-[18px] text-blue-500" />
             بازیابی اطلاعات (وارد کردن بک‌آپ)
           </h3>
 
           <div className="space-y-4">
-            <p className="text-[11px] text-slate-400 leading-relaxed font-semibold">
-              فایلی با پسوند <code className="text-amber-600 font-mono">.json</code> که قبلاً از این قسمت دانلود کرده‌اید را وارد کنید:
+            <p className="text-[11px] text-slate-400 leading-relaxed font-medium">
+              فایلی با پسوند <code className="text-blue-600 font-mono">.json</code> که قبلاً از این قسمت دانلود کرده‌اید را وارد کنید:
             </p>
 
             {/* انتخاب حالت import */}
             <div className="grid grid-cols-2 gap-2">
               <button
                 onClick={() => setImportMode("merge")}
-                className={`flex flex-col items-center gap-1.5 p-3 rounded-2xl border-2 transition-all text-center cursor-pointer ${
+                className={`flex flex-col items-center gap-1.5 p-3 rounded-md border-2 transition-all text-center cursor-pointer ${
                   importMode === "merge"
-                    ? "border-amber-500 bg-amber-50 text-amber-800"
+                    ? "border-blue-600 bg-blue-50 text-blue-800"
                     : "border-slate-200 bg-slate-50 text-slate-500 hover:border-slate-300"
                 }`}
               >
-                <GitMerge className={`w-4 h-4 ${importMode === "merge" ? "text-amber-600" : "text-slate-400"}`} />
-                <span className="text-[10px] font-extrabold">ادغام هوشمند</span>
+                <GitMerge className={`w-4 h-4 ${importMode === "merge" ? "text-blue-600" : "text-slate-400"}`} />
+                <span className="text-[10px] font-bold">ادغام هوشمند</span>
                 <span className="text-[9px] font-medium leading-tight">فقط تغییرات اعمال می‌شه</span>
               </button>
               <button
                 onClick={() => setImportMode("replace")}
-                className={`flex flex-col items-center gap-1.5 p-3 rounded-2xl border-2 transition-all text-center cursor-pointer ${
+                className={`flex flex-col items-center gap-1.5 p-3 rounded-md border-2 transition-all text-center cursor-pointer ${
                   importMode === "replace"
                     ? "border-rose-400 bg-rose-50 text-rose-800"
                     : "border-slate-200 bg-slate-50 text-slate-500 hover:border-slate-300"
                 }`}
               >
                 <ArrowsClockwise className={`w-4 h-4 ${importMode === "replace" ? "text-rose-500" : "text-slate-400"}`} />
-                <span className="text-[10px] font-extrabold">جایگزینی کامل</span>
+                <span className="text-[10px] font-bold">جایگزینی کامل</span>
                 <span className="text-[9px] font-medium leading-tight">همه داده‌ها بازنویسی می‌شن</span>
               </button>
             </div>
 
             {/* توضیح حالت انتخاب‌شده */}
             {importMode === "merge" ? (
-              <div className="bg-blue-50 p-3 border border-blue-100 rounded-xl text-[10px] text-blue-700 leading-relaxed font-semibold">
-                <span className="font-extrabold block mb-1">حالت ادغام هوشمند:</span>
+              <div className="bg-blue-50 p-3 border border-blue-100 rounded text-[10px] text-blue-700 leading-relaxed font-medium">
+                <span className="font-bold block mb-1">حالت ادغام هوشمند:</span>
                 تراکنش‌های جدید اضافه، ویرایش‌شده‌ها آپدیت، و حذف‌شده‌ها پاک می‌شن. موارد تکراری نادیده گرفته می‌شن. مغازه‌ها و اشخاص جدید هم اضافه می‌شن. برگه‌های صفحه‌گسترده (اکسل داخلی) هم به همین شکل ادغام می‌شن.
               </div>
             ) : (
-              <div className="bg-rose-50 p-3 border border-rose-100 rounded-xl flex gap-2">
+              <div className="bg-rose-50 p-3 border border-rose-100 rounded flex gap-2">
                 <Warning className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
-                <div className="text-[10px] text-rose-700 leading-relaxed font-semibold">
-                  <span className="font-extrabold block mb-1">هشدار: جایگزینی کامل</span>
+                <div className="text-[10px] text-rose-700 leading-relaxed font-medium">
+                  <span className="font-bold block mb-1">هشدار: جایگزینی کامل</span>
                   تمام اسناد موجود پاک و با فایل بک‌آپ جایگزین می‌شن. این عمل برگشت‌پذیر نیست.
                 </div>
               </div>
             )}
 
             <div className="relative">
-              <label className="flex flex-col items-center justify-center p-6 bg-slate-50 border border-dashed border-slate-300 rounded-2xl hover:border-amber-500 hover:bg-amber-500/5 transition-all cursor-pointer">
+              <label className="flex flex-col items-center justify-center p-6 bg-slate-50 border border-dashed border-slate-300 rounded-md hover:border-blue-600 hover:bg-blue-500/5 transition-all cursor-pointer">
                 {loading ? (
-                  <ArrowsClockwise className="w-8 h-8 text-amber-600 animate-spin" />
+                  <ArrowsClockwise className="w-8 h-8 text-blue-600 animate-spin" />
                 ) : (
                   <UploadSimple className="w-8 h-8 text-slate-400 mb-2" />
                 )}
-                <span className="text-xs font-extrabold text-slate-800">انتخاب فایل پشتیبان (.json)</span>
+                <span className="text-xs font-bold text-slate-800">انتخاب فایل پشتیبان (.json)</span>
                 <span className="text-[9.5px] text-slate-400 font-medium mt-1">یا فایل را به این بخش بکشید و رها کنید</span>
 
                 <input
@@ -488,44 +488,44 @@ export default function BackupRecoveryTab({ appState, onRestoreState }: BackupRe
 
       {/* نمایش جزئیات نتیجه merge */}
       {mergeResult && (
-        <div className="bg-white border border-slate-200 rounded-3xl p-5 shadow-sm space-y-3 animate-fadeIn">
-          <h3 className="text-xs font-extrabold text-slate-800 flex items-center gap-2">
-            <GitMerge className="w-4 h-4 text-amber-500" />
+        <div className="bg-white border border-slate-200 rounded-md p-5 shadow-sm space-y-3 animate-fadeIn">
+          <h3 className="text-xs font-bold text-slate-800 flex items-center gap-2">
+            <GitMerge className="w-4 h-4 text-blue-500" />
             جزئیات تغییرات اعمال‌شده
           </h3>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-            <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-3 text-center">
-              <div className="text-xl font-black text-emerald-700">{toPersianDigits(mergeResult.addedTransactions)}</div>
-              <div className="text-[10px] text-emerald-600 font-bold mt-0.5">سند جدید اضافه‌شده</div>
+            <div className="bg-emerald-50 border border-emerald-100 rounded-md p-3 text-center">
+              <div className="text-xl font-bold text-emerald-700">{toPersianDigits(mergeResult.addedTransactions)}</div>
+              <div className="text-[10px] text-emerald-600 font-semibold mt-0.5">سند جدید اضافه‌شده</div>
             </div>
-            <div className="bg-blue-50 border border-blue-100 rounded-2xl p-3 text-center">
-              <div className="text-xl font-black text-blue-700">{toPersianDigits(mergeResult.updatedTransactions)}</div>
-              <div className="text-[10px] text-blue-600 font-bold mt-0.5">سند ویرایش‌شده</div>
+            <div className="bg-blue-50 border border-blue-100 rounded-md p-3 text-center">
+              <div className="text-xl font-bold text-blue-700">{toPersianDigits(mergeResult.updatedTransactions)}</div>
+              <div className="text-[10px] text-blue-600 font-semibold mt-0.5">سند ویرایش‌شده</div>
             </div>
-            <div className="bg-rose-50 border border-rose-100 rounded-2xl p-3 text-center">
-              <div className="text-xl font-black text-rose-700">{toPersianDigits(mergeResult.removedTransactions)}</div>
-              <div className="text-[10px] text-rose-600 font-bold mt-0.5">سند حذف‌شده</div>
+            <div className="bg-rose-50 border border-rose-100 rounded-md p-3 text-center">
+              <div className="text-xl font-bold text-rose-700">{toPersianDigits(mergeResult.removedTransactions)}</div>
+              <div className="text-[10px] text-rose-600 font-semibold mt-0.5">سند حذف‌شده</div>
             </div>
-            <div className="bg-slate-50 border border-slate-100 rounded-2xl p-3 text-center">
-              <div className="text-xl font-black text-slate-500">{toPersianDigits(mergeResult.skippedTransactions)}</div>
-              <div className="text-[10px] text-slate-400 font-bold mt-0.5">تکراری (نادیده‌گرفته‌شده)</div>
+            <div className="bg-slate-50 border border-slate-100 rounded-md p-3 text-center">
+              <div className="text-xl font-bold text-slate-500">{toPersianDigits(mergeResult.skippedTransactions)}</div>
+              <div className="text-[10px] text-slate-400 font-semibold mt-0.5">تکراری (نادیده‌گرفته‌شده)</div>
             </div>
             {(mergeResult.addedShops > 0 || mergeResult.addedPersons > 0 || mergeResult.addedCoins > 0) && (
-              <div className="bg-amber-50 border border-amber-100 rounded-2xl p-3 text-center col-span-2 sm:col-span-2">
-                <div className="text-xl font-black text-amber-700">
+              <div className="bg-blue-50 border border-blue-100 rounded-md p-3 text-center col-span-2 sm:col-span-2">
+                <div className="text-xl font-bold text-blue-700">
                   {toPersianDigits(mergeResult.addedShops + mergeResult.addedPersons + mergeResult.addedCoins)}
                 </div>
-                <div className="text-[10px] text-amber-600 font-bold mt-0.5">
+                <div className="text-[10px] text-blue-600 font-semibold mt-0.5">
                   مغازه/شخص/سکه جدید اضافه‌شده
                 </div>
               </div>
             )}
             {(mergeResult.addedSheets > 0 || mergeResult.updatedSheets > 0 || mergeResult.removedSheets > 0) && (
-              <div className="bg-indigo-50 border border-indigo-100 rounded-2xl p-3 text-center col-span-2 sm:col-span-2">
-                <div className="text-xl font-black text-indigo-700">
+              <div className="bg-indigo-50 border border-indigo-100 rounded-md p-3 text-center col-span-2 sm:col-span-2">
+                <div className="text-xl font-bold text-indigo-700">
                   {toPersianDigits(mergeResult.addedSheets + mergeResult.updatedSheets + mergeResult.removedSheets)}
                 </div>
-                <div className="text-[10px] text-indigo-600 font-bold mt-0.5">
+                <div className="text-[10px] text-indigo-600 font-semibold mt-0.5">
                   برگه صفحه‌گسترده ({toPersianDigits(mergeResult.addedSheets)} جدید،{" "}
                   {toPersianDigits(mergeResult.updatedSheets)} به‌روز،{" "}
                   {toPersianDigits(mergeResult.removedSheets)} حذف)

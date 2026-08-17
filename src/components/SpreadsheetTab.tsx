@@ -843,27 +843,27 @@ export default function SpreadsheetTab({ sheets: initialSheets, onChange }: Prop
   const activeSpillFrom = activeRaw === "" ? engine.spilledFrom(activeKey) : null;
   const { r1, rr, c1, cc } = norm(sel);
 
-  const btn = "inline-flex items-center justify-center gap-1 px-2.5 py-2 rounded-xl text-[11px] font-extrabold cursor-pointer transition-all border min-h-[38px] md:min-h-[36px] active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed";
+  const btn = "inline-flex items-center justify-center gap-1 px-2.5 py-2 rounded text-[11px] font-bold cursor-pointer transition-all border min-h-[38px] md:min-h-[36px] active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed";
   const btnGray = `${btn} bg-white border-slate-200 text-slate-700 hover:bg-slate-100`;
-  const btnAmber = `${btn} bg-amber-500 border-amber-500 text-slate-950 hover:bg-amber-400`;
+  const btnAmber = `${btn} bg-blue-600 border-blue-600 text-white hover:bg-blue-700`;
 
   return (
     <div className="space-y-3 animate-fadeIn" dir="rtl">
       {/* نوار ابزار */}
-      <div className="bg-white border border-slate-200 rounded-3xl p-3 md:p-4 shadow-sm space-y-3">
+      <div className="bg-white border border-slate-200 rounded-md p-3 md:p-4 shadow-sm space-y-3">
         <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-3">
-          <h3 className="text-sm font-extrabold text-slate-900 flex items-center gap-2">
+          <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
             <BrandIcon name="spreadsheet" size={20} />
             صفحه گسترده (اکسل داخلی)
           </h3>
           <div className="flex items-center gap-2">
             {saveState === "saving" && (
-              <span className="text-[10px] font-bold text-amber-600 bg-amber-50 px-2 py-1 rounded-lg flex items-center gap-1">
+              <span className="text-[10px] font-semibold text-blue-600 bg-blue-50 px-2 py-1 rounded flex items-center gap-1">
                 <FloppyDisk className="w-3 h-3" /> در حال ذخیره...
               </span>
             )}
             {saveState === "saved" && (
-              <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-lg flex items-center gap-1">
+              <span className="text-[10px] font-semibold text-emerald-600 bg-emerald-50 px-2 py-1 rounded flex items-center gap-1">
                 <FloppyDisk className="w-3 h-3" /> ذخیره شد
               </span>
             )}
@@ -888,13 +888,13 @@ export default function SpreadsheetTab({ sheets: initialSheets, onChange }: Prop
                 <Palette className="w-3.5 h-3.5" />
               </button>
               {showColors && (
-                <div className="absolute z-40 mt-1 bg-white border border-slate-200 rounded-2xl shadow-lg p-2 grid grid-cols-4 gap-1.5 w-44">
+                <div className="absolute z-40 mt-1 bg-white border border-slate-200 rounded-md shadow-sm p-2 grid grid-cols-4 gap-1.5 w-44">
                   {FILL_COLORS.map(col => (
                     <button
                       key={col.label}
                       title={col.label}
                       onClick={() => { styleSelection({ bg: col.value }); setShowColors(false); }}
-                      className="w-8 h-8 rounded-lg border border-slate-200 cursor-pointer hover:scale-110 transition-transform flex items-center justify-center"
+                      className="w-8 h-8 rounded border border-slate-200 cursor-pointer hover:scale-110 transition-transform flex items-center justify-center"
                       style={{ background: col.value || "#fff" }}
                     >
                       {!col.value && <X className="w-3 h-3 text-slate-400" />}
@@ -982,10 +982,10 @@ export default function SpreadsheetTab({ sheets: initialSheets, onChange }: Prop
 
         {/* نوار فرمول */}
         <div className="flex items-stretch gap-1.5 md:gap-2">
-          <div className="bg-slate-100 border border-slate-200 rounded-xl px-2 md:px-3 flex items-center font-mono font-black text-[11px] text-slate-700 min-w-[52px] md:min-w-[74px] justify-center shrink-0">
+          <div className="bg-slate-100 border border-slate-200 rounded px-2 md:px-3 flex items-center font-mono font-bold text-[11px] text-slate-700 min-w-[52px] md:min-w-[74px] justify-center shrink-0">
             {activeKey}
           </div>
-          <div className="hidden sm:flex items-center px-2 bg-slate-100 border border-slate-200 rounded-xl text-amber-600 font-black text-[12px] italic shrink-0">fx</div>
+          <div className="hidden sm:flex items-center px-2 bg-slate-100 border border-slate-200 rounded text-blue-600 font-bold text-[12px] italic shrink-0">fx</div>
           <input
             ref={formulaRef}
             value={editing ? editing.value : activeRaw}
@@ -1010,29 +1010,29 @@ export default function SpreadsheetTab({ sheets: initialSheets, onChange }: Prop
                 ? `نتیجه‌ی سرریزِ فرمول خانه ${activeSpillFrom} — برای ویرایش، همان خانه را باز کنید`
                 : isMobile ? "محتوا یا فرمول: =SUM(A1:A10)" : "محتوای سلول یا فرمول: مثلاً =SUM(A1:A10)  یا  =A1*B1"
             }
-            className="flex-1 min-w-0 bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-900 text-xs font-mono focus:outline-none focus:border-amber-500"
+            className="flex-1 min-w-0 bg-white border border-slate-200 rounded px-3 py-2 text-slate-900 text-xs font-mono focus:outline-none focus:border-blue-500"
             dir="ltr"
           />
         </div>
 
         {/* راهنما — روی موبایل زیر دکمه «بیشتر» جمع می‌شود تا جای جدول را نگیرد */}
-        <p className={`${showMore ? "block" : "hidden"} md:block text-[10px] text-slate-500 font-semibold leading-relaxed`}>
+        <p className={`${showMore ? "block" : "hidden"} md:block text-[10px] text-slate-500 font-medium leading-relaxed`}>
           راهنما: با کلیک و کشیدن، محدوده انتخاب کنید و دکمه‌های جمع/تفریق/ضرب/تقسیم را بزنید تا فرمول خودکار ساخته شود.
-          روی گوشی، اول کلید <span className="font-bold text-amber-700">انتخاب محدوده</span> را بزنید و بعد انگشت را روی سلول‌ها بکشید؛
+          روی گوشی، اول کلید <span className="font-semibold text-blue-700">انتخاب محدوده</span> را بزنید و بعد انگشت را روی سلول‌ها بکشید؛
           یک ضربه سلول را انتخاب و ضربه دوم آن را باز می‌کند.
-          فرمول دستی با <span className="font-mono text-amber-700">=</span> شروع می‌شود؛ مثل
-          <span className="font-mono text-amber-700"> =A1+B2 </span>،
-          <span className="font-mono text-amber-700"> =SUM(A1:A10) </span>،
-          <span className="font-mono text-amber-700"> =جمع(B1:B9) </span>،
-          <span className="font-mono text-amber-700"> =میانگین(C1:C5) </span>.
+          فرمول دستی با <span className="font-mono text-blue-700">=</span> شروع می‌شود؛ مثل
+          <span className="font-mono text-blue-700"> =A1+B2 </span>،
+          <span className="font-mono text-blue-700"> =SUM(A1:A10) </span>،
+          <span className="font-mono text-blue-700"> =جمع(B1:B9) </span>،
+          <span className="font-mono text-blue-700"> =میانگین(C1:C5) </span>.
           کل یک ستون را هم می‌شود آدرس داد:
-          <span className="font-mono text-amber-700"> =SUM(C:C) </span>.
+          <span className="font-mono text-blue-700"> =SUM(C:C) </span>.
           توابع آرایه‌ای مثل
-          <span className="font-mono text-amber-700"> =FILTER(C:C؛ C:C&lt;&gt;"") </span>
-          را در <span className="font-bold text-amber-700">اولین خانه</span> بنویسید؛ نتیجه خودش در خانه‌های پایین سرریز می‌شود
-          (اگر خانه‌های پایین پر باشند، خطای <span className="font-mono text-amber-700">#SPILL!</span> می‌دهد).
+          <span className="font-mono text-blue-700"> =FILTER(C:C؛ C:C&lt;&gt;"") </span>
+          را در <span className="font-semibold text-blue-700">اولین خانه</span> بنویسید؛ نتیجه خودش در خانه‌های پایین سرریز می‌شود
+          (اگر خانه‌های پایین پر باشند، خطای <span className="font-mono text-blue-700">#SPILL!</span> می‌دهد).
           برای اعمال یک فرمول معمولی روی کل ستون، ستون را انتخاب کنید، فرمول را بنویسید و
-          <span className="font-bold text-amber-700"> Ctrl+Enter </span> بزنید.
+          <span className="font-semibold text-blue-700"> Ctrl+Enter </span> بزنید.
           کپی/چسباندن مستقیم از اکسل هم کار می‌کند.
         </p>
       </div>
@@ -1048,8 +1048,8 @@ export default function SpreadsheetTab({ sheets: initialSheets, onChange }: Prop
         // در حالت انتخاب، اسکرولِ مرورگر باید خاموش شود وگرنه کشیدن انگشت
         // به‌جای انتخاب، جدول را جابه‌جا می‌کند.
         style={{ touchAction: rangeMode ? "none" : "pan-x pan-y" }}
-        className={`bg-white border rounded-2xl shadow-sm overflow-auto max-h-[60vh] md:max-h-[68vh] focus:outline-none focus:ring-2 focus:ring-amber-400/40 select-none ${
-          rangeMode ? "border-amber-400 ring-2 ring-amber-400/30" : "border-slate-200"
+        className={`bg-white border rounded-md shadow-sm overflow-auto max-h-[60vh] md:max-h-[68vh] focus:outline-none focus:ring-2 focus:ring-blue-500/25 select-none ${
+          rangeMode ? "border-blue-500 ring-2 ring-blue-500/30" : "border-slate-200"
         }`}
       >
         <table className="border-collapse table-fixed" style={{ width: "max-content" }}>
@@ -1061,21 +1061,21 @@ export default function SpreadsheetTab({ sheets: initialSheets, onChange }: Prop
           </colgroup>
           <thead>
             <tr>
-              <th className="sticky top-0 right-0 z-30 bg-slate-100 border border-slate-200 text-[10px] text-slate-400 font-black h-9 md:h-8" />
+              <th className="sticky top-0 right-0 z-30 bg-slate-100 border border-slate-200 text-[10px] text-slate-400 font-bold h-9 md:h-8" />
               {Array.from({ length: sheet.cols }).map((_, c) => {
                 const active = c >= c1 && c <= cc;
                 return (
                   <th
                     key={c}
                     onMouseDown={() => setSel({ r: 0, c, r2: sheet.rows - 1, c2: c })}
-                    className={`sticky top-0 z-20 border border-slate-200 text-[11px] font-black h-9 md:h-8 cursor-pointer relative ${active ? "bg-amber-100 text-amber-800" : "bg-slate-100 text-slate-500 hover:bg-slate-200"}`}
+                    className={`sticky top-0 z-20 border border-slate-200 text-[11px] font-bold h-9 md:h-8 cursor-pointer relative ${active ? "bg-blue-100 text-blue-800" : "bg-slate-100 text-slate-500 hover:bg-slate-200"}`}
                   >
                     {colToName(c)}
                     {/* دستگیره‌ی تغییر عرض — روی موبایل پهن‌تر است تا با انگشت گرفته شود */}
                     <span
                       onMouseDown={e => startResize(e, c)}
                       onTouchStart={e => startResize(e, c)}
-                      className="absolute top-0 bottom-0 left-0 w-3 md:w-1.5 cursor-col-resize touch-none hover:bg-amber-500/60 active:bg-amber-500/60"
+                      className="absolute top-0 bottom-0 left-0 w-3 md:w-1.5 cursor-col-resize touch-none hover:bg-blue-600/70 active:bg-blue-700"
                     />
                   </th>
                 );
@@ -1087,7 +1087,7 @@ export default function SpreadsheetTab({ sheets: initialSheets, onChange }: Prop
               <tr key={r}>
                 <th
                   onMouseDown={() => setSel({ r, c: 0, r2: r, c2: sheet.cols - 1 })}
-                  className={`sticky right-0 z-10 border border-slate-200 text-[11px] font-black h-9 md:h-[30px] cursor-pointer ${r >= r1 && r <= rr ? "bg-amber-100 text-amber-800" : "bg-slate-100 text-slate-500 hover:bg-slate-200"}`}
+                  className={`sticky right-0 z-10 border border-slate-200 text-[11px] font-bold h-9 md:h-[30px] cursor-pointer ${r >= r1 && r <= rr ? "bg-blue-100 text-blue-800" : "bg-slate-100 text-slate-500 hover:bg-slate-200"}`}
                 >
                   {r + 1}
                 </th>
@@ -1132,10 +1132,10 @@ export default function SpreadsheetTab({ sheets: initialSheets, onChange }: Prop
                       onDoubleClick={() => startEdit(r, c)}
                       style={{ background: !inRange && data?.bg ? data.bg : undefined }}
                       className={`border border-slate-200 h-9 md:h-[30px] px-1.5 text-[12px] md:text-[11.5px] align-middle overflow-hidden whitespace-nowrap cursor-cell relative
-                        ${data?.b ? "font-black" : "font-medium"}
+                        ${data?.b ? "font-bold" : "font-medium"}
                         ${isNum ? "text-left font-mono" : "text-right"}
-                        ${isErr ? "text-rose-600 font-bold" : "text-slate-800"}
-                        ${isActive ? "outline outline-2 outline-amber-500 z-[5] bg-white" : inRange ? "bg-amber-500/10" : data?.bg ? "" : "bg-white"}`}
+                        ${isErr ? "text-rose-600 font-semibold" : "text-slate-800"}
+                        ${isActive ? "outline outline-2 outline-blue-500 z-[5] bg-white" : inRange ? "bg-blue-500/10" : data?.bg ? "" : "bg-white"}`}
                     >
                       {isEditing ? (
                         <input
@@ -1158,7 +1158,7 @@ export default function SpreadsheetTab({ sheets: initialSheets, onChange }: Prop
                             commitEdit("none");
                           }}
                           dir={/^\s*=/.test(editing!.value) ? "ltr" : "auto"}
-                          className="absolute inset-0 w-full h-full px-1.5 text-[12px] md:text-[11.5px] font-mono border-2 border-amber-500 outline-none bg-white text-slate-900 z-10"
+                          className="absolute inset-0 w-full h-full px-1.5 text-[12px] md:text-[11.5px] font-mono border-2 border-blue-600 outline-none bg-white text-slate-900 z-10"
                         />
                       ) : (
                         <span className="block truncate" title={data?.v && data.v.startsWith("=") ? data.v : undefined}>
@@ -1175,7 +1175,7 @@ export default function SpreadsheetTab({ sheets: initialSheets, onChange }: Prop
       </div>
 
       {/* نوار وضعیت + برگه‌ها */}
-      <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-3 flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+      <div className="bg-white border border-slate-200 rounded-md shadow-sm p-3 flex flex-col lg:flex-row lg:items-center justify-between gap-3">
         {/*
           روی موبایل تب‌ها به‌جای اینکه در چند سطر بپیچند و نصف صفحه را بگیرند،
           در یک نوارِ افقیِ اسکرول‌شونده می‌نشینند.
@@ -1184,8 +1184,8 @@ export default function SpreadsheetTab({ sheets: initialSheets, onChange }: Prop
           {sheets.map(s => (
             <div
               key={s.id}
-              className={`flex items-center gap-1 shrink-0 rounded-xl border px-2.5 py-2 lg:py-1.5 text-[11px] font-extrabold cursor-pointer transition-all ${
-                s.id === activeId ? "bg-amber-500 border-amber-500 text-slate-950" : "bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100"
+              className={`flex items-center gap-1 shrink-0 rounded border px-2.5 py-2 lg:py-1.5 text-[11px] font-bold cursor-pointer transition-all ${
+                s.id === activeId ? "bg-blue-600 border-blue-600 text-white" : "bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100"
               }`}
               onClick={() => {
                 if (renaming?.id === s.id) return;
@@ -1209,7 +1209,7 @@ export default function SpreadsheetTab({ sheets: initialSheets, onChange }: Prop
                     if (e.key === "Enter") { e.preventDefault(); commitRename(); }
                     else if (e.key === "Escape") { e.preventDefault(); setRenaming(null); }
                   }}
-                  className="w-24 bg-white text-slate-900 border-2 border-amber-600 rounded-md px-1.5 py-0.5 text-[11px] font-extrabold outline-none"
+                  className="w-24 bg-white text-slate-900 border-2 border-blue-600 rounded px-1.5 py-0.5 text-[11px] font-bold outline-none"
                 />
               ) : (
                 <>
@@ -1241,12 +1241,12 @@ export default function SpreadsheetTab({ sheets: initialSheets, onChange }: Prop
           آمار انتخاب. روی موبایل دو ستونی می‌شود؛ کمترین/بیشترین که کمتر لازم‌اند
           فقط از تبلت به بالا نشان داده می‌شوند تا نوار کوتاه بماند.
         */}
-        <div className="grid grid-cols-2 gap-x-3 gap-y-1 sm:flex sm:items-center sm:gap-3 sm:flex-wrap text-[11px] font-bold text-slate-600 font-mono">
+        <div className="grid grid-cols-2 gap-x-3 gap-y-1 sm:flex sm:items-center sm:gap-3 sm:flex-wrap text-[11px] font-semibold text-slate-600 font-mono">
           <span>
             <span className="text-slate-400 font-sans">انتخاب: </span>
             <span className="text-slate-800">{cellKey(r1, c1)}{(r1 !== rr || c1 !== cc) ? `:${cellKey(rr, cc)}` : ""}</span>
           </span>
-          <span><span className="text-slate-400 font-sans">جمع: </span><span className="text-emerald-700 font-black">{formatNumber(stats.sum)}</span></span>
+          <span><span className="text-slate-400 font-sans">جمع: </span><span className="text-emerald-700 font-bold">{formatNumber(stats.sum)}</span></span>
           <span><span className="text-slate-400 font-sans">میانگین: </span>{formatNumber(stats.avg)}</span>
           <span><span className="text-slate-400 font-sans">تعداد عدد: </span>{stats.numCount}</span>
           <span className="hidden sm:inline"><span className="text-slate-400 font-sans">کمترین: </span>{formatNumber(stats.min)}</span>
@@ -1255,7 +1255,7 @@ export default function SpreadsheetTab({ sheets: initialSheets, onChange }: Prop
       </div>
 
       {toast && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-xs font-bold px-4 py-2.5 rounded-2xl shadow-lg z-[200] animate-fadeIn">
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-xs font-semibold px-4 py-2.5 rounded-md shadow-sm z-[200] animate-fadeIn">
           {toast}
         </div>
       )}

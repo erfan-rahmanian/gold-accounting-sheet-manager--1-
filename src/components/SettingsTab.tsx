@@ -199,20 +199,20 @@ export default function SettingsTab({ settings, onUpdateSettings }: SettingsTabP
   return (
     <div className="space-y-6 animate-fadeIn" dir="rtl">
       {/* Top action header for saving */}
-      <div className="bg-white border border-slate-200 rounded-3xl p-4 md:p-5 flex flex-col sm:flex-row justify-between items-center gap-4 shadow-sm">
+      <div className="bg-white border border-slate-200 rounded-md p-4 md:p-5 flex flex-col sm:flex-row justify-between items-center gap-4 shadow-sm">
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-amber-500/10 rounded-2xl shrink-0">
+          <div className="p-2 bg-blue-500/10 rounded-md shrink-0">
             <BrandIcon name="settings" size={26} />
           </div>
           <div>
-            <h2 className="text-sm font-extrabold text-slate-900">تنظیمات پایه دفاتر حسابداری</h2>
+            <h2 className="text-sm font-bold text-slate-900">تنظیمات پایه دفاتر حسابداری</h2>
             <p className="text-[10px] text-slate-500 mt-0.5">افزودن فروشگاه، اشخاص ذینفع، کالیبراسیون سکه و قیمت طلا</p>
           </div>
         </div>
         
         <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
           {saveSuccess && (
-            <span className="text-[11px] text-emerald-600 flex items-center gap-1 font-bold ml-2">
+            <span className="text-[11px] text-emerald-600 flex items-center gap-1 font-semibold ml-2">
               <CheckCircle className="w-4 h-4 stroke-[2.5]" /> ذخیره شد
             </span>
           )}
@@ -221,15 +221,15 @@ export default function SettingsTab({ settings, onUpdateSettings }: SettingsTabP
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Coin Weights Customizer */}
-        <div className="lg:col-span-12 bg-white border border-slate-200 rounded-3xl p-5 shadow-sm space-y-4">
+        <div className="lg:col-span-12 bg-white border border-slate-200 rounded-md p-5 shadow-sm space-y-4">
           <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
-            <h3 className="text-xs font-extrabold text-slate-900 flex items-center gap-2">
-              <CoinIcon className="w-4 h-4 text-amber-500" />
+            <h3 className="text-xs font-bold text-slate-900 flex items-center gap-2">
+              <CoinIcon className="w-4 h-4 text-blue-500" />
               وزن استاندارد سکه‌ها (امکان کالیبراسیون دستی)
             </h3>
             <button
               onClick={handleResetCoinWeights}
-              className="text-[11px] font-bold text-amber-600 hover:text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-xl px-3 py-1.5 flex items-center gap-1.5 cursor-pointer transition-all"
+              className="text-[11px] font-semibold text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded px-3 py-1.5 flex items-center gap-1.5 cursor-pointer transition-all"
             >
               <ArrowCounterClockwise className="w-3.5 h-3.5" />
               بازگشت به وزن پیش‌فرض
@@ -237,8 +237,8 @@ export default function SettingsTab({ settings, onUpdateSettings }: SettingsTabP
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             {coins.map((coin, idx) => (
-              <div key={coin.name} className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100">
-                <span className="text-xs font-bold text-slate-700">{coin.name}</span>
+              <div key={coin.name} className="flex items-center justify-between p-3 bg-slate-50 rounded border border-slate-100">
+                <span className="text-xs font-semibold text-slate-700">{coin.name}</span>
                 <div className="flex items-center gap-2">
                   {editingCoinIdx === idx ? (
                     <>
@@ -253,18 +253,18 @@ export default function SettingsTab({ settings, onUpdateSettings }: SettingsTabP
                           if (e.key === "Enter") handleSaveEditCoin(idx);
                           if (e.key === "Escape") handleCancelEditCoin();
                         }}
-                        className="w-24 bg-white border border-amber-400 rounded-lg px-2.5 py-1.5 text-xs text-left font-mono font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-300"
+                        className="w-24 bg-white border border-blue-500 rounded px-2.5 py-1.5 text-xs text-left font-mono font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-200"
                       />
                       <button
                         onClick={() => handleSaveEditCoin(idx)}
-                        className="text-emerald-500 hover:bg-emerald-100 p-1.5 rounded-lg transition-colors cursor-pointer"
+                        className="text-emerald-500 hover:bg-emerald-100 p-1.5 rounded transition-colors cursor-pointer"
                         title="ذخیره"
                       >
                         <FloppyDisk className="w-3.5 h-3.5" />
                       </button>
                       <button
                         onClick={handleCancelEditCoin}
-                        className="text-rose-500 hover:bg-rose-100 p-1.5 rounded-lg transition-colors cursor-pointer"
+                        className="text-rose-500 hover:bg-rose-100 p-1.5 rounded transition-colors cursor-pointer"
                         title="لغو"
                       >
                         <X className="w-3.5 h-3.5" />
@@ -274,11 +274,11 @@ export default function SettingsTab({ settings, onUpdateSettings }: SettingsTabP
                     <>
                       <button
                         onClick={() => handleStartEditCoin(idx)}
-                        className="w-24 bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-left font-mono font-bold text-slate-800 hover:border-amber-400 cursor-pointer transition-colors"
+                        className="w-24 bg-white border border-slate-200 rounded px-2.5 py-1.5 text-xs text-left font-mono font-semibold text-slate-800 hover:border-blue-500 cursor-pointer transition-colors"
                       >
                         {coin.weight}
                       </button>
-                      <span className="text-[10px] text-slate-400 font-bold">گرم</span>
+                      <span className="text-[10px] text-slate-400 font-semibold">گرم</span>
                     </>
                   )}
                 </div>
@@ -288,14 +288,14 @@ export default function SettingsTab({ settings, onUpdateSettings }: SettingsTabP
         </div>
 
         {/* Shop List and Creation Container */}
-        <div className="lg:col-span-12 bg-white border border-slate-200 rounded-3xl p-5 shadow-sm space-y-4">
-          <h3 className="text-xs font-extrabold text-slate-900 flex items-center gap-2 border-b border-slate-100 pb-2.5">
-            <ShoppingBag className="w-4 h-4 text-amber-500" />
+        <div className="lg:col-span-12 bg-white border border-slate-200 rounded-md p-5 shadow-sm space-y-4">
+          <h3 className="text-xs font-bold text-slate-900 flex items-center gap-2 border-b border-slate-100 pb-2.5">
+            <ShoppingBag className="w-4 h-4 text-blue-500" />
             مدیریت مغازه‌ها و انبارهای فیزیکی طلا
           </h3>
           
           {/* Shop insertion form */}
-          <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 grid grid-cols-1 sm:grid-cols-3 gap-3 text-[11px] font-bold text-slate-700">
+          <div className="bg-slate-50 p-4 rounded-md border border-slate-200 grid grid-cols-1 sm:grid-cols-3 gap-3 text-[11px] font-semibold text-slate-700">
             <div className="space-y-1.5">
               <label className="text-slate-500">نام مغازه جدید</label>
               <input
@@ -303,7 +303,7 @@ export default function SettingsTab({ settings, onUpdateSettings }: SettingsTabP
                 placeholder="مثال: زرگری نوین"
                 value={newShopName}
                 onChange={(e) => setNewShopName(e.target.value)}
-                className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2.5 text-slate-900 text-xs focus:outline-none focus:border-amber-500"
+                className="w-full bg-white border border-slate-200 rounded px-3 py-2.5 text-slate-900 text-xs focus:outline-none focus:border-blue-500"
               />
             </div>
             <div className="space-y-1.5">
@@ -314,7 +314,7 @@ export default function SettingsTab({ settings, onUpdateSettings }: SettingsTabP
                 pattern="[0-9.,]*"
                 value={formatInputWithCommas(newShopGold)}
                 onChange={(e) => setNewShopGold(cleanNumInput(e.target.value))}
-                className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2.5 text-slate-900 text-left font-mono text-xs focus:outline-none"
+                className="w-full bg-white border border-slate-200 rounded px-3 py-2.5 text-slate-900 text-left font-mono text-xs focus:outline-none"
               />
             </div>
             <div className="space-y-1.5">
@@ -325,13 +325,13 @@ export default function SettingsTab({ settings, onUpdateSettings }: SettingsTabP
                 pattern="[0-9.,]*"
                 value={formatInputWithCommas(newShopIrr)}
                 onChange={(e) => setNewShopIrr(cleanNumInput(e.target.value))}
-                className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2.5 text-slate-900 text-left font-mono text-xs focus:outline-none"
+                className="w-full bg-white border border-slate-200 rounded px-3 py-2.5 text-slate-900 text-left font-mono text-xs focus:outline-none"
               />
             </div>
             <div className="sm:col-span-3 flex justify-end pt-1">
               <button
                 onClick={handleAddShop}
-                className="w-full sm:w-auto bg-amber-500 text-slate-950 font-extrabold px-6 py-2.5 rounded-xl flex items-center justify-center gap-1.5 cursor-pointer transition-all hover:bg-amber-400"
+                className="w-full sm:w-auto bg-blue-600 text-white font-bold px-6 py-2.5 rounded flex items-center justify-center gap-1.5 cursor-pointer transition-all hover:bg-blue-700"
               >
                 <Plus className="w-4 h-4 stroke-[2.5]" /> ثبت مغازه جدید
               </button>
@@ -342,7 +342,7 @@ export default function SettingsTab({ settings, onUpdateSettings }: SettingsTabP
           <div className="overflow-x-auto text-[11px] w-full">
             <table className="w-full text-right min-w-[400px]">
               <thead>
-                <tr className="text-slate-400 border-b border-slate-100 font-semibold">
+                <tr className="text-slate-400 border-b border-slate-100 font-medium">
                   <th className="pb-2">نام مغازه / صندوق</th>
                   <th className="pb-2">موجودی اولیه طلا</th>
                   <th className="pb-2">موجودی اولیه ریال</th>
@@ -357,13 +357,13 @@ export default function SettingsTab({ settings, onUpdateSettings }: SettingsTabP
                 ) : (
                   shops.map((shop) => (
                     <tr key={shop.id} className="hover:bg-slate-50/50 transition-colors">
-                      <td className="py-2.5 font-bold text-slate-800">{shop.name}</td>
-                      <td className={`py-2.5 font-mono font-bold ${shop.initialGold >= 0 ? "text-amber-600" : "text-rose-600"}`}>{formatWeight(shop.initialGold)}</td>
-                      <td className={`py-2.5 font-mono font-bold ${shop.initialIRR >= 0 ? "text-emerald-600" : "text-rose-600"}`}>{formatCurrency(shop.initialIRR)}</td>
+                      <td className="py-2.5 font-semibold text-slate-800">{shop.name}</td>
+                      <td className={`py-2.5 font-mono font-semibold ${shop.initialGold >= 0 ? "text-amber-600" : "text-rose-600"}`}>{formatWeight(shop.initialGold)}</td>
+                      <td className={`py-2.5 font-mono font-semibold ${shop.initialIRR >= 0 ? "text-emerald-600" : "text-rose-600"}`}>{formatCurrency(shop.initialIRR)}</td>
                       <td className="py-2.5 text-left">
                         <button
                           onClick={() => handleRemoveShop(shop.id)}
-                          className="text-rose-500 hover:text-white border border-rose-100 hover:border-rose-500 bg-rose-50 hover:bg-rose-500 p-1.5 rounded-lg transition-all cursor-pointer"
+                          className="text-rose-500 hover:text-white border border-rose-100 hover:border-rose-500 bg-rose-50 hover:bg-rose-500 p-1.5 rounded transition-all cursor-pointer"
                         >
                           <Trash className="w-3.5 h-3.5" />
                         </button>
@@ -377,14 +377,14 @@ export default function SettingsTab({ settings, onUpdateSettings }: SettingsTabP
         </div>
 
         {/* Persons management card (mirrors the shops management card) */}
-        <div className="lg:col-span-12 bg-white border border-slate-200 rounded-3xl p-5 shadow-sm space-y-4">
-          <h3 className="text-xs font-extrabold text-slate-900 flex items-center gap-2 border-b border-slate-100 pb-2.5">
-            <Users className="w-4 h-4 text-amber-500" />
+        <div className="lg:col-span-12 bg-white border border-slate-200 rounded-md p-5 shadow-sm space-y-4">
+          <h3 className="text-xs font-bold text-slate-900 flex items-center gap-2 border-b border-slate-100 pb-2.5">
+            <Users className="w-4 h-4 text-blue-500" />
             مدیریت اشخاص ذینفع و همکاران (ثبت موجودی اولیه)
           </h3>
 
           {/* Person insertion form */}
-          <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 grid grid-cols-1 sm:grid-cols-3 gap-3 text-[11px] font-bold text-slate-700">
+          <div className="bg-slate-50 p-4 rounded-md border border-slate-200 grid grid-cols-1 sm:grid-cols-3 gap-3 text-[11px] font-semibold text-slate-700">
             <div className="space-y-1.5">
               <label className="text-slate-500">نام شخص جدید</label>
               <input
@@ -392,7 +392,7 @@ export default function SettingsTab({ settings, onUpdateSettings }: SettingsTabP
                 placeholder="مثال: علی زرگر"
                 value={newPersonName}
                 onChange={(e) => setNewPersonName(e.target.value)}
-                className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2.5 text-slate-900 text-xs focus:outline-none focus:border-amber-500"
+                className="w-full bg-white border border-slate-200 rounded px-3 py-2.5 text-slate-900 text-xs focus:outline-none focus:border-blue-500"
               />
             </div>
             <div className="space-y-1.5">
@@ -403,7 +403,7 @@ export default function SettingsTab({ settings, onUpdateSettings }: SettingsTabP
                 pattern="[0-9.,]*"
                 value={formatInputWithCommas(newPersonGold)}
                 onChange={(e) => setNewPersonGold(cleanNumInput(e.target.value))}
-                className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2.5 text-slate-900 text-left font-mono text-xs focus:outline-none"
+                className="w-full bg-white border border-slate-200 rounded px-3 py-2.5 text-slate-900 text-left font-mono text-xs focus:outline-none"
               />
             </div>
             <div className="space-y-1.5">
@@ -414,7 +414,7 @@ export default function SettingsTab({ settings, onUpdateSettings }: SettingsTabP
                 pattern="[0-9.,]*"
                 value={formatInputWithCommas(newPersonIrr)}
                 onChange={(e) => setNewPersonIrr(cleanNumInput(e.target.value))}
-                className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2.5 text-slate-900 text-left font-mono text-xs focus:outline-none"
+                className="w-full bg-white border border-slate-200 rounded px-3 py-2.5 text-slate-900 text-left font-mono text-xs focus:outline-none"
               />
             </div>
             <div className="sm:col-span-2 space-y-1.5">
@@ -424,13 +424,13 @@ export default function SettingsTab({ settings, onUpdateSettings }: SettingsTabP
                 placeholder="توضیحات اختیاری..."
                 value={newPersonNote}
                 onChange={(e) => setNewPersonNote(e.target.value)}
-                className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2.5 text-slate-900 text-xs focus:outline-none focus:border-amber-500"
+                className="w-full bg-white border border-slate-200 rounded px-3 py-2.5 text-slate-900 text-xs focus:outline-none focus:border-blue-500"
               />
             </div>
             <div className="sm:col-span-1 flex items-end justify-end pt-1">
               <button
                 onClick={handleAddPerson}
-                className="w-full sm:w-auto bg-amber-500 text-slate-950 font-extrabold px-6 py-2.5 rounded-xl flex items-center justify-center gap-1.5 cursor-pointer transition-all hover:bg-amber-400"
+                className="w-full sm:w-auto bg-blue-600 text-white font-bold px-6 py-2.5 rounded flex items-center justify-center gap-1.5 cursor-pointer transition-all hover:bg-blue-700"
               >
                 <Plus className="w-4 h-4 stroke-[2.5]" /> ثبت شخص جدید
               </button>
@@ -441,7 +441,7 @@ export default function SettingsTab({ settings, onUpdateSettings }: SettingsTabP
           <div className="overflow-x-auto text-[11px] w-full">
             <table className="w-full text-right min-w-[500px]">
               <thead>
-                <tr className="text-slate-400 border-b border-slate-100 font-semibold">
+                <tr className="text-slate-400 border-b border-slate-100 font-medium">
                   <th className="pb-2">نام شخص / همکار</th>
                   <th className="pb-2">موجودی اولیه طلا</th>
                   <th className="pb-2">موجودی اولیه ریال</th>
@@ -464,7 +464,7 @@ export default function SettingsTab({ settings, onUpdateSettings }: SettingsTabP
                               type="text"
                               value={editPersonName}
                               onChange={(e) => setEditPersonName(e.target.value)}
-                              className="w-full bg-white border border-amber-400 rounded-lg px-2.5 py-1.5 text-xs text-slate-900 focus:outline-none"
+                              className="w-full bg-white border border-blue-500 rounded px-2.5 py-1.5 text-xs text-slate-900 focus:outline-none"
                             />
                           </td>
                           <td className="py-2">
@@ -473,7 +473,7 @@ export default function SettingsTab({ settings, onUpdateSettings }: SettingsTabP
                               inputMode="decimal"
                               value={formatInputWithCommas(editPersonGold)}
                               onChange={(e) => setEditPersonGold(cleanNumInput(e.target.value))}
-                              className="w-full bg-white border border-amber-400 rounded-lg px-2.5 py-1.5 text-xs text-left font-mono text-slate-900 focus:outline-none"
+                              className="w-full bg-white border border-blue-500 rounded px-2.5 py-1.5 text-xs text-left font-mono text-slate-900 focus:outline-none"
                             />
                           </td>
                           <td className="py-2">
@@ -482,7 +482,7 @@ export default function SettingsTab({ settings, onUpdateSettings }: SettingsTabP
                               inputMode="decimal"
                               value={formatInputWithCommas(editPersonIrr)}
                               onChange={(e) => setEditPersonIrr(cleanNumInput(e.target.value))}
-                              className="w-full bg-white border border-amber-400 rounded-lg px-2.5 py-1.5 text-xs text-left font-mono text-slate-900 focus:outline-none"
+                              className="w-full bg-white border border-blue-500 rounded px-2.5 py-1.5 text-xs text-left font-mono text-slate-900 focus:outline-none"
                             />
                           </td>
                           <td className="py-2">
@@ -490,20 +490,20 @@ export default function SettingsTab({ settings, onUpdateSettings }: SettingsTabP
                               type="text"
                               value={editPersonNote}
                               onChange={(e) => setEditPersonNote(e.target.value)}
-                              className="w-full bg-white border border-amber-400 rounded-lg px-2.5 py-1.5 text-xs text-slate-900 focus:outline-none"
+                              className="w-full bg-white border border-blue-500 rounded px-2.5 py-1.5 text-xs text-slate-900 focus:outline-none"
                             />
                           </td>
                           <td className="py-2 text-left flex items-center gap-1.5">
                             <button
                               onClick={() => handleSaveEditPerson(p.id)}
-                              className="text-emerald-600 hover:bg-emerald-100 p-1.5 rounded-lg transition-colors cursor-pointer"
+                              className="text-emerald-600 hover:bg-emerald-100 p-1.5 rounded transition-colors cursor-pointer"
                               title="ذخیره"
                             >
                               <FloppyDisk className="w-3.5 h-3.5" />
                             </button>
                             <button
                               onClick={handleCancelEditPerson}
-                              className="text-rose-500 hover:bg-rose-100 p-1.5 rounded-lg transition-colors cursor-pointer"
+                              className="text-rose-500 hover:bg-rose-100 p-1.5 rounded transition-colors cursor-pointer"
                               title="لغو"
                             >
                               <X className="w-3.5 h-3.5" />
@@ -512,21 +512,21 @@ export default function SettingsTab({ settings, onUpdateSettings }: SettingsTabP
                         </>
                       ) : (
                         <>
-                          <td className="py-2.5 font-bold text-slate-800">{p.name}</td>
-                          <td className={`py-2.5 font-mono font-bold ${p.initialGold >= 0 ? "text-amber-600" : "text-rose-600"}`}>{formatWeight(p.initialGold)}</td>
-                          <td className={`py-2.5 font-mono font-bold ${p.initialIRR >= 0 ? "text-emerald-600" : "text-rose-600"}`}>{formatCurrency(p.initialIRR)}</td>
+                          <td className="py-2.5 font-semibold text-slate-800">{p.name}</td>
+                          <td className={`py-2.5 font-mono font-semibold ${p.initialGold >= 0 ? "text-amber-600" : "text-rose-600"}`}>{formatWeight(p.initialGold)}</td>
+                          <td className={`py-2.5 font-mono font-semibold ${p.initialIRR >= 0 ? "text-emerald-600" : "text-rose-600"}`}>{formatCurrency(p.initialIRR)}</td>
                           <td className="py-2.5 text-slate-400 max-w-[160px] truncate" title={p.note}>{p.note || "-"}</td>
                           <td className="py-2.5 text-left flex items-center gap-1.5">
                             <button
                               onClick={() => handleStartEditPerson(p)}
-                              className="text-amber-600 hover:bg-amber-100 p-1.5 rounded-lg transition-colors cursor-pointer"
+                              className="text-blue-600 hover:bg-blue-100 p-1.5 rounded transition-colors cursor-pointer"
                               title="ویرایش"
                             >
                               <FloppyDisk className="w-3.5 h-3.5" />
                             </button>
                             <button
                               onClick={() => handleRemovePerson(p.id)}
-                              className="text-rose-500 hover:bg-rose-100 p-1.5 rounded-lg transition-colors cursor-pointer"
+                              className="text-rose-500 hover:bg-rose-100 p-1.5 rounded transition-colors cursor-pointer"
                               title="حذف"
                             >
                               <Trash className="w-3.5 h-3.5" />

@@ -25,8 +25,8 @@ export function EmptyState({ image, title, hint }: EmptyStateProps) {
         loading="lazy"
         className="w-40 h-auto max-w-full opacity-90 select-none pointer-events-none"
       />
-      <p className="text-xs font-bold text-slate-500 max-w-xs leading-relaxed">{title}</p>
-      {hint && <p className="text-[11px] font-bold text-slate-400 max-w-xs leading-relaxed">{hint}</p>}
+      <p className="text-xs font-semibold text-slate-500 max-w-xs leading-relaxed">{title}</p>
+      {hint && <p className="text-[11px] font-semibold text-slate-400 max-w-xs leading-relaxed">{hint}</p>}
     </div>
   );
 }

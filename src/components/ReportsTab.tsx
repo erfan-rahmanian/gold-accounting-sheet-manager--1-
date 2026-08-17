@@ -450,20 +450,20 @@ export default function ReportsTab({ settings, transactions, onUpdateSettings }:
       `}</style>
 
       {/* Tab select headers - Large touch-friendly switches */}
-      <div className="flex bg-slate-100 border border-slate-200 rounded-2xl p-1 max-w-md mx-auto shadow-sm no-print">
+      <div className="flex bg-white border-b border-slate-200 max-w-md mx-auto no-print">
         <button
           onClick={() => {
             setActiveReport("shops");
             setSelectedPerson(null);
             setSelectedShop(null);
           }}
-          className={`flex-1 flex items-center justify-center gap-1.5 py-3 text-[11px] font-extrabold rounded-xl transition-all cursor-pointer min-h-[40px] ${
+          className={`flex-1 flex items-center justify-center gap-1.5 py-3 text-[11px] transition-colors cursor-pointer min-h-[40px] border-b-2 -mb-px ${
             activeReport === "shops"
-              ? "bg-white text-amber-700 shadow-sm border border-slate-200"
-              : "text-slate-500 hover:text-slate-800"
+              ? "border-blue-600 text-blue-700 font-bold"
+              : "border-transparent text-slate-500 font-medium hover:text-slate-800"
           }`}
         >
-          <ShoppingBag className="w-3.5 h-3.5 text-amber-600" />
+          <ShoppingBag className="w-3.5 h-3.5" />
           مغازه‌ها ‌(کارکرد)
         </button>
         <button
@@ -472,13 +472,13 @@ export default function ReportsTab({ settings, transactions, onUpdateSettings }:
             setSelectedPerson(null);
             setSelectedShop(null);
           }}
-          className={`flex-1 flex items-center justify-center gap-1.5 py-3 text-[11px] font-extrabold rounded-xl transition-all cursor-pointer min-h-[40px] ${
+          className={`flex-1 flex items-center justify-center gap-1.5 py-3 text-[11px] transition-colors cursor-pointer min-h-[40px] border-b-2 -mb-px ${
             activeReport === "persons"
-              ? "bg-white text-amber-700 shadow-sm border border-slate-200"
-              : "text-slate-500 hover:text-slate-800"
+              ? "border-blue-600 text-blue-700 font-bold"
+              : "border-transparent text-slate-500 font-medium hover:text-slate-800"
           }`}
         >
-          <Users className="w-3.5 h-3.5 text-amber-600" />
+          <Users className="w-3.5 h-3.5" />
           اشخاص (تراز)
         </button>
         <button
@@ -487,31 +487,31 @@ export default function ReportsTab({ settings, transactions, onUpdateSettings }:
             setSelectedPerson(null);
             setSelectedShop(null);
           }}
-          className={`flex-1 flex items-center justify-center gap-1.5 py-3 text-[11px] font-extrabold rounded-xl transition-all cursor-pointer min-h-[40px] ${
+          className={`flex-1 flex items-center justify-center gap-1.5 py-3 text-[11px] transition-colors cursor-pointer min-h-[40px] border-b-2 -mb-px ${
             activeReport === "dailyTrades"
-              ? "bg-white text-amber-700 shadow-sm border border-slate-200"
-              : "text-slate-500 hover:text-slate-800"
+              ? "border-blue-600 text-blue-700 font-bold"
+              : "border-transparent text-slate-500 font-medium hover:text-slate-800"
           }`}
         >
-          <ArrowsLeftRight className="w-3.5 h-3.5 text-amber-600" />
+          <ArrowsLeftRight className="w-3.5 h-3.5" />
           معاملات روزانه
         </button>
       </div>
 
       {activeReport === "shops" && (
         /* Shops Report Table - Premium Light mode */
-        <div className="bg-white border border-slate-200 rounded-3xl p-4 md:p-6 shadow-sm overflow-hidden animate-fadeIn no-print">
+        <div className="bg-white border border-slate-200 rounded-md p-4 md:p-6 shadow-sm overflow-hidden animate-fadeIn no-print">
           <div className="flex justify-between items-center border-b border-slate-100 pb-3 mb-4">
-            <h3 className="text-sm font-extrabold text-slate-900 flex items-center gap-2">
-              <ShoppingBag className="w-4 h-4 text-amber-500" />
+            <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+              <ShoppingBag className="w-4 h-4 text-blue-500" />
               تراز تجمعی و کارنامک مغازه‌ها
             </h3>
-            <span className="text-[10px] text-slate-400 font-bold bg-slate-50 px-2 py-1 rounded-lg">برای مشاهده صورت‌حساب کلیک کنید</span>
+            <span className="text-[10px] text-slate-400 font-semibold bg-slate-50 px-2 py-1 rounded">برای مشاهده صورت‌حساب کلیک کنید</span>
           </div>
           <div className="overflow-x-auto w-full">
             <table className="w-full text-right text-xs min-w-[750px]">
               <thead>
-                <tr className="text-slate-400 font-semibold border-b border-slate-100 pb-2">
+                <tr className="text-slate-400 font-medium border-b border-slate-100 pb-2">
                   <th className="py-3 px-1 font-mono w-10">ردیف</th>
                   <th className="py-3 px-2">نام مغازه</th>
                   <th className="py-3 px-2">موجودی اولیه طلا</th>
@@ -527,7 +527,7 @@ export default function ReportsTab({ settings, transactions, onUpdateSettings }:
               <tbody className="divide-y divide-slate-100/80">
                 {shopsReportData.length === 0 ? (
                   <tr>
-                    <td colSpan={10} className="py-8 text-center text-slate-500 font-bold">
+                    <td colSpan={10} className="py-8 text-center text-slate-500 font-semibold">
                       مغازه‌ای تعریف نشده است.
                     </td>
                   </tr>
@@ -539,30 +539,30 @@ export default function ReportsTab({ settings, transactions, onUpdateSettings }:
                         setSelectedShop(shop.name);
                         setSelectedPerson(null);
                       }}
-                      className={`hover:bg-amber-500/5 cursor-pointer transition-all ${selectedShop === shop.name ? "bg-amber-500/10 border-l-4 border-amber-500 font-bold" : ""}`}
+                      className={`hover:bg-blue-500/5 cursor-pointer transition-all ${selectedShop === shop.name ? "bg-blue-500/10 border-l-4 border-blue-600 font-semibold" : ""}`}
                     >
                       <td className="py-3.5 px-1 text-slate-400 font-mono font-medium">{toPersianDigits(shop.index)}</td>
-                      <td className="py-3.5 px-2 font-black text-slate-900 text-xs flex items-center gap-1.5">
-                        <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                      <td className="py-3.5 px-2 font-bold text-slate-900 text-xs flex items-center gap-1.5">
+                        <span className="w-1.5 h-1.5 rounded-full bg-blue-600"></span>
                         {shop.name}
                       </td>
                       <td className="py-3.5 px-2 font-mono text-slate-600">{formatWeight(shop.initialGold)}</td>
                       <td className="py-3.5 px-2 font-mono text-slate-600">{formatCurrency(shop.initialIRR)}</td>
-                      <td className={`py-3.5 px-2 font-mono font-bold ${shop.goldChange >= 0 ? "text-emerald-750" : "text-rose-700"}`}>
+                      <td className={`py-3.5 px-2 font-mono font-semibold ${shop.goldChange >= 0 ? "text-emerald-700" : "text-rose-700"}`}>
                         {shop.goldChange >= 0 ? "+" : ""}{formatWeight(shop.goldChange)}
                       </td>
-                      <td className={`py-3.5 px-2 font-mono font-bold ${shop.irrChange >= 0 ? "text-emerald-750" : "text-rose-700"}`}>
+                      <td className={`py-3.5 px-2 font-mono font-semibold ${shop.irrChange >= 0 ? "text-emerald-700" : "text-rose-700"}`}>
                         {shop.irrChange >= 0 ? "+" : ""}{formatCurrency(shop.irrChange)}
                       </td>
-                      <td className="py-3.5 px-2 font-extrabold font-mono text-amber-600">{formatWeight(shop.currentGold)}</td>
-                      <td className="py-3.5 px-2 font-extrabold font-mono text-emerald-600">{formatCurrency(shop.currentIRR)}</td>
+                      <td className="py-3.5 px-2 font-bold font-mono text-amber-600">{formatWeight(shop.currentGold)}</td>
+                      <td className="py-3.5 px-2 font-bold font-mono text-emerald-600">{formatCurrency(shop.currentIRR)}</td>
                       <td className="py-3.5 px-2">
-                        <div className={`font-black font-mono ${shop.profit >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
+                        <div className={`font-bold font-mono ${shop.profit >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
                           {formatCurrency(shop.profit)}
                         </div>
-                        <span className="text-[9px] text-slate-400 font-semibold block mt-0.5">{toPersianDigits(shop.txCount)} تراکنش</span>
+                        <span className="text-[9px] text-slate-400 font-medium block mt-0.5">{toPersianDigits(shop.txCount)} تراکنش</span>
                       </td>
-                      <td className="py-3.5 px-2 text-slate-400 font-semibold max-w-[150px] truncate" title={shop.connectedPersonsLabel}>
+                      <td className="py-3.5 px-2 text-slate-400 font-medium max-w-[150px] truncate" title={shop.connectedPersonsLabel}>
                         {shop.connectedPersonsLabel}
                       </td>
                     </tr>
@@ -576,24 +576,24 @@ export default function ReportsTab({ settings, transactions, onUpdateSettings }:
 
       {activeReport === "persons" && (
         /* Persons Report Table */
-        <div className="bg-white border border-slate-200 rounded-3xl p-4 md:p-6 shadow-sm overflow-hidden animate-fadeIn no-print">
+        <div className="bg-white border border-slate-200 rounded-md p-4 md:p-6 shadow-sm overflow-hidden animate-fadeIn no-print">
           <div className="flex justify-between items-center border-b border-slate-100 pb-3 mb-4">
-            <h3 className="text-sm font-extrabold text-slate-900 flex items-center gap-2">
-              <Users className="w-4 h-4 text-amber-500" />
+            <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+              <Users className="w-4 h-4 text-blue-500" />
               تراز دفاتر معین و بستانکاری اشخاص
             </h3>
-            <span className="text-[10px] text-slate-400 font-bold bg-slate-50 px-2 py-1 rounded-lg">برای مشاهده صورت‌حساب کلیک کنید</span>
+            <span className="text-[10px] text-slate-400 font-semibold bg-slate-50 px-2 py-1 rounded">برای مشاهده صورت‌حساب کلیک کنید</span>
           </div>
           <div className="overflow-x-auto w-full">
             <table className="w-full text-right text-xs min-w-[600px]">
               <thead>
-                <tr className="text-slate-400 font-semibold border-b border-slate-100 pb-2">
+                <tr className="text-slate-400 font-medium border-b border-slate-100 pb-2">
                   <th className="py-3 px-1 font-mono w-10">ردیف</th>
                   <th className="py-3 px-2">نام شخص ذینفع / همکار</th>
                   <th className="py-3 px-2">موجودی اولیه طلا</th>
                   <th className="py-3 px-2">موجودی اولیه ریال</th>
-                  <th className="py-3 px-2 text-amber-650 text-slate-900">مانده فعلی طلا</th>
-                  <th className="py-3 px-2 text-emerald-650 text-slate-900">مانده فعلی ریال</th>
+                  <th className="py-3 px-2 text-blue-600 text-slate-900">مانده فعلی طلا</th>
+                  <th className="py-3 px-2 text-emerald-600 text-slate-900">مانده فعلی ریال</th>
                   <th className="py-3 px-2">سود / زیان با تفکیک</th>
                   <th className="py-3 px-2">تعداد کل معاملات</th>
                   <th className="py-3 px-2">مغازه‌های مرتبط</th>
@@ -603,7 +603,7 @@ export default function ReportsTab({ settings, transactions, onUpdateSettings }:
               <tbody className="divide-y divide-slate-100/80">
                 {personsReportData.length === 0 ? (
                   <tr>
-                    <td colSpan={10} className="py-8 text-center text-slate-500 font-bold">
+                    <td colSpan={10} className="py-8 text-center text-slate-500 font-semibold">
                       شخصی تعریف نشده است.
                     </td>
                   </tr>
@@ -617,71 +617,71 @@ export default function ReportsTab({ settings, transactions, onUpdateSettings }:
                         setSelectedPerson(person.name);
                         setSelectedShop(null);
                       }}
-                      className={`hover:bg-amber-500/5 cursor-pointer transition-all ${selectedPerson === person.name ? "bg-amber-500/10 border-l-4 border-amber-500 font-bold" : ""} ${isEditing ? "bg-amber-50" : ""}`}
+                      className={`hover:bg-blue-500/5 cursor-pointer transition-all ${selectedPerson === person.name ? "bg-blue-500/10 border-l-4 border-blue-600 font-semibold" : ""} ${isEditing ? "bg-blue-50" : ""}`}
                     >
                       <td className="py-3.5 px-1 text-slate-400 font-mono font-medium">{toPersianDigits(person.index)}</td>
-                      <td className="py-3.5 px-2 font-black text-slate-900 text-xs flex items-center gap-1.5">
+                      <td className="py-3.5 px-2 font-bold text-slate-900 text-xs flex items-center gap-1.5">
                         {isEditing ? (
                           <input
                             type="text"
                             value={editPersonName}
                             onChange={(e) => setEditPersonName(e.target.value)}
-                            className="w-full bg-white border border-amber-400 rounded-lg px-2.5 py-1.5 text-xs text-slate-900 focus:outline-none"
+                            className="w-full bg-white border border-blue-500 rounded px-2.5 py-1.5 text-xs text-slate-900 focus:outline-none"
                           />
                         ) : (
                           <>
-                            <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                            <span className="w-1.5 h-1.5 rounded-full bg-blue-600"></span>
                             {person.name}
                           </>
                         )}
                       </td>
-                      <td className={`py-3.5 px-2 font-mono font-bold ${person.initialGold >= 0 ? "text-amber-600" : "text-rose-600"}`}>
+                      <td className={`py-3.5 px-2 font-mono font-semibold ${person.initialGold >= 0 ? "text-amber-600" : "text-rose-600"}`}>
                         {formatWeight(person.initialGold)}
                       </td>
-                      <td className={`py-3.5 px-2 font-mono font-bold ${person.initialIRR >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
+                      <td className={`py-3.5 px-2 font-mono font-semibold ${person.initialIRR >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
                         {formatCurrency(person.initialIRR)}
                       </td>
-                      <td className={`py-3.5 px-2 font-extrabold font-mono ${person.currentGold >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
+                      <td className={`py-3.5 px-2 font-bold font-mono ${person.currentGold >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
                         {isEditing ? (
                           <input
                             type="text"
                             inputMode="decimal"
                             value={formatInputWithCommas(editCurrentGold)}
                             onChange={(e) => setEditCurrentGold(cleanNumInput(e.target.value))}
-                            className="w-full bg-white border border-amber-400 rounded-lg px-2.5 py-1.5 text-xs text-left font-mono text-slate-900 focus:outline-none"
+                            className="w-full bg-white border border-blue-500 rounded px-2.5 py-1.5 text-xs text-left font-mono text-slate-900 focus:outline-none"
                           />
                         ) : (
                           formatWeight(person.currentGold)
                         )}
                       </td>
-                      <td className={`py-3.5 px-2 font-extrabold font-mono ${person.currentIRR >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
+                      <td className={`py-3.5 px-2 font-bold font-mono ${person.currentIRR >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
                         {isEditing ? (
                           <input
                             type="text"
                             inputMode="decimal"
                             value={formatInputWithCommas(editCurrentIrr)}
                             onChange={(e) => setEditCurrentIrr(cleanNumInput(e.target.value))}
-                            className="w-full bg-white border border-amber-400 rounded-lg px-2.5 py-1.5 text-xs text-left font-mono text-slate-900 focus:outline-none"
+                            className="w-full bg-white border border-blue-500 rounded px-2.5 py-1.5 text-xs text-left font-mono text-slate-900 focus:outline-none"
                           />
                         ) : (
                           formatCurrency(person.currentIRR)
                         )}
                       </td>
-                      <td className={`py-3.5 px-2 font-extrabold font-mono ${person.profit >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
+                      <td className={`py-3.5 px-2 font-bold font-mono ${person.profit >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
                         {isEditing ? (
                           <input
                             type="text"
                             inputMode="decimal"
                             value={formatInputWithCommas(editProfit)}
                             onChange={(e) => setEditProfit(cleanNumInput(e.target.value))}
-                            className="w-full bg-white border border-amber-400 rounded-lg px-2.5 py-1.5 text-xs text-left font-mono text-slate-900 focus:outline-none"
+                            className="w-full bg-white border border-blue-500 rounded px-2.5 py-1.5 text-xs text-left font-mono text-slate-900 focus:outline-none"
                           />
                         ) : (
                           formatCurrency(person.profit)
                         )}
                       </td>
-                      <td className="py-3.5 px-2 text-slate-500 font-semibold font-mono">{toPersianDigits(person.txCount)} فیش مالی</td>
-                      <td className="py-3.5 px-2 text-slate-400 font-semibold max-w-[180px] truncate" title={person.connectedShopsLabel}>
+                      <td className="py-3.5 px-2 text-slate-500 font-medium font-mono">{toPersianDigits(person.txCount)} فیش مالی</td>
+                      <td className="py-3.5 px-2 text-slate-400 font-medium max-w-[180px] truncate" title={person.connectedShopsLabel}>
                         {person.connectedShopsLabel}
                       </td>
                       <td className="py-3.5 px-2 text-left">
@@ -689,14 +689,14 @@ export default function ReportsTab({ settings, transactions, onUpdateSettings }:
                           <div className="flex items-center gap-1.5">
                             <button
                               onClick={(e) => { e.stopPropagation(); handleSaveEditPerson(person.id); }}
-                              className="text-emerald-600 hover:bg-emerald-100 p-1.5 rounded-lg transition-colors cursor-pointer"
+                              className="text-emerald-600 hover:bg-emerald-100 p-1.5 rounded transition-colors cursor-pointer"
                               title="ذخیره"
                             >
                               <FloppyDisk className="w-3.5 h-3.5" />
                             </button>
                             <button
                               onClick={(e) => { e.stopPropagation(); handleCancelEditPerson(); }}
-                              className="text-rose-500 hover:bg-rose-100 p-1.5 rounded-lg transition-colors cursor-pointer"
+                              className="text-rose-500 hover:bg-rose-100 p-1.5 rounded transition-colors cursor-pointer"
                               title="لغو"
                             >
                               <X className="w-3.5 h-3.5" />
@@ -706,7 +706,7 @@ export default function ReportsTab({ settings, transactions, onUpdateSettings }:
                           <div className="flex items-center gap-1.5">
                             <button
                               onClick={(e) => { e.stopPropagation(); handleStartEditPerson(person); }}
-                              className="text-amber-600 hover:bg-amber-100 p-1.5 rounded-lg transition-colors cursor-pointer"
+                              className="text-blue-600 hover:bg-blue-100 p-1.5 rounded transition-colors cursor-pointer"
                               title="ویرایش"
                             >
                               <FloppyDisk className="w-3.5 h-3.5" />
@@ -718,7 +718,7 @@ export default function ReportsTab({ settings, transactions, onUpdateSettings }:
                                   handleRemovePerson(person.id);
                                 }
                               }}
-                              className="text-rose-500 hover:bg-rose-100 p-1.5 rounded-lg transition-colors cursor-pointer"
+                              className="text-rose-500 hover:bg-rose-100 p-1.5 rounded transition-colors cursor-pointer"
                               title="حذف"
                             >
                               <Trash className="w-3.5 h-3.5" />
@@ -737,30 +737,30 @@ export default function ReportsTab({ settings, transactions, onUpdateSettings }:
       )}
 
       {activeReport === "dailyTrades" && (
-        <div className="bg-white border border-slate-200 rounded-3xl p-4 md:p-6 shadow-sm overflow-hidden animate-fadeIn no-print space-y-4">
+        <div className="bg-white border border-slate-200 rounded-md p-4 md:p-6 shadow-sm overflow-hidden animate-fadeIn no-print space-y-4">
           <div className="flex flex-col sm:flex-row justify-between sm:items-center border-b border-slate-100 pb-3 gap-2">
             <div>
-              <h3 className="text-sm font-extrabold text-slate-900 flex items-center gap-2">
-                <ArrowsLeftRight className="w-4 h-4 text-amber-500" />
+              <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                <ArrowsLeftRight className="w-4 h-4 text-blue-500" />
                 دفتر معاملات خرید و فروش طلا به تفکیک روز
               </h3>
-              <p className="text-[10px] text-slate-500 mt-1 font-semibold font-sans">
+              <p className="text-[10px] text-slate-500 mt-1 font-medium font-sans">
                 این تراز تخصصی، خلاصه کل حجم خرید و فروش‌های فیزیکی طلا و صنف آبشده را به همراه سود خالص برآوردی به صورت روزانه محاسبه می‌کند.
               </p>
             </div>
-            <span className="text-[10px] text-amber-600 font-bold bg-amber-50 px-2.5 py-1 rounded-lg self-start sm:self-center">بخش گزارش معاملات طلا</span>
+            <span className="text-[10px] text-blue-600 font-semibold bg-blue-50 px-2.5 py-1 rounded self-start sm:self-center">بخش گزارش معاملات طلا</span>
           </div>
 
           {/* ===== تقسیم سود روز بین شرکا به نسبت سرمایه ===== */}
-          <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 md:p-5 space-y-4">
+          <div className="bg-slate-50 border border-slate-200 rounded-md p-4 md:p-5 space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 pb-3">
-              <h4 className="text-xs font-extrabold text-slate-900 flex items-center gap-2">
-                <Calculator className="w-4 h-4 text-amber-500" />
+              <h4 className="text-xs font-bold text-slate-900 flex items-center gap-2">
+                <Calculator className="w-4 h-4 text-blue-500" />
                 تقسیم سود روز بین شرکا (به نسبت سرمایه)
               </h4>
               <button
                 onClick={handleResetDistribution}
-                className="text-slate-500 hover:text-rose-700 bg-white border border-slate-200 hover:border-rose-300 text-[10px] font-extrabold px-3 py-1.5 rounded-xl cursor-pointer transition-all inline-flex items-center gap-1 self-start sm:self-center"
+                className="text-slate-500 hover:text-rose-700 bg-white border border-slate-200 hover:border-rose-300 text-[10px] font-bold px-3 py-1.5 rounded cursor-pointer transition-all inline-flex items-center gap-1 self-start sm:self-center"
               >
                 <ArrowCounterClockwise className="w-3 h-3" />
                 پاک کردن فرم
@@ -770,41 +770,41 @@ export default function ReportsTab({ settings, transactions, onUpdateSettings }:
             {/* ورودی‌های کلی روز */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
               <div className="space-y-1.5">
-                <label className="text-slate-600 font-bold">سود کل روز (ریال)</label>
+                <label className="text-slate-600 font-semibold">سود کل روز (ریال)</label>
                 <input
                   type="text"
                   inputMode="decimal"
                   pattern="[0-9.,\-]*"
                   value={formatInputWithCommas(dpTotalProfit)}
                   onChange={(e) => setDpTotalProfit(cleanNumInput(e.target.value))}
-                  className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2.5 text-slate-900 focus:outline-none focus:border-amber-500 text-left font-mono font-semibold"
+                  className="w-full bg-white border border-slate-200 rounded px-3 py-2.5 text-slate-900 focus:outline-none focus:border-blue-500 text-left font-mono font-medium"
                   placeholder="0"
                 />
               </div>
               <div className="space-y-1.5">
-                <label className="text-slate-600 font-bold">سرمایه کل روز (ریال)</label>
+                <label className="text-slate-600 font-semibold">سرمایه کل روز (ریال)</label>
                 <input
                   type="text"
                   inputMode="decimal"
                   pattern="[0-9.,]*"
                   value={formatInputWithCommas(dpTotalCapital)}
                   onChange={(e) => setDpTotalCapital(cleanNumInput(e.target.value))}
-                  className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2.5 text-slate-900 focus:outline-none focus:border-amber-500 text-left font-mono font-semibold"
+                  className="w-full bg-white border border-slate-200 rounded px-3 py-2.5 text-slate-900 focus:outline-none focus:border-blue-500 text-left font-mono font-medium"
                   placeholder="0"
                 />
               </div>
               <div className="space-y-1.5">
-                <label className="text-slate-600 font-bold">سود کارگزار (ریال)</label>
+                <label className="text-slate-600 font-semibold">سود کارگزار (ریال)</label>
                 <input
                   type="text"
                   inputMode="decimal"
                   pattern="[0-9.,\-]*"
                   value={formatInputWithCommas(dpBrokerProfit)}
                   onChange={(e) => setDpBrokerProfit(cleanNumInput(e.target.value))}
-                  className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2.5 text-slate-900 focus:outline-none focus:border-amber-500 text-left font-mono font-semibold"
+                  className="w-full bg-white border border-slate-200 rounded px-3 py-2.5 text-slate-900 focus:outline-none focus:border-blue-500 text-left font-mono font-medium"
                   placeholder="0"
                 />
-                <span className="text-[10px] text-amber-700 font-bold block">
+                <span className="text-[10px] text-blue-700 font-semibold block">
                   سود ثانویه قابل تقسیم: {formatCurrency((Number(dpTotalProfit) || 0) - (Number(dpBrokerProfit) || 0))}
                 </span>
               </div>
@@ -812,14 +812,14 @@ export default function ReportsTab({ settings, transactions, onUpdateSettings }:
 
             {/* سهم سرمایه هر شخص */}
             <div className="space-y-2">
-              <label className="text-slate-600 font-bold text-xs block">سهم هر شخص از سرمایه کل (ریال)</label>
+              <label className="text-slate-600 font-semibold text-xs block">سهم هر شخص از سرمایه کل (ریال)</label>
               {dpShares.map((row, i) => (
                 <div key={row.id} className="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center">
-                  <span className="text-[10px] text-slate-400 font-mono font-bold w-5 shrink-0 self-center">{toPersianDigits(i + 1)}</span>
+                  <span className="text-[10px] text-slate-400 font-mono font-semibold w-5 shrink-0 self-center">{toPersianDigits(i + 1)}</span>
                   <select
                     value={row.person}
                     onChange={(e) => updateShareRow(row.id, "person", e.target.value)}
-                    className="flex-1 bg-white border border-slate-200 rounded-xl px-3 py-2.5 text-slate-900 font-bold text-xs h-[42px] focus:outline-none focus:border-amber-500"
+                    className="flex-1 bg-white border border-slate-200 rounded px-3 py-2.5 text-slate-900 font-semibold text-xs h-[42px] focus:outline-none focus:border-blue-500"
                   >
                     <option value="">انتخاب شخص...</option>
                     {settings.persons.map(p => <option key={p.id} value={p.name}>{p.name}</option>)}
@@ -830,13 +830,13 @@ export default function ReportsTab({ settings, transactions, onUpdateSettings }:
                     pattern="[0-9.,]*"
                     value={formatInputWithCommas(row.capital)}
                     onChange={(e) => updateShareRow(row.id, "capital", cleanNumInput(e.target.value))}
-                    className="flex-1 bg-white border border-slate-200 rounded-xl px-3 py-2.5 text-slate-900 focus:outline-none focus:border-amber-500 text-left font-mono font-semibold text-xs h-[42px]"
+                    className="flex-1 bg-white border border-slate-200 rounded px-3 py-2.5 text-slate-900 focus:outline-none focus:border-blue-500 text-left font-mono font-medium text-xs h-[42px]"
                     placeholder="سرمایه آورده شده"
                   />
                   <button
                     onClick={() => removeShareRow(row.id)}
                     disabled={dpShares.length === 1}
-                    className="text-rose-500 hover:text-white border border-rose-100 hover:border-rose-500 bg-rose-50 hover:bg-rose-500 p-2 rounded-xl cursor-pointer transition-all inline-flex items-center justify-center shrink-0 disabled:opacity-40 disabled:cursor-not-allowed h-[42px] w-[42px]"
+                    className="text-rose-500 hover:text-white border border-rose-100 hover:border-rose-500 bg-rose-50 hover:bg-rose-500 p-2 rounded cursor-pointer transition-all inline-flex items-center justify-center shrink-0 disabled:opacity-40 disabled:cursor-not-allowed h-[42px] w-[42px]"
                     title="حذف ردیف"
                   >
                     <Trash className="w-3.5 h-3.5" />
@@ -846,7 +846,7 @@ export default function ReportsTab({ settings, transactions, onUpdateSettings }:
 
               <button
                 onClick={addShareRow}
-                className="text-amber-700 hover:text-white border border-amber-200 hover:border-amber-500 bg-amber-50 hover:bg-amber-500 text-[10px] font-extrabold px-3 py-2 rounded-xl cursor-pointer transition-all inline-flex items-center gap-1"
+                className="text-blue-700 hover:text-white border border-blue-200 hover:border-blue-600 bg-blue-50 hover:bg-blue-600 text-[10px] font-bold px-3 py-2 rounded cursor-pointer transition-all inline-flex items-center gap-1"
               >
                 + افزودن شخص
               </button>
@@ -855,7 +855,7 @@ export default function ReportsTab({ settings, transactions, onUpdateSettings }:
             <div className="flex justify-end pt-1">
               <button
                 onClick={handleCalcDistribution}
-                className="bg-amber-500 text-slate-950 font-extrabold px-6 py-3 rounded-2xl text-xs hover:bg-amber-400 cursor-pointer transition-all flex items-center gap-2 shadow-sm shadow-amber-500/20 active:scale-[0.98] min-h-[44px]"
+                className="bg-blue-600 text-white font-bold px-6 py-3 rounded-md text-xs hover:bg-blue-700 cursor-pointer transition-all flex items-center gap-2 shadow-sm active:scale-[0.98] min-h-[44px]"
               >
                 <CheckCircle className="w-4 h-4 stroke-[2.5]" />
                 تایید و محاسبه سهم سود اشخاص
@@ -864,28 +864,28 @@ export default function ReportsTab({ settings, transactions, onUpdateSettings }:
 
             {/* نتیجه محاسبه */}
             {dpResult && (
-              <div className="bg-white border border-slate-200 rounded-2xl p-4 space-y-3 animate-fadeIn">
+              <div className="bg-white border border-slate-200 rounded-md p-4 space-y-3 animate-fadeIn">
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 text-[11px]">
-                  <div className="bg-slate-50 rounded-xl p-2.5 border border-slate-100">
-                    <span className="text-slate-400 font-bold block">سود کل روز</span>
-                    <span className={`font-black font-mono block mt-1 ${dpResult.totalProfit >= 0 ? "text-emerald-700" : "text-rose-700"}`}>{formatCurrency(dpResult.totalProfit)}</span>
+                  <div className="bg-slate-50 rounded p-2.5 border border-slate-100">
+                    <span className="text-slate-400 font-semibold block">سود کل روز</span>
+                    <span className={`font-bold font-mono block mt-1 ${dpResult.totalProfit >= 0 ? "text-emerald-700" : "text-rose-700"}`}>{formatCurrency(dpResult.totalProfit)}</span>
                   </div>
-                  <div className="bg-slate-50 rounded-xl p-2.5 border border-slate-100">
-                    <span className="text-slate-400 font-bold block">سود کارگزار</span>
-                    <span className="font-black font-mono block mt-1 text-rose-700">{formatCurrency(dpResult.brokerProfit)}</span>
+                  <div className="bg-slate-50 rounded p-2.5 border border-slate-100">
+                    <span className="text-slate-400 font-semibold block">سود کارگزار</span>
+                    <span className="font-bold font-mono block mt-1 text-rose-700">{formatCurrency(dpResult.brokerProfit)}</span>
                   </div>
-                  <div className="bg-amber-50 rounded-xl p-2.5 border border-amber-100">
-                    <span className="text-amber-700 font-bold block">سود ثانویه (قابل تقسیم)</span>
-                    <span className="font-black font-mono block mt-1 text-amber-700">{formatCurrency(dpResult.secondaryProfit)}</span>
+                  <div className="bg-blue-50 rounded p-2.5 border border-blue-100">
+                    <span className="text-blue-700 font-semibold block">سود ثانویه (قابل تقسیم)</span>
+                    <span className="font-bold font-mono block mt-1 text-blue-700">{formatCurrency(dpResult.secondaryProfit)}</span>
                   </div>
-                  <div className="bg-slate-50 rounded-xl p-2.5 border border-slate-100">
-                    <span className="text-slate-400 font-bold block">سرمایه کل (مبنای تقسیم)</span>
-                    <span className="font-black font-mono block mt-1 text-slate-800">{formatCurrency(dpResult.totalCapital)}</span>
+                  <div className="bg-slate-50 rounded p-2.5 border border-slate-100">
+                    <span className="text-slate-400 font-semibold block">سرمایه کل (مبنای تقسیم)</span>
+                    <span className="font-bold font-mono block mt-1 text-slate-800">{formatCurrency(dpResult.totalCapital)}</span>
                   </div>
                 </div>
 
                 {Math.abs(dpResult.sumShares - dpResult.totalCapital) > 0.5 && (
-                  <div className="bg-rose-50 border border-rose-200 text-rose-700 rounded-xl px-3 py-2 text-[10px] font-bold leading-relaxed">
+                  <div className="bg-rose-50 border border-rose-200 text-rose-700 rounded px-3 py-2 text-[10px] font-semibold leading-relaxed">
                     توجه: جمع سرمایه اشخاص ({formatCurrency(dpResult.sumShares)}) با سرمایه کل روز ({formatCurrency(dpResult.totalCapital)}) برابر نیست؛ تقسیم بر مبنای سرمایه کل روز انجام شد.
                   </div>
                 )}
@@ -893,34 +893,34 @@ export default function ReportsTab({ settings, transactions, onUpdateSettings }:
                 <div className="overflow-x-auto w-full">
                   <table className="w-full text-right text-xs min-w-[520px]">
                     <thead>
-                      <tr className="text-slate-400 font-semibold border-b border-slate-100">
+                      <tr className="text-slate-400 font-medium border-b border-slate-100">
                         <th className="py-2.5 px-1 font-mono w-10 text-center">ردیف</th>
                         <th className="py-2.5 px-2">شخص</th>
                         <th className="py-2.5 px-2">سرمایه آورده شده</th>
                         <th className="py-2.5 px-2">درصد از سرمایه کل</th>
-                        <th className="py-2.5 px-2 text-emerald-700 font-black">سهم از سود ثانویه</th>
+                        <th className="py-2.5 px-2 text-emerald-700 font-bold">سهم از سود ثانویه</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100/80">
                       {dpResult.rows.length === 0 ? (
                         <tr>
-                          <td colSpan={5} className="py-6 text-center text-slate-400 font-bold">سرمایه هیچ شخصی وارد نشده است.</td>
+                          <td colSpan={5} className="py-6 text-center text-slate-400 font-semibold">سرمایه هیچ شخصی وارد نشده است.</td>
                         </tr>
                       ) : (
                         dpResult.rows.map((r, i) => (
-                          <tr key={r.person + i} className="hover:bg-amber-500/5 transition-colors">
+                          <tr key={r.person + i} className="hover:bg-blue-500/5 transition-colors">
                             <td className="py-3 px-1 text-center text-slate-400 font-mono font-medium">{toPersianDigits(i + 1)}</td>
-                            <td className="py-3 px-2 font-black text-slate-900">{r.person}</td>
-                            <td className="py-3 px-2 font-mono font-semibold text-slate-600">{formatCurrency(r.capital)}</td>
-                            <td className="py-3 px-2 font-mono font-bold text-slate-700">{toPersianDigits(r.percent.toFixed(2))}%</td>
-                            <td className={`py-3 px-2 font-black font-mono ${r.profit >= 0 ? "text-emerald-700" : "text-rose-700"}`}>{formatCurrency(r.profit)}</td>
+                            <td className="py-3 px-2 font-bold text-slate-900">{r.person}</td>
+                            <td className="py-3 px-2 font-mono font-medium text-slate-600">{formatCurrency(r.capital)}</td>
+                            <td className="py-3 px-2 font-mono font-semibold text-slate-700">{toPersianDigits(r.percent.toFixed(2))}%</td>
+                            <td className={`py-3 px-2 font-bold font-mono ${r.profit >= 0 ? "text-emerald-700" : "text-rose-700"}`}>{formatCurrency(r.profit)}</td>
                           </tr>
                         ))
                       )}
                     </tbody>
                     {dpResult.rows.length > 0 && (
                       <tfoot>
-                        <tr className="border-t-2 border-slate-200 font-black text-[11px]">
+                        <tr className="border-t-2 border-slate-200 font-bold text-[11px]">
                           <td className="py-3 px-1"></td>
                           <td className="py-3 px-2 text-slate-900">جمع کل</td>
                           <td className="py-3 px-2 font-mono text-slate-800">{formatCurrency(dpResult.rows.reduce((s, r) => s + r.capital, 0))}</td>
@@ -938,7 +938,7 @@ export default function ReportsTab({ settings, transactions, onUpdateSettings }:
           <div className="overflow-x-auto w-full text-semibold">
             <table className="w-full text-right text-xs min-w-[850px]">
               <thead>
-                <tr className="text-slate-400 font-semibold border-b border-slate-100 pb-2">
+                <tr className="text-slate-400 font-medium border-b border-slate-100 pb-2">
                   <th className="py-3 px-1 font-mono w-10 text-center">ردیف</th>
                   <th className="py-3 px-2">روز / تاریخ معامله</th>
                   <th className="py-3 px-2">تعداد معاملات</th>
@@ -946,7 +946,7 @@ export default function ReportsTab({ settings, transactions, onUpdateSettings }:
                   <th className="py-3 px-2 text-rose-700">کل فروش طلا (گرم)</th>
                   <th className="py-3 px-2">جمع بهای خرید (ریال)</th>
                   <th className="py-3 px-2">جمع ثمن فروش (ریال)</th>
-                  <th className="py-3 px-2 text-emerald-600 font-black">سود / زیان کل روز</th>
+                  <th className="py-3 px-2 text-emerald-600 font-bold">سود / زیان کل روز</th>
                   <th className="py-3 px-2 text-center w-28">لیست فیش‌ها</th>
                 </tr>
               </thead>
@@ -963,21 +963,21 @@ export default function ReportsTab({ settings, transactions, onUpdateSettings }:
                     const isExpanded = !!expandedDays[day.date];
                     return (
                       <React.Fragment key={day.date}>
-                        <tr className={`hover:bg-amber-500/5 transition-all ${isExpanded ? "bg-slate-50/80" : ""}`}>
+                        <tr className={`hover:bg-blue-500/5 transition-all ${isExpanded ? "bg-slate-50/80" : ""}`}>
                           <td className="py-4 px-1 text-center text-slate-400 font-mono font-medium">{toPersianDigits(day.index)}</td>
-                          <td className="py-4 px-2 font-black text-slate-900 text-xs">{day.date}</td>
-                          <td className="py-4 px-2 font-bold font-mono text-slate-650">{toPersianDigits(day.transactionsCount)} معامله</td>
-                          <td className="py-4 px-2 font-mono text-emerald-700 font-bold">{day.goldBought > 0 ? formatWeight(day.goldBought) : "۰"}</td>
-                          <td className="py-4 px-2 font-mono text-rose-700 font-bold">{day.goldSold > 0 ? formatWeight(day.goldSold) : "۰"}</td>
+                          <td className="py-4 px-2 font-bold text-slate-900 text-xs">{day.date}</td>
+                          <td className="py-4 px-2 font-semibold font-mono text-slate-600">{toPersianDigits(day.transactionsCount)} معامله</td>
+                          <td className="py-4 px-2 font-mono text-emerald-700 font-semibold">{day.goldBought > 0 ? formatWeight(day.goldBought) : "۰"}</td>
+                          <td className="py-4 px-2 font-mono text-rose-700 font-semibold">{day.goldSold > 0 ? formatWeight(day.goldSold) : "۰"}</td>
                           <td className="py-4 px-2 font-mono text-slate-500">{day.irrSpent > 0 ? formatCurrency(day.irrSpent) : "۰ ریال"}</td>
                           <td className="py-4 px-2 font-mono text-slate-500">{day.irrEarned > 0 ? formatCurrency(day.irrEarned) : "۰ ریال"}</td>
-                          <td className={`py-4 px-2 font-black font-mono text-[11.5px] ${day.profit >= 0 ? "text-emerald-700" : "text-rose-700"}`}>
+                          <td className={`py-4 px-2 font-bold font-mono text-[11.5px] ${day.profit >= 0 ? "text-emerald-700" : "text-rose-700"}`}>
                             {day.profit !== 0 ? formatCurrency(day.profit) : "۰ ریال"}
                           </td>
                           <td className="py-4 px-2 text-center">
                             <button
                               onClick={() => toggleDayExpansion(day.date)}
-                              className="text-amber-700 hover:text-white border border-amber-200 hover:border-amber-500 bg-amber-50 hover:bg-amber-500 text-[10px] font-extrabold px-3 py-1.5 rounded-xl cursor-pointer transition-all inline-flex items-center gap-1"
+                              className="text-blue-700 hover:text-white border border-blue-200 hover:border-blue-600 bg-blue-50 hover:bg-blue-600 text-[10px] font-bold px-3 py-1.5 rounded cursor-pointer transition-all inline-flex items-center gap-1"
                             >
                               <span>{isExpanded ? "بستن جزئیات" : "مشاهده فیش‌ها"}</span>
                               <span className="font-mono text-[9px]">({toPersianDigits(day.transactionsCount)})</span>
@@ -987,38 +987,38 @@ export default function ReportsTab({ settings, transactions, onUpdateSettings }:
                         {isExpanded && (
                           <tr className="bg-slate-50/50">
                             <td colSpan={9} className="p-4">
-                              <div className="bg-white border border-slate-200/60 rounded-2xl p-4 shadow-inner space-y-3 animate-fadeIn">
-                                <h4 className="text-[11px] font-extrabold text-amber-700 flex items-center gap-1.5 border-b border-slate-100 pb-2">
+                              <div className="bg-white border border-slate-200/60 rounded-md p-4 shadow-inner space-y-3 animate-fadeIn">
+                                <h4 className="text-[11px] font-bold text-blue-700 flex items-center gap-1.5 border-b border-slate-100 pb-2">
                                   <span>لیست تراکنش‌های معاملاتی روز {day.date}</span>
                                 </h4>
                                 <div className="overflow-x-auto w-full">
                                   <table className="w-full text-right text-[11px] min-w-[700px]">
                                     <thead>
-                                      <tr className="text-slate-400 font-bold border-b border-slate-100 pb-1 text-center">
+                                      <tr className="text-slate-400 font-semibold border-b border-slate-100 pb-1 text-center">
                                         <th className="py-2 px-1 text-right">مغازه</th>
                                         <th className="py-2 px-1 text-right">طرف حساب</th>
                                         <th className="py-2 px-1">نوع</th>
                                         <th className="py-2 px-1 text-center">وزن طلا گرم</th>
                                         <th className="py-2 px-1 text-center">بهای خرید سند</th>
                                         <th className="py-2 px-1 text-center">ثمن فروش سند</th>
-                                        <th className="py-2 px-1 text-right font-black">سود / زیان</th>
+                                        <th className="py-2 px-1 text-right font-bold">سود / زیان</th>
                                         <th className="py-2 px-2 text-right">توضیحات</th>
                                       </tr>
                                     </thead>
-                                    <tbody className="divide-y divide-slate-150">
+                                    <tbody className="divide-y divide-slate-200">
                                       {day.transactions.map((t) => (
                                         <tr key={t.id} className="hover:bg-slate-50 text-center">
-                                          <td className="py-2.5 px-1 font-bold text-slate-800 text-right">{t.shop}</td>
-                                          <td className="py-2.5 px-1 font-bold text-slate-800 text-right">{t.person || "عامه بازار/متفرقه"}</td>
+                                          <td className="py-2.5 px-1 font-semibold text-slate-800 text-right">{t.shop}</td>
+                                          <td className="py-2.5 px-1 font-semibold text-slate-800 text-right">{t.person || "عامه بازار/متفرقه"}</td>
                                           <td className="py-2.5 px-1 text-right">
-                                            <span className="inline-block bg-amber-500/10 text-amber-800 font-extrabold px-1.5 py-0.5 rounded text-[10px] border border-amber-500/10">
+                                            <span className="inline-block bg-blue-500/10 text-blue-800 font-bold px-1.5 py-0.5 rounded text-[10px] border border-blue-500/10">
                                               {t.type}
                                             </span>
                                           </td>
-                                          <td className="py-2.5 px-1 font-mono text-slate-700 font-semibold">{t.goldWeight > 0 ? formatWeight(t.goldWeight) : "-"}</td>
-                                          <td className="py-2.5 px-1 font-mono text-slate-600 font-semibold">{t.amount > 0 ? formatCurrency(t.amount) : "-"}</td>
-                                          <td className="py-2.5 px-1 font-mono text-slate-600 font-semibold">{t.salesAmount > 0 ? formatCurrency(t.salesAmount) : "-"}</td>
-                                          <td className={`py-2.5 px-1 font-mono font-black ${t.profit >= 0 ? "text-emerald-700" : "text-rose-700"}`}>
+                                          <td className="py-2.5 px-1 font-mono text-slate-700 font-medium">{t.goldWeight > 0 ? formatWeight(t.goldWeight) : "-"}</td>
+                                          <td className="py-2.5 px-1 font-mono text-slate-600 font-medium">{t.amount > 0 ? formatCurrency(t.amount) : "-"}</td>
+                                          <td className="py-2.5 px-1 font-mono text-slate-600 font-medium">{t.salesAmount > 0 ? formatCurrency(t.salesAmount) : "-"}</td>
+                                          <td className={`py-2.5 px-1 font-mono font-bold ${t.profit >= 0 ? "text-emerald-700" : "text-rose-700"}`}>
                                             {t.profit !== 0 ? formatCurrency(t.profit) : "0"}
                                           </td>
                                           <td className="py-2.5 px-2 text-slate-400 font-medium text-right max-w-[200px] truncate" title={t.note}>{t.note || "-"}</td>
@@ -1043,17 +1043,17 @@ export default function ReportsTab({ settings, transactions, onUpdateSettings }:
 
       {/* Drill-Down ACCOUNT LEDGER (صوت حساب تفصیلی معین طلا و ریال) - styled identically to PDF layout */}
       {(selectedPerson || selectedShop) && (
-        <div id="printable-ledger-section" className="bg-white border-2 border-slate-300 rounded-3xl p-5 md:p-8 shadow-md space-y-6 animate-slideIn">
+        <div id="printable-ledger-section" className="bg-white border-2 border-slate-300 rounded-md p-5 md:p-8 shadow-sm space-y-6 animate-slideIn">
           
           {/* Statement Header Card matches commercial gold invoices exactly */}
           <div className="border-b-4 border-double border-slate-950 pb-5">
             <div className="flex flex-col sm:flex-row justify-between items-center gap-4 text-center sm:text-right">
               <div>
-                <h2 className="text-base md:text-lg font-black text-slate-900 flex items-center gap-2 justify-center sm:justify-start">
+                <h2 className="text-base md:text-lg font-bold text-slate-900 flex items-center gap-2 justify-center sm:justify-start">
                   <BrandIcon name="reports" size={22} className="no-print" />
                   صورت‌حساب معین طلا و ریال: {selectedPerson || selectedShop}
                 </h2>
-                <p className="text-[10px] text-slate-500 mt-1.5 font-bold leading-relaxed no-print">
+                <p className="text-[10px] text-slate-500 mt-1.5 font-semibold leading-relaxed no-print">
                   این گزارش بر پایه صورت‌حساب دفاتر بنکداری طلا (وارونه نسبت به فایل‌های صادره خام همکاران جهت نمایش تراز طرف‌حسابی شخص) تنظیم شده است.
                 </p>
               </div>
@@ -1062,7 +1062,7 @@ export default function ReportsTab({ settings, transactions, onUpdateSettings }:
               <div className="flex items-center gap-2 no-print shrink-0">
                 <button
                   onClick={handlePrint}
-                  className="bg-slate-900 text-white font-extrabold text-[11px] px-4 py-2.5 rounded-xl hover:bg-slate-800 transition-all flex items-center gap-1.5 cursor-pointer shadow-sm min-h-[40px]"
+                  className="bg-slate-900 text-white font-bold text-[11px] px-4 py-2.5 rounded hover:bg-slate-800 transition-all flex items-center gap-1.5 cursor-pointer shadow-sm min-h-[40px]"
                 >
                   <Printer className="w-4 h-4" />
                   چاپ و دریافت PDF
@@ -1072,7 +1072,7 @@ export default function ReportsTab({ settings, transactions, onUpdateSettings }:
                     setSelectedPerson(null);
                     setSelectedShop(null);
                   }}
-                  className="bg-slate-100 hover:bg-rose-100 text-slate-600 hover:text-rose-700 font-extrabold text-[11px] px-3.5 py-2.5 rounded-xl transition-all flex items-center gap-1 cursor-pointer min-h-[40px]"
+                  className="bg-slate-100 hover:bg-rose-100 text-slate-600 hover:text-rose-700 font-bold text-[11px] px-3.5 py-2.5 rounded transition-all flex items-center gap-1 cursor-pointer min-h-[40px]"
                 >
                   <X className="w-4 h-4" />
                   بستن گزارش معین
@@ -1081,22 +1081,22 @@ export default function ReportsTab({ settings, transactions, onUpdateSettings }:
             </div>
 
             {/* Quick stats grid for statement of account */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-5 bg-slate-50 p-4 rounded-2xl border border-slate-200 text-xs">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-5 bg-slate-50 p-4 rounded-md border border-slate-200 text-xs">
               <div>
                 <span className="text-slate-400 font-medium">نوع گزارش:</span>
-                <span className="font-bold text-slate-800 block mt-1">دفتر تراز تفصیلی معین</span>
+                <span className="font-semibold text-slate-800 block mt-1">دفتر تراز تفصیلی معین</span>
               </div>
               <div>
                 <span className="text-slate-400 font-medium">ذینفع گزارش:</span>
-                <span className="font-bold text-slate-900 block mt-1 font-sans">{selectedPerson || selectedShop}</span>
+                <span className="font-semibold text-slate-900 block mt-1 font-sans">{selectedPerson || selectedShop}</span>
               </div>
               <div>
                 <span className="text-slate-400 font-medium">تعداد تراکنش‌های معین:</span>
-                <span className="font-extrabold text-amber-700 block mt-1 font-mono">{toPersianDigits(filteredLedger.length)} سند مالی</span>
+                <span className="font-bold text-blue-700 block mt-1 font-mono">{toPersianDigits(filteredLedger.length)} سند مالی</span>
               </div>
               <div>
                 <span className="text-slate-400 font-medium">پایه عیار فرمول طلا:</span>
-                <span className="font-bold text-emerald-700 block mt-1 font-mono">۷۵۰ (۱۸ عیار استاندارد)</span>
+                <span className="font-semibold text-emerald-700 block mt-1 font-mono">۷۵۰ (۱۸ عیار استاندارد)</span>
               </div>
             </div>
             
@@ -1108,7 +1108,7 @@ export default function ReportsTab({ settings, transactions, onUpdateSettings }:
                 placeholder="جستجوی سریع درون صورت‌حساب..." 
                 value={ledgerSearch}
                 onChange={e => setLedgerSearch(e.target.value)}
-                className="w-full bg-slate-50 border border-slate-205 border-slate-200 rounded-xl pr-9 pl-3 py-2 text-xs font-semibold focus:outline-none focus:border-amber-500 placeholder:text-slate-400"
+                className="w-full bg-slate-50 border border-slate-200 border-slate-200 rounded pr-9 pl-3 py-2 text-xs font-medium focus:outline-none focus:border-blue-500 placeholder:text-slate-400"
               />
             </div>
           </div>
@@ -1117,18 +1117,18 @@ export default function ReportsTab({ settings, transactions, onUpdateSettings }:
           <div className="overflow-x-auto w-full">
             <table className="w-full text-right text-[11px] md:text-[10.5px] border-2 border-slate-300 min-w-[850px] border-collapse bg-white">
               <thead>
-                <tr className="bg-slate-50 border-b border-slate-300 text-slate-800 font-bold divide-x divide-slate-300 divide-x-reverse text-center">
+                <tr className="bg-slate-50 border-b border-slate-300 text-slate-800 font-semibold divide-x divide-slate-300 divide-x-reverse text-center">
                   <th className="py-3 px-1 w-10">ردیف</th>
                   <th className="py-3 px-2 w-20">نوع سند</th>
                   <th className="py-3 px-2 w-16">شماره سند</th>
                   <th className="py-3 px-2 w-20">تاریخ</th>
                   <th className="py-3 px-3 text-right">شرح تراکنش</th>
-                  <th className="py-3 px-2 w-28 bg-amber-50/50">{selectedShop ? "شخص معامله" : "مغازه معامله"}</th>
-                  <th className="py-3 px-2 text-rose-750 bg-rose-50/50 w-20">بد طلا</th>
-                  <th className="py-3 px-2 text-emerald-750 bg-emerald-50/50 w-20">بس طلا</th>
+                  <th className="py-3 px-2 w-28 bg-blue-50/50">{selectedShop ? "شخص معامله" : "مغازه معامله"}</th>
+                  <th className="py-3 px-2 text-rose-700 bg-rose-50/50 w-20">بد طلا</th>
+                  <th className="py-3 px-2 text-emerald-700 bg-emerald-50/50 w-20">بس طلا</th>
                   <th className="py-3 px-2 w-24 bg-slate-100">مانده طلا</th>
-                  <th className="py-3 px-2 text-rose-750 bg-rose-50/50 w-24">بد ریالی</th>
-                  <th className="py-3 px-2 text-emerald-750 bg-emerald-50/50 w-24">بس ریالی</th>
+                  <th className="py-3 px-2 text-rose-700 bg-rose-50/50 w-24">بد ریالی</th>
+                  <th className="py-3 px-2 text-emerald-700 bg-emerald-50/50 w-24">بس ریالی</th>
                   <th className="py-3 px-2 w-28 bg-slate-100">مانده ریالی</th>
                 </tr>
               </thead>
@@ -1145,49 +1145,49 @@ export default function ReportsTab({ settings, transactions, onUpdateSettings }:
                     <tr key={row.id} className="hover:bg-slate-50/50 transition-colors text-center">
                       <td className="py-3 px-1 text-slate-400 font-mono font-medium">{toPersianDigits(idx + 1)}</td>
                       <td className="py-3 px-2">
-                        <span className="inline-block bg-slate-100 border border-slate-200 text-slate-800 font-bold px-1.5 py-0.5 rounded text-[10px]">
+                        <span className="inline-block bg-slate-100 border border-slate-200 text-slate-800 font-semibold px-1.5 py-0.5 rounded text-[10px]">
                           {row.type}
                         </span>
                       </td>
                       <td className="py-3 px-2 text-slate-500 font-mono text-[10px] truncate max-w-[80px]" title={row.serial}>
                         {toPersianDigits(row.serial.substring(0, 4))}
                       </td>
-                      <td className="py-3 px-2 text-slate-650 font-mono font-bold text-[10.5px]">{row.date}</td>
-                      <td className="py-3 px-3 text-right text-slate-800 font-semibold text-[10.5px] break-words max-w-[200px]" title={row.note}>
+                      <td className="py-3 px-2 text-slate-600 font-mono font-semibold text-[10.5px]">{row.date}</td>
+                      <td className="py-3 px-3 text-right text-slate-800 font-medium text-[10.5px] break-words max-w-[200px]" title={row.note}>
                         {row.note}
                       </td>
-                      <td className="py-3 px-2 text-right font-bold text-slate-800 text-[10.5px] max-w-[150px] truncate" title={selectedShop ? row.personName : row.shopName}>
+                      <td className="py-3 px-2 text-right font-semibold text-slate-800 text-[10.5px] max-w-[150px] truncate" title={selectedShop ? row.personName : row.shopName}>
                         {selectedShop ? (row.personName || "عمومی") : (row.shopName || "عمومی")}
                       </td>
                       
                       {/* Swapped Bed/Bes Gold columns */}
-                      <td className="py-3 px-2 text-rose-750 font-mono font-bold bg-rose-50/15 text-[11px]">
+                      <td className="py-3 px-2 text-rose-700 font-mono font-semibold bg-rose-50/15 text-[11px]">
                         {row.bidGold > 0 ? formatWeight(row.bidGold).replace(" گرم", "") : "۰"}
                       </td>
-                      <td className="py-3 px-2 text-emerald-750 font-mono font-bold bg-emerald-50/15 text-[11px]">
+                      <td className="py-3 px-2 text-emerald-700 font-mono font-semibold bg-emerald-50/15 text-[11px]">
                         {row.besGold > 0 ? formatWeight(row.besGold).replace(" گرم", "") : "۰"}
                       </td>
                       
                       {/* Signed Running Gold Balance matching PDF exact representation style */}
-                      <td className={`py-3 px-2 font-mono font-black text-[11px] bg-slate-50 ${row.goldBalance >= 0 ? "text-emerald-700" : "text-rose-700"}`}>
+                      <td className={`py-3 px-2 font-mono font-bold text-[11px] bg-slate-50 ${row.goldBalance >= 0 ? "text-emerald-700" : "text-rose-700"}`}>
                         {formatWeight(row.goldBalance)}
-                        <span className="text-[8px] font-sans font-extrabold mr-1">
+                        <span className="text-[8px] font-sans font-bold mr-1">
                           {row.goldBalance >= 0 ? "(بد)" : "(بس)"}
                         </span>
                       </td>
 
                       {/* Swapped Bed/Bes Riyal cash columns */}
-                      <td className="py-3 px-2 text-rose-750 font-mono font-bold bg-rose-50/15 text-[11px]">
+                      <td className="py-3 px-2 text-rose-700 font-mono font-semibold bg-rose-50/15 text-[11px]">
                         {row.bidIRR > 0 ? formatCurrency(row.bidIRR).replace(" ریال", "") : "۰"}
                       </td>
-                      <td className="py-3 px-2 text-emerald-750 font-mono font-bold bg-emerald-50/15 text-[11px]">
+                      <td className="py-3 px-2 text-emerald-700 font-mono font-semibold bg-emerald-50/15 text-[11px]">
                         {row.besIRR > 0 ? formatCurrency(row.besIRR).replace(" ریال", "") : "۰"}
                       </td>
                       
                       {/* Signed Running Riyal Balance matching PDF exact representation style */}
-                      <td className={`py-3 px-2 font-mono font-black text-[11px] bg-slate-50 ${row.irrBalance >= 0 ? "text-emerald-700" : "text-rose-700"}`}>
+                      <td className={`py-3 px-2 font-mono font-bold text-[11px] bg-slate-50 ${row.irrBalance >= 0 ? "text-emerald-700" : "text-rose-700"}`}>
                         {formatCurrency(row.irrBalance)}
-                        <span className="text-[8px] font-sans font-extrabold mr-1">
+                        <span className="text-[8px] font-sans font-bold mr-1">
                           {row.irrBalance >= 0 ? "(بد)" : "(بس)"}
                         </span>
                       </td>
@@ -1200,14 +1200,14 @@ export default function ReportsTab({ settings, transactions, onUpdateSettings }:
 
           {/* Table Footer containing total aggregates precisely like the bottom of page 5 of physical PDF */}
           {activeLedgerData.length > 0 && (
-            <div className="border-t-4 border-double border-slate-950 pt-5 mt-4 space-y-3 bg-slate-50 p-5 rounded-2xl border border-slate-200">
-              <h4 className="text-xs font-black text-slate-900 border-b border-slate-200 pb-2 flex items-center gap-2">
-                <ArrowsLeftRight className="w-4 h-4 text-amber-500" />
+            <div className="border-t-4 border-double border-slate-950 pt-5 mt-4 space-y-3 bg-slate-50 p-5 rounded-md border border-slate-200">
+              <h4 className="text-xs font-bold text-slate-900 border-b border-slate-200 pb-2 flex items-center gap-2">
+                <ArrowsLeftRight className="w-4 h-4 text-blue-500" />
                 جمع نهایی تراز کل صورت‌حساب معین (طرف همکار)
               </h4>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-bold font-mono">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-semibold font-mono">
                 {/* Gold aggregates summary */}
-                <div className="space-y-2 p-3 bg-white rounded-xl border border-slate-200">
+                <div className="space-y-2 p-3 bg-white rounded border border-slate-200">
                   <div className="flex justify-between items-center text-slate-500">
                     <span>جمع کل بدهکار طلا (گرم):</span>
                     <span className="text-rose-700">
@@ -1225,7 +1225,7 @@ export default function ReportsTab({ settings, transactions, onUpdateSettings }:
                     {(() => {
                       const finalGoldBal = activeLedgerData[0]?.goldBalance || 0;
                       return (
-                        <span className={`font-black ${finalGoldBal >= 0 ? "text-emerald-650" : "text-rose-650"}`}>
+                        <span className={`font-bold ${finalGoldBal >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
                           {formatWeight(finalGoldBal)} ({finalGoldBal >= 0 ? "بدهکار" : "بستانکار"})
                         </span>
                       );
@@ -1234,7 +1234,7 @@ export default function ReportsTab({ settings, transactions, onUpdateSettings }:
                 </div>
 
                 {/* Cash Riyal aggregates summary */}
-                <div className="space-y-2 p-3 bg-white rounded-xl border border-slate-200">
+                <div className="space-y-2 p-3 bg-white rounded border border-slate-200">
                   <div className="flex justify-between items-center text-slate-500">
                     <span>جمع کل بدهکار ریالی:</span>
                     <span className="text-rose-700">
@@ -1252,7 +1252,7 @@ export default function ReportsTab({ settings, transactions, onUpdateSettings }:
                     {(() => {
                       const finalIrrBal = activeLedgerData[0]?.irrBalance || 0;
                       return (
-                        <span className={`font-black ${finalIrrBal >= 0 ? "text-emerald-650" : "text-rose-650"}`}>
+                        <span className={`font-bold ${finalIrrBal >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
                           {formatCurrency(finalIrrBal)} ({finalIrrBal >= 0 ? "بدهکار" : "بستانکار"})
                         </span>
                       );

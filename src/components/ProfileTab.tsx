@@ -10,8 +10,8 @@ interface ProfileTabProps {
 }
 
 const inputClass =
-  "w-full px-3 py-2.5 border border-slate-200 rounded-xl text-xs font-bold text-left focus:outline-none focus:ring-2 focus:ring-amber-500/40 focus:border-amber-500";
-const labelClass = "block text-[11px] font-extrabold text-slate-700 mb-1.5";
+  "w-full px-3 py-2.5 border border-slate-200 rounded text-xs font-semibold text-left focus:outline-none focus:ring-2 focus:ring-blue-500/25 focus:border-blue-500";
+const labelClass = "block text-[11px] font-bold text-slate-700 mb-1.5";
 
 export default function ProfileTab({ username, onUsernameChanged }: ProfileTabProps) {
   // --- تغییر نام کاربری ---
@@ -104,34 +104,34 @@ export default function ProfileTab({ username, onUsernameChanged }: ProfileTabPr
     <div className="space-y-5 animate-fadeIn" dir="rtl">
       {/* سربرگ */}
       <div className="flex items-center gap-2.5">
-        <div className="w-9 h-9 bg-amber-500/15 border border-amber-200 rounded-xl flex items-center justify-center shrink-0">
+        <div className="w-9 h-9 bg-blue-500/15 border border-blue-200 rounded flex items-center justify-center shrink-0">
           <BrandIcon name="profile" size={22} />
         </div>
         <div>
-          <h2 className="text-sm font-black text-slate-900 leading-none mb-1">پروفایل و تنظیمات حساب</h2>
-          <p className="text-[11px] text-slate-500 font-bold">نام کاربری و رمز عبور خود را اینجا تغییر دهید</p>
+          <h2 className="text-sm font-bold text-slate-900 leading-none mb-1">پروفایل و تنظیمات حساب</h2>
+          <p className="text-[11px] text-slate-500 font-semibold">نام کاربری و رمز عبور خود را اینجا تغییر دهید</p>
         </div>
       </div>
 
       {/* حساب فعلی */}
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+      <div className="bg-white rounded-md border border-slate-200 shadow-sm p-5">
         <div className="flex items-center gap-3">
-          <div className="w-11 h-11 rounded-xl bg-gradient-to-tr from-amber-500 to-yellow-400 flex items-center justify-center text-slate-950 text-sm font-black shrink-0 uppercase shadow-sm">
+          <div className="w-11 h-11 rounded bg-gradient-to-tr from-blue-600 to-yellow-400 flex items-center justify-center text-slate-950 text-sm font-bold shrink-0 uppercase shadow-sm">
             {username.slice(0, 1)}
           </div>
           <div className="min-w-0">
-            <div className="text-[10px] text-slate-400 font-bold leading-none mb-1.5">حساب فعلی</div>
-            <div className="text-xs font-black text-slate-900 truncate" dir="ltr">{username}</div>
+            <div className="text-[10px] text-slate-400 font-semibold leading-none mb-1.5">حساب فعلی</div>
+            <div className="text-xs font-bold text-slate-900 truncate" dir="ltr">{username}</div>
           </div>
         </div>
       </div>
 
       <div className="grid md:grid-cols-2 gap-5">
         {/* تغییر نام کاربری */}
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+        <div className="bg-white rounded-md border border-slate-200 shadow-sm p-5">
           <div className="flex items-center gap-2 mb-4">
-            <UserGear className="w-4 h-4 text-amber-500 shrink-0" />
-            <h3 className="text-xs font-black text-slate-900">تغییر نام کاربری</h3>
+            <UserGear className="w-4 h-4 text-blue-500 shrink-0" />
+            <h3 className="text-xs font-bold text-slate-900">تغییر نام کاربری</h3>
           </div>
 
           <form onSubmit={submitUsername} className="space-y-3">
@@ -145,7 +145,7 @@ export default function ProfileTab({ username, onUsernameChanged }: ProfileTabPr
                 className={inputClass}
                 required
               />
-              <p className="text-[10px] text-slate-400 font-bold mt-1">
+              <p className="text-[10px] text-slate-400 font-semibold mt-1">
                 ۳ تا ۳۲ کاراکتر؛ حروف انگلیسی، عدد، نقطه، خط تیره یا زیرخط
               </p>
             </div>
@@ -165,14 +165,14 @@ export default function ProfileTab({ username, onUsernameChanged }: ProfileTabPr
             </div>
 
             {usernameError && (
-              <div className="flex items-start gap-2 p-3 bg-rose-50 border border-rose-200 rounded-xl text-[11px] font-bold text-rose-700 leading-relaxed">
+              <div className="flex items-start gap-2 p-3 bg-rose-50 border border-rose-200 rounded text-[11px] font-semibold text-rose-700 leading-relaxed">
                 <WarningCircle className="w-4 h-4 shrink-0 mt-0.5" />
                 <span>{usernameError}</span>
               </div>
             )}
 
             {usernameDone && (
-              <div className="flex items-start gap-2 p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-[11px] font-bold text-emerald-700 leading-relaxed">
+              <div className="flex items-start gap-2 p-3 bg-emerald-50 border border-emerald-200 rounded text-[11px] font-semibold text-emerald-700 leading-relaxed">
                 <CheckCircle className="w-4 h-4 shrink-0 mt-0.5" />
                 <span>نام کاربری با موفقیت تغییر کرد. از این به بعد با همین نام وارد شوید.</span>
               </div>
@@ -181,7 +181,7 @@ export default function ProfileTab({ username, onUsernameChanged }: ProfileTabPr
             <button
               type="submit"
               disabled={usernameBusy || newUsername.trim() === username}
-              className="w-full flex items-center justify-center gap-2 bg-amber-500 hover:bg-amber-400 disabled:opacity-60 disabled:cursor-not-allowed text-slate-950 font-extrabold py-3 rounded-xl text-xs cursor-pointer shadow-sm active:scale-[0.98] transition-all"
+              className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed text-white font-bold py-3 rounded text-xs cursor-pointer shadow-sm active:scale-[0.98] transition-all"
             >
               {usernameBusy ? <CircleNotch className="w-4 h-4 animate-spin" /> : <FloppyDisk className="w-4 h-4" />}
               ذخیره نام کاربری
@@ -190,10 +190,10 @@ export default function ProfileTab({ username, onUsernameChanged }: ProfileTabPr
         </div>
 
         {/* تغییر رمز عبور */}
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+        <div className="bg-white rounded-md border border-slate-200 shadow-sm p-5">
           <div className="flex items-center gap-2 mb-4">
-            <Key className="w-4 h-4 text-amber-500 shrink-0" />
-            <h3 className="text-xs font-black text-slate-900">تغییر رمز عبور</h3>
+            <Key className="w-4 h-4 text-blue-500 shrink-0" />
+            <h3 className="text-xs font-bold text-slate-900">تغییر رمز عبور</h3>
           </div>
 
           <form onSubmit={submitPassword} className="space-y-3">
@@ -223,7 +223,7 @@ export default function ProfileTab({ username, onUsernameChanged }: ProfileTabPr
                 className={inputClass}
                 required
               />
-              <p className="text-[10px] text-slate-400 font-bold mt-1">حداقل ۶ کاراکتر</p>
+              <p className="text-[10px] text-slate-400 font-semibold mt-1">حداقل ۶ کاراکتر</p>
             </div>
 
             <div>
@@ -241,14 +241,14 @@ export default function ProfileTab({ username, onUsernameChanged }: ProfileTabPr
             </div>
 
             {passwordError && (
-              <div className="flex items-start gap-2 p-3 bg-rose-50 border border-rose-200 rounded-xl text-[11px] font-bold text-rose-700 leading-relaxed">
+              <div className="flex items-start gap-2 p-3 bg-rose-50 border border-rose-200 rounded text-[11px] font-semibold text-rose-700 leading-relaxed">
                 <WarningCircle className="w-4 h-4 shrink-0 mt-0.5" />
                 <span>{passwordError}</span>
               </div>
             )}
 
             {passwordDone && (
-              <div className="flex items-start gap-2 p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-[11px] font-bold text-emerald-700 leading-relaxed">
+              <div className="flex items-start gap-2 p-3 bg-emerald-50 border border-emerald-200 rounded text-[11px] font-semibold text-emerald-700 leading-relaxed">
                 <CheckCircle className="w-4 h-4 shrink-0 mt-0.5" />
                 <span>رمز عبور با موفقیت تغییر کرد.</span>
               </div>
@@ -257,7 +257,7 @@ export default function ProfileTab({ username, onUsernameChanged }: ProfileTabPr
             <button
               type="submit"
               disabled={passwordBusy}
-              className="w-full flex items-center justify-center gap-2 bg-amber-500 hover:bg-amber-400 disabled:opacity-60 disabled:cursor-not-allowed text-slate-950 font-extrabold py-3 rounded-xl text-xs cursor-pointer shadow-sm active:scale-[0.98] transition-all"
+              className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed text-white font-bold py-3 rounded text-xs cursor-pointer shadow-sm active:scale-[0.98] transition-all"
             >
               {passwordBusy ? <CircleNotch className="w-4 h-4 animate-spin" /> : <Key className="w-4 h-4" />}
               ذخیره رمز عبور
@@ -267,7 +267,7 @@ export default function ProfileTab({ username, onUsernameChanged }: ProfileTabPr
       </div>
 
       {/* یادداشت امنیتی */}
-      <div className="flex items-start gap-2 p-4 bg-slate-50 border border-slate-200 rounded-2xl text-[11px] font-bold text-slate-600 leading-relaxed">
+      <div className="flex items-start gap-2 p-4 bg-slate-50 border border-slate-200 rounded-md text-[11px] font-semibold text-slate-600 leading-relaxed">
         <ShieldCheck className="w-4 h-4 shrink-0 mt-0.5 text-emerald-600" />
         <span>
           برای هر دو تغییر، رمز عبور فعلی لازم است. اسناد و دفاتر شما با تغییر نام کاربری
