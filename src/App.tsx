@@ -392,17 +392,17 @@ export default function App() {
     <div className="min-h-screen bg-[#f8fafc] text-slate-900 flex flex-col justify-between" dir="rtl">
       <div>
         {/* Dynamic Header with scroll-to-hide support on mobile */}
-        <header className={`fixed md:sticky top-0 right-0 left-0 z-50 bg-white border-b border-slate-200 px-4 py-3 transition-transform duration-300 ${showHeader ? "translate-y-0" : "-translate-y-full"}`}>
-          <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
+        <header className={`app-header fixed md:sticky top-0 right-0 left-0 z-50 bg-white border-b border-slate-200 px-3 py-2 md:px-4 md:py-3 transition-transform duration-300 ${showHeader ? "translate-y-0" : "-translate-y-full"}`}>
+          <div className="max-w-7xl mx-auto flex items-center justify-between gap-2 md:gap-4">
             {/* Left side: Hamburger + Title */}
             <div className="flex items-center gap-3">
               {/* Hamburger Button */}
               <button
                 onClick={() => setMenuOpen(true)}
-                className="p-2 bg-white hover:bg-slate-100 rounded text-slate-600 transition-colors cursor-pointer mr-0.5 min-h-[40px] min-w-[40px] flex items-center justify-center border border-slate-200"
+                className="header-icon-button p-1.5 bg-white hover:bg-slate-100 rounded text-slate-600 transition-colors cursor-pointer mr-0.5 min-h-[34px] min-w-[34px] flex items-center justify-center border border-slate-200"
                 title="منوی اصلی"
               >
-                <List className="w-5 h-5" />
+                <List className="w-[18px] h-[18px]" />
               </button>
 
               <div className="flex items-center gap-2">
@@ -426,36 +426,30 @@ export default function App() {
                   localStorage.setItem(tabStorageKey, activeTab);
                   window.location.reload();
                 }}
-                className="p-2 bg-white hover:bg-blue-50 rounded text-slate-600 hover:text-blue-600 transition-colors cursor-pointer min-h-[40px] min-w-[40px] flex items-center justify-center border border-slate-200"
+                className="header-icon-button p-1.5 bg-white hover:bg-blue-50 rounded text-slate-600 hover:text-blue-600 transition-colors cursor-pointer min-h-[30px] min-w-[30px] flex items-center justify-center border border-slate-200"
                 title="رفرش صفحه"
                 aria-label="رفرش صفحه"
               >
-                <ArrowClockwise className="w-5 h-5" />
+                <ArrowClockwise className="w-4 h-4" />
               </button>
               {isLocalMode ? (
-                <div className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded text-[10px] sm:text-xs font-semibold text-slate-600">
-                  <span className="w-2 h-2 rounded-full bg-blue-500 block shrink-0 animate-pulse"></span>
-                  <span>حافظه محلی مرورگر (فعال)</span>
-                </div>
+                <span className="connection-dot bg-blue-500" title="حافظه محلی مرورگر فعال" aria-label="حافظه محلی مرورگر فعال"></span>
               ) : (
-                <div className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded text-[10px] sm:text-xs font-semibold text-slate-600">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 block shrink-0 animate-pulse"></span>
-                  <span>متصل و همگام با سرور</span>
-                </div>
+                <span className="connection-dot bg-emerald-500" title="متصل و همگام با سرور" aria-label="متصل و همگام با سرور"></span>
               )}
             </div>
           </div>
         </header>
 
         {isOffline && (
-          <div className="fixed top-[60px] md:top-[68px] left-0 right-0 z-40 bg-rose-600 text-white px-4 py-2.5 text-center text-xs font-bold shadow-sm flex items-center justify-center gap-2" role="alert">
+          <div className="fixed top-[48px] md:top-[68px] left-0 right-0 z-40 bg-rose-600 text-white px-4 py-2.5 text-center text-xs font-bold shadow-sm flex items-center justify-center gap-2" role="alert">
             <WifiSlash className="w-4 h-4" />
             اتصال اینترنت قطع است؛ تغییرات فعلاً در حافظه محلی مرورگر ذخیره می‌شوند.
           </div>
         )}
 
         {/* Scroll Margin Spacer only visible on mobile when header is fixed */}
-        <div className="h-[60px] md:hidden"></div>
+        <div className="h-[48px] md:hidden"></div>
 
         {/* Slide-out Hamburger Drawer Menu (Sidebar) */}
         {menuOpen && (

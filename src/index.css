@@ -11,6 +11,15 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+.connection-dot {
+  display: block;
+  width: 0.5rem;
+  height: 0.5rem;
+  flex: 0 0 auto;
+  border-radius: 9999px;
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
 /* Custom fade-in and smooth entry animation */
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(6px); }
@@ -128,6 +137,28 @@ input[type=number] {
 
   .fixed.md\:sticky .gap-4 {
     gap: 1rem !important;
+  }
+
+  .app-header {
+    padding-top: 0.45rem !important;
+    padding-bottom: 0.45rem !important;
+  }
+
+  .header-icon-button {
+    min-width: 34px !important;
+    min-height: 34px !important;
+    width: 34px;
+    height: 34px;
+    padding: 0.35rem !important;
+  }
+
+  .connection-dot {
+    display: block;
+    width: 0.5rem;
+    height: 0.5rem;
+    flex: 0 0 auto;
+    border-radius: 9999px;
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   }
 
   .text-xs {
@@ -297,4 +328,3 @@ input[type=number] {
     padding: 0.75rem !important;
   }
 }
-
