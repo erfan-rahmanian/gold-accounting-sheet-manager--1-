@@ -28,6 +28,8 @@ export default function App() {
   const [isOffline, setIsOffline] = useState(() => typeof navigator !== "undefined" && !navigator.onLine);
   // ارسال‌ها پشت سر هم انجام می‌شوند تا ثبت سریع چند سند، داده‌ی قبلی را overwrite نکند.
   const saveQueueRef = React.useRef<Promise<void>>(Promise.resolve());
+  const saveVersionRef = React.useRef(0);
+  const appStateRef = React.useRef<AppState | null>(null);
 
   // ---- احراز هویت ----
   const [authUser, setAuthUser] = useState<string | null>(null);
@@ -38,6 +40,11 @@ export default function App() {
 
   /** کلید کش مرورگر برای هر کاربر جداست تا داده‌ی کاربران با هم قاطی نشود */
   const cacheKey = (user: string) => `gold_accounting_state__${user}`;
+  const pendingKey = (user: string) => `gold_accounting_pending_state__${user}`;
+
+  useEffect(() => {
+    appStateRef.current = appState;
+  }, [appState]);
 
 
   // Scroll to hide logic on mobile
@@ -136,9 +143,28 @@ export default function App() {
       if (!res.ok) throw new Error("خطا در بارگذاری اطلاعات از پایگاه داده.");
       const data = await res.json();
       const fixed = migrateState(enforceCoins(data));
-      setAppState(fixed);
-      setIsLocalMode(false);
-      localStorage.setItem(cacheKey(user), JSON.stringify(fixed));
+      const pending = localStorage.getItem(pendingKey(user));
+      if (pending) {
+        try {
+          const pendingState = migrateState(enforceCoins(JSON.parse(pending)));
+          setAppState(pendingState);
+          appStateRef.current = pendingState;
+          setIsLocalMode(true);
+          // داده‌ی محلیِ جدیدتر از پاسخ سرور است؛ دوباره در صف ذخیره می‌شود.
+          saveState(pendingState);
+        } catch {
+          localStorage.removeItem(pendingKey(user));
+          setAppState(fixed);
+          appStateRef.current = fixed;
+          setIsLocalMode(false);
+          localStorage.setItem(cacheKey(user), JSON.stringify(fixed));
+        }
+      } else {
+        setAppState(fixed);
+        appStateRef.current = fixed;
+        setIsLocalMode(false);
+        localStorage.setItem(cacheKey(user), JSON.stringify(fixed));
+      }
     } catch (err: any) {
       console.warn("Could not connect to database server. Using localStorage fallback mode...", err);
       if (!navigator.onLine) setIsOffline(true);
@@ -262,8 +288,13 @@ export default function App() {
 
   // ذخیره‌ی فوری در رابط کاربری و ارسال صف‌بندی‌شده به سرور در پس‌زمینه
   const saveState = (updatedState: AppState) => {
+    const version = ++saveVersionRef.current;
     setAppState(updatedState); // optimistic update
-    if (authUser) localStorage.setItem(cacheKey(authUser), JSON.stringify(updatedState));
+    appStateRef.current = updatedState;
+    if (authUser) {
+      localStorage.setItem(cacheKey(authUser), JSON.stringify(updatedState));
+      localStorage.setItem(pendingKey(authUser), JSON.stringify(updatedState));
+    }
 
     saveQueueRef.current = saveQueueRef.current.then(async () => {
       try {
@@ -279,8 +310,17 @@ export default function App() {
         }
         if (!res.ok) throw new Error("مشکل در ذخیره‌سازی اطلاعات.");
         const result = await res.json();
-        setAppState(result.data);
-        setIsLocalMode(false);
+        // فقط آخرین پاسخ اجازه دارد state را تغییر دهد؛ پاسخ‌های قدیمی
+        // نباید سندی را که بعداً ثبت شده از UI حذف کنند.
+        if (version === saveVersionRef.current) {
+          appStateRef.current = result.data;
+          setAppState(result.data);
+          setIsLocalMode(false);
+          if (authUser) {
+            localStorage.setItem(cacheKey(authUser), JSON.stringify(result.data));
+            localStorage.removeItem(pendingKey(authUser));
+          }
+        }
       } catch (err: any) {
         console.warn("Server unavailable. Saving state locally in browser...", err);
         setIsLocalMode(true);
@@ -289,40 +329,57 @@ export default function App() {
     });
   };
 
+  // اگر هنگام قطعی اینترنت ذخیره‌ای در انتظار مانده بود، با برگشت اتصال
+  // بدون نیاز به ثبت دوباره‌ی سند ارسال می‌شود.
+  useEffect(() => {
+    if (isOffline || !authUser) return;
+    const pending = localStorage.getItem(pendingKey(authUser));
+    if (!pending) return;
+    try {
+      saveState(migrateState(enforceCoins(JSON.parse(pending))));
+    } catch {
+      localStorage.removeItem(pendingKey(authUser));
+    }
+  }, [isOffline, authUser]);
+
   const handleUpdateSettings = async (newSettings: AppSettings) => {
-    if (!appState) return;
+    const current = appStateRef.current;
+    if (!current) return;
     const updated = {
-      ...appState,
+      ...current,
       settings: newSettings
     };
     await saveState(updated);
   };
 
   const handleAddTransaction = async (newTx: Transaction) => {
-    if (!appState) return;
-    const updatedTxs = [newTx, ...appState.transactions];
+    const current = appStateRef.current;
+    if (!current) return;
+    const updatedTxs = [newTx, ...current.transactions];
     const updated = {
-      ...appState,
+      ...current,
       transactions: updatedTxs
     };
     await saveState(updated);
   };
 
   const handleRemoveTransaction = async (id: string) => {
-    if (!appState) return;
-    const updatedTxs = appState.transactions.filter(t => t.id !== id);
+    const current = appStateRef.current;
+    if (!current) return;
+    const updatedTxs = current.transactions.filter(t => t.id !== id);
     const updated = {
-      ...appState,
+      ...current,
       transactions: updatedTxs
     };
     await saveState(updated);
   };
 
   const handleUpdateTransaction = async (transaction: Transaction) => {
-    if (!appState) return;
+    const current = appStateRef.current;
+    if (!current) return;
     await saveState({
-      ...appState,
-      transactions: appState.transactions.map((tx) => tx.id === transaction.id ? transaction : tx)
+      ...current,
+      transactions: current.transactions.map((tx) => tx.id === transaction.id ? transaction : tx)
     });
   };
 
@@ -333,8 +390,9 @@ export default function App() {
 
   // Spreadsheet (excel-like) sheets persistence
   const handleUpdateSheets = async (sheets: SheetDoc[]) => {
-    if (!appState) return;
-    await saveState({ ...appState, sheets });
+    const current = appStateRef.current;
+    if (!current) return;
+    await saveState({ ...current, sheets });
   };
 
   if (fetching || !authChecked) {
