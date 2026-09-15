@@ -9,13 +9,18 @@ interface AuthGateProps {
   /** دلیل بسته بودن ثبت‌نام (اگر بسته باشد) */
   signupReason?: string;
   onAuthenticated: (username: string) => void;
+  /** کاربری که داده‌اش هنوز در localStorage همین مرورگر موجود است */
+  localUser?: string | null;
+  onLocalAuthenticated?: (username: string) => void;
 }
 
 export default function AuthGate({
   signupOpen,
   signupNeedsCode,
   signupReason,
-  onAuthenticated
+  onAuthenticated,
+  localUser,
+  onLocalAuthenticated,
 }: AuthGateProps) {
   const [mode, setMode] = useState<"login" | "register">("login");
   const [username, setUsername] = useState("");
@@ -182,6 +187,21 @@ export default function AuthGate({
                 {mode === "login" ? "ورود به حساب" : "ساخت حساب و ورود"}
               </button>
             </form>
+          )}
+
+          {localUser && onLocalAuthenticated && (
+            <div className="mt-4 pt-4 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => onLocalAuthenticated(localUser)}
+                className="w-full py-2.5 rounded border border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 text-[11px] font-bold transition-colors cursor-pointer"
+              >
+                ورود آفلاین با داده‌های ذخیره‌شده ({localUser})
+              </button>
+              <p className="text-[10px] text-slate-400 text-center mt-2 leading-relaxed">
+                این گزینه از اطلاعات همین مرورگر استفاده می‌کند و به دیتابیس نیاز ندارد.
+              </p>
+            </div>
           )}
         </div>
 

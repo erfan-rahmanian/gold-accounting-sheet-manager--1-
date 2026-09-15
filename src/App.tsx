@@ -25,6 +25,7 @@ export default function App() {
   const [networkError, setNetworkError] = useState<string | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [isLocalMode, setIsLocalMode] = useState(false);
+  const localModeRef = React.useRef(false);
   const [isOffline, setIsOffline] = useState(() => typeof navigator !== "undefined" && !navigator.onLine);
   // ارسال‌ها پشت سر هم انجام می‌شوند تا ثبت سریع چند سند، داده‌ی قبلی را overwrite نکند.
   const saveQueueRef = React.useRef<Promise<void>>(Promise.resolve());
@@ -128,14 +129,79 @@ export default function App() {
     return { ...state, settings: { ...state.settings, coins: merged } };
   };
 
+  const setLocalMode = (enabled: boolean) => {
+    localModeRef.current = enabled;
+    setIsLocalMode(enabled);
+  };
+
+  /**
+   * آخرین نسخه‌ی موجود در مرورگر را می‌خواند. pending عمداً اول بررسی می‌شود؛
+   * چون ممکن است آخرین ثبت سند هنوز فرصت ارسال به سرور را پیدا نکرده باشد.
+   */
+  const readLocalState = (user: string): AppState | null => {
+    const candidates = [
+      localStorage.getItem(pendingKey(user)),
+      localStorage.getItem(cacheKey(user)),
+      // نسخه‌ی قدیمی برنامه قبل از چندکاربره شدن
+      localStorage.getItem("gold_accounting_state"),
+    ];
+    for (const raw of candidates) {
+      if (!raw) continue;
+      try {
+        return migrateState(enforceCoins(JSON.parse(raw)));
+      } catch {
+        // سراغ نسخه‌ی بعدی کش برو
+      }
+    }
+    return null;
+  };
+
+  const hasLocalState = (user: string): boolean => readLocalState(user) !== null;
+
+  const getLocalUser = (): string | null => {
+    const last = localStorage.getItem("gold_accounting_last_user");
+    if (last && hasLocalState(last)) return last;
+    // داده‌ی نسخه‌ی قدیمی نام کاربری نداشت؛ برای بازیابی، یک حساب محلی موقت می‌سازیم.
+    return localStorage.getItem("gold_accounting_state") ? "local" : null;
+  };
+
+  const useLocalState = (user: string): boolean => {
+    const local = readLocalState(user);
+    if (!local) return false;
+    setLocalMode(true);
+    setAppState(local);
+    appStateRef.current = local;
+    localStorage.setItem(cacheKey(user), JSON.stringify(local));
+    setNetworkError(null);
+    return true;
+  };
+
+  const hasMeaningfulData = (state: AppState): boolean =>
+    state.transactions.length > 0 ||
+    state.settings.shops.length > 0 ||
+    state.settings.persons.length > 0 ||
+    (state.sheets?.length ?? 0) > 0;
+
   // Fetch initial data with custom offline/static host storage integration (e.g., Vercel fallback)
-  const fetchData = async (user: string) => {
+  const fetchData = async (user: string, forceServer = false) => {
     setFetching(true);
     setNetworkError(null);
+
+    // دکمه‌ی «ورود با داده‌های همین مرورگر» باید واقعاً بدون درخواست به بک‌اند کار کند.
+    if (localModeRef.current && !forceServer) {
+      useLocalState(user);
+      setFetching(false);
+      return;
+    }
+
     try {
       const res = await fetch("/api/data");
       if (res.status === 401) {
-        // نشست منقضی شده — برگرد به صفحه ورود
+        // اگر نشست سرور از بین رفته ولی کش داریم، دفتر محلی را نگه می‌داریم.
+        if (useLocalState(user)) {
+          return;
+        }
+        // نشست منقضی شده و کشی هم نداریم — برگرد به صفحه ورود
         setAuthUser(null);
         setAppState(null);
         return;
@@ -149,39 +215,34 @@ export default function App() {
           const pendingState = migrateState(enforceCoins(JSON.parse(pending)));
           setAppState(pendingState);
           appStateRef.current = pendingState;
-          setIsLocalMode(true);
+          setLocalMode(true);
           // داده‌ی محلیِ جدیدتر از پاسخ سرور است؛ دوباره در صف ذخیره می‌شود.
           saveState(pendingState);
         } catch {
           localStorage.removeItem(pendingKey(user));
           setAppState(fixed);
           appStateRef.current = fixed;
-          setIsLocalMode(false);
+          setLocalMode(false);
           localStorage.setItem(cacheKey(user), JSON.stringify(fixed));
         }
       } else {
-        setAppState(fixed);
-        appStateRef.current = fixed;
-        setIsLocalMode(false);
-        localStorage.setItem(cacheKey(user), JSON.stringify(fixed));
+        // اگر Blob به‌جای داده‌ی قبلی دفتر خالی برگرداند، کشِ پر را overwrite نکن.
+        const cached = readLocalState(user);
+        if (cached && hasMeaningfulData(cached) && !hasMeaningfulData(fixed)) {
+          useLocalState(user);
+        } else {
+          setAppState(fixed);
+          appStateRef.current = fixed;
+          setLocalMode(false);
+          localStorage.setItem(cacheKey(user), JSON.stringify(fixed));
+        }
       }
     } catch (err: any) {
       console.warn("Could not connect to database server. Using localStorage fallback mode...", err);
       if (!navigator.onLine) setIsOffline(true);
-      setIsLocalMode(true);
-      const cached = localStorage.getItem(cacheKey(user));
-      if (cached) {
-        try {
-          const parsed = JSON.parse(cached);
-          const fixed = migrateState(enforceCoins(parsed));
-          setAppState(fixed);
-          localStorage.setItem(cacheKey(user), JSON.stringify(fixed));
-          setNetworkError(null);
-        } catch (e) {
-          setNetworkError("خطا در بارگذاری اطلاعات پشتیبان محلی از مرورگر.");
-        }
-      } else {
+      if (!useLocalState(user)) {
         // Pristine default state when no cache and no backend are present
+        setLocalMode(true);
         const defaultState: AppState = {
           settings: {
             shops: [],
@@ -209,6 +270,13 @@ export default function App() {
         const res = await fetch("/api/auth");
         const info = await res.json().catch(() => null);
         if (!res.ok || !info?.signup) {
+          // خطای ۵۰۰ Blob نباید کاربر را از دفتر ذخیره‌شده‌ی مرورگر بیرون بیندازد.
+          const last = getLocalUser();
+          if (last) {
+            setLocalMode(true);
+            setAuthUser(last);
+            return;
+          }
           // سرور جواب داد ولی خطا برگرداند — دلیلش را به کاربر نشان بده
           setSignupOpen(false);
           setSignupNeedsCode(false);
@@ -230,9 +298,9 @@ export default function App() {
         }
       } catch {
         // سرور در دسترس نیست — اگر قبلاً کاربری وارد شده بود، حالت محلی
-        const last = localStorage.getItem("gold_accounting_last_user");
+        const last = getLocalUser();
         if (last) {
-          setIsLocalMode(true);
+          setLocalMode(true);
           setAuthUser(last);
         } else {
           setSignupOpen(true);
@@ -262,6 +330,7 @@ export default function App() {
       /* حتی اگر سرور جواب نداد، از حساب خارج شو */
     }
     localStorage.removeItem("gold_accounting_last_user");
+    setLocalMode(false);
     setAuthUser(null);
     setAppState(null);
     setMenuOpen(false);
@@ -296,6 +365,10 @@ export default function App() {
       localStorage.setItem(pendingKey(authUser), JSON.stringify(updatedState));
     }
 
+    // در حالت محلی هیچ درخواست شبکه‌ای نمی‌فرستیم؛ pending برای همگام‌سازی
+    // احتمالی آینده باقی می‌ماند و خودِ کش همیشه آخرین نسخه را دارد.
+    if (localModeRef.current || isOffline) return;
+
     saveQueueRef.current = saveQueueRef.current.then(async () => {
       try {
         const res = await fetch("/api/data", {
@@ -315,7 +388,7 @@ export default function App() {
         if (version === saveVersionRef.current) {
           appStateRef.current = result.data;
           setAppState(result.data);
-          setIsLocalMode(false);
+          setLocalMode(false);
           if (authUser) {
             localStorage.setItem(cacheKey(authUser), JSON.stringify(result.data));
             localStorage.removeItem(pendingKey(authUser));
@@ -323,7 +396,7 @@ export default function App() {
         }
       } catch (err: any) {
         console.warn("Server unavailable. Saving state locally in browser...", err);
-        setIsLocalMode(true);
+        setLocalMode(true);
         if (!navigator.onLine) setIsOffline(true);
       }
     });
@@ -413,6 +486,14 @@ export default function App() {
         signupReason={signupReason}
         onAuthenticated={(user) => {
           setSignupOpen(false);
+          setLocalMode(false);
+          setAuthUser(user);
+        }}
+        localUser={(() => {
+          return getLocalUser();
+        })()}
+        onLocalAuthenticated={(user) => {
+          setLocalMode(true);
           setAuthUser(user);
         }}
       />
@@ -425,7 +506,7 @@ export default function App() {
         <ShieldWarning className="w-12 h-12 text-rose-500 mb-4" />
         <p className="text-base font-semibold text-rose-600 mb-3">{networkError || "کال بک دیتابیس با مشکل روبرو شد."}</p>
         <button
-          onClick={() => fetchData(authUser)}
+          onClick={() => fetchData(authUser, true)}
           className="bg-blue-600 text-white font-semibold px-6 py-3 rounded text-xs hover:bg-blue-700 cursor-pointer active:scale-95"
         >
           تلاش مجدد اتصال
@@ -503,6 +584,12 @@ export default function App() {
           <div className="fixed top-[48px] md:top-[68px] left-0 right-0 z-40 bg-rose-600 text-white px-4 py-2.5 text-center text-xs font-bold shadow-sm flex items-center justify-center gap-2" role="alert">
             <WifiSlash className="w-4 h-4" />
             اتصال اینترنت قطع است؛ تغییرات فعلاً در حافظه محلی مرورگر ذخیره می‌شوند.
+          </div>
+        )}
+
+        {isLocalMode && !isOffline && (
+          <div className="fixed top-[48px] md:top-[68px] left-0 right-0 z-40 bg-blue-600 text-white px-4 py-2.5 text-center text-xs font-bold shadow-sm" role="status">
+            دیتابیس در دسترس نیست؛ تغییرات فقط در حافظه محلی همین مرورگر ذخیره می‌شوند.
           </div>
         )}
 
