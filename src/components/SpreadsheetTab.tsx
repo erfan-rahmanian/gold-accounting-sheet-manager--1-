@@ -13,7 +13,7 @@ import { toPersianDigits } from "../utils";
 import { buildXlsx, downloadBlob, toExcelFormula } from "../xlsx";
 
 const DEFAULT_ROWS = 30;
-const DEFAULT_COLS = 9;
+const DEFAULT_COLS = 6;
 const DEFAULT_W = 112;
 const MIN_W = 56;
 const MAX_ROWS = 2000;
@@ -29,16 +29,22 @@ const FILL_COLORS = [
   { label: "نارنجی", value: "#ffedd5" }
 ];
 
-const LEDGER_HEADERS = ["تاریخ", "اصل سرمایه", "سود", "مجموع سود"];
+const LEDGER_HEADERS = ["تاریخ", "واریز وجه", "برداشت وجه", "مانده اصل", "سود", "جمع سود"];
 
 function ledgerTemplateCells(rows: number): Record<string, SheetCell> {
   const cells: Record<string, SheetCell> = {};
   LEDGER_HEADERS.forEach((value, c) => { cells[cellKey(0, c)] = { v: value }; });
   for (let row = 2; row <= rows; row++) {
-    const formula = row === 2
-      ? '=IF(C2="","",C2)'
-      : `=IF(C${row}="","",D${row - 1}+C${row})`;
-    cells[`D${row}`] = { v: formula };
+    // مانده‌ی اصل: واریزها به مانده افزوده و برداشت‌ها از آن کم می‌شوند.
+    const principalFormula = row === 2
+      ? '=IF(AND(B2="",C2=""),"",B2-C2)'
+      : `=IF(AND(B${row}="",C${row}=""),"",D${row - 1}+B${row}-C${row})`;
+    // جمع سود: جمع انباشته‌ی سود هر ردیف تا همان تاریخ.
+    const profitFormula = row === 2
+      ? '=IF(E2="","",E2)'
+      : `=IF(E${row}="","",F${row - 1}+E${row})`;
+    cells[`D${row}`] = { v: principalFormula };
+    cells[`F${row}`] = { v: profitFormula };
   }
   return cells;
 }
