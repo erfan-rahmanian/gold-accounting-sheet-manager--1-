@@ -13,11 +13,11 @@ import ProfileTab from "./components/ProfileTab";
 
 export default function App() {
   const [appState, setAppState] = useState<AppState | null>(null);
-  type TabKey = "dashboard" | "transactions" | "reports" | "sheets" | "settings" | "backup" | "profile";
+  type TabKey = "dashboard" | "transactions" | "reports" | "sheets" | "gold-trade-sheets" | "investment-sheets" | "settings" | "backup" | "profile";
   const tabStorageKey = "gold_accounting_active_tab";
   const [activeTab, setActiveTab] = useState<TabKey>(() => {
     const saved = localStorage.getItem(tabStorageKey) as TabKey | null;
-    return saved && ["dashboard", "transactions", "reports", "sheets", "settings", "backup", "profile"].includes(saved)
+    return saved && ["dashboard", "transactions", "reports", "sheets", "gold-trade-sheets", "investment-sheets", "settings", "backup", "profile"].includes(saved)
       ? saved
       : "dashboard";
   });
@@ -104,7 +104,12 @@ export default function App() {
         ? { id: Math.random().toString(), name: p, initialGold: 0, initialIRR: 0, initialProfit: 0, note: "" }
         : { ...p, initialProfit: p.initialProfit || 0 }
     );
-    return { ...state, settings: { ...state.settings, persons } };
+    return {
+      ...state,
+      settings: { ...state.settings, persons },
+      goldTradeSheets: state.goldTradeSheets || [],
+      investmentSheets: state.investmentSheets || []
+    };
   };
 
   const enforceCoins = (state: AppState): AppState => {
@@ -180,7 +185,9 @@ export default function App() {
     state.transactions.length > 0 ||
     state.settings.shops.length > 0 ||
     state.settings.persons.length > 0 ||
-    (state.sheets?.length ?? 0) > 0;
+    (state.sheets?.length ?? 0) > 0 ||
+    (state.goldTradeSheets?.length ?? 0) > 0 ||
+    (state.investmentSheets?.length ?? 0) > 0;
 
   // Fetch initial data with custom offline/static host storage integration (e.g., Vercel fallback)
   const fetchData = async (user: string, forceServer = false) => {
@@ -252,7 +259,9 @@ export default function App() {
             spreadsheetId: ""
           },
           transactions: [],
-          sheets: []
+          sheets: [],
+          goldTradeSheets: [],
+          investmentSheets: []
         };
         setAppState(defaultState);
         localStorage.setItem(cacheKey(user), JSON.stringify(defaultState));
@@ -468,6 +477,18 @@ export default function App() {
     await saveState({ ...current, sheets });
   };
 
+  const handleUpdateGoldTradeSheets = async (goldTradeSheets: SheetDoc[]) => {
+    const current = appStateRef.current;
+    if (!current) return;
+    await saveState({ ...current, goldTradeSheets });
+  };
+
+  const handleUpdateInvestmentSheets = async (investmentSheets: SheetDoc[]) => {
+    const current = appStateRef.current;
+    if (!current) return;
+    await saveState({ ...current, investmentSheets });
+  };
+
   if (fetching || !authChecked) {
     return (
       <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col justify-center items-center gap-4 animate-fadeIn" dir="rtl">
@@ -522,6 +543,8 @@ export default function App() {
     { key: "transactions", label: "ثبت سند", icon: "/brand/transaction-icon.png" },
     { key: "reports", label: "صورتحساب موجودی", icon: "/brand/reports-icon.png" },
     { key: "sheets", label: "صفحه گسترده (اکسل)", icon: "/brand/spreadsheet-icon.png" },
+    { key: "gold-trade-sheets", label: "دفتر خرید و فروش طلا", icon: "/brand/spreadsheet-icon.png" },
+    { key: "investment-sheets", label: "دفتر سرمایه‌گذاری", icon: "/brand/spreadsheet-icon.png" },
     { key: "settings", label: "ثبت مغازه و شخص", icon: "/brand/settings-icon.png" },
     { key: "backup", label: "بکاپ و بازیابی", icon: "/brand/backup-icon.png" },
     { key: "profile", label: "پروفایل و حساب کاربری", icon: "/brand/profile-icon.png" },
@@ -731,6 +754,24 @@ export default function App() {
               <SpreadsheetTab
                 sheets={appState.sheets}
                 onChange={handleUpdateSheets}
+              />
+            )}
+
+            {activeTab === "gold-trade-sheets" && (
+              <SpreadsheetTab
+                title="دفتر خرید و فروش طلا"
+                template="gold-trade"
+                sheets={appState.goldTradeSheets}
+                onChange={handleUpdateGoldTradeSheets}
+              />
+            )}
+
+            {activeTab === "investment-sheets" && (
+              <SpreadsheetTab
+                title="دفتر سرمایه‌گذاری"
+                template="investment"
+                sheets={appState.investmentSheets}
+                onChange={handleUpdateInvestmentSheets}
               />
             )}
 

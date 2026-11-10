@@ -56,6 +56,8 @@ export interface SheetCell {
   bg?: string;     // رنگ پس‌زمینه
 }
 
+export type SheetTemplate = "ledger" | "gold-trade" | "investment";
+
 export interface SheetDoc {
   id: string;
   name: string;
@@ -63,13 +65,15 @@ export interface SheetDoc {
   cols: number;
   colWidths: number[];
   cells: Record<string, SheetCell>;
-  template?: "ledger";
+  template?: SheetTemplate;
 }
 
 export interface AppState {
   settings: AppSettings;
   transactions: Transaction[];
   sheets?: SheetDoc[];
+  goldTradeSheets?: SheetDoc[];
+  investmentSheets?: SheetDoc[];
 }
 
 export const TRANSACTION_TYPES = [

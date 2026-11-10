@@ -4,7 +4,7 @@ import {
   Selection, DotsThree, CaretUp
 } from "@phosphor-icons/react";
 import BrandIcon from "./BrandIcon";
-import { SheetDoc, SheetCell } from "../types";
+import { SheetDoc, SheetCell, SheetTemplate } from "../types";
 import {
   createEngine, cellKey, colToName, parseRef, formatNumber,
   shiftFormula, remapFormula, parseNumeric
@@ -13,7 +13,6 @@ import { toPersianDigits } from "../utils";
 import { buildXlsx, downloadBlob, toExcelFormula } from "../xlsx";
 
 const DEFAULT_ROWS = 30;
-const DEFAULT_COLS = 7;
 const DEFAULT_W = 112;
 const NOTES_COL_WIDTH = 280;
 const MIN_W = 56;
@@ -30,51 +29,87 @@ const FILL_COLORS = [
   { label: "نارنجی", value: "#ffedd5" }
 ];
 
-const LEDGER_HEADERS = ["تاریخ", "واریز وجه", "برداشت وجه", "مانده اصل", "سود", "جمع سود", "توضیحات"];
+const TEMPLATE_HEADERS: Record<SheetTemplate, string[]> = {
+  ledger: ["تاریخ", "واریز وجه", "برداشت وجه", "مانده اصل", "سود", "جمع سود", "توضیحات"],
+  "gold-trade": ["تاریخ", "خرید طلا", "وزن", "فروش طلا", "وزن", "مانده", "توضیحات"],
+  investment: ["تاریخ", "نام و نام خانوادگی", "اصل سرمایه", "جمع کل", "توضیحات"]
+};
 
-function ledgerTemplateCells(rows: number): Record<string, SheetCell> {
+function templateCells(template: SheetTemplate, rows: number): Record<string, SheetCell> {
   const cells: Record<string, SheetCell> = {};
-  LEDGER_HEADERS.forEach((value, c) => { cells[cellKey(0, c)] = { v: value }; });
+  const headers = TEMPLATE_HEADERS[template];
+  headers.forEach((value, c) => { cells[cellKey(0, c)] = { v: value }; });
   for (let row = 2; row <= rows; row++) {
-    // مانده‌ی اصل: واریزها به مانده افزوده و برداشت‌ها از آن کم می‌شوند.
-    const principalFormula = row === 2
-      ? '=IF(AND(B2="",C2=""),"",B2-C2)'
-      : `=IF(AND(B${row}="",C${row}=""),"",D${row - 1}+B${row}-C${row})`;
-    // جمع سود: جمع انباشته‌ی سود هر ردیف تا همان تاریخ.
-    const profitFormula = row === 2
-      ? '=IF(E2="","",E2)'
-      : `=IF(E${row}="","",F${row - 1}+E${row})`;
-    cells[`D${row}`] = { v: principalFormula };
-    cells[`F${row}`] = { v: profitFormula };
+    if (template === "ledger") {
+      // مانده‌ی اصل: واریزها به مانده افزوده و برداشت‌ها از آن کم می‌شوند.
+      const principalFormula = row === 2
+        ? '=IF(AND(B2="",C2=""),"",B2-C2)'
+        : `=IF(AND(B${row}="",C${row}=""),"",D${row - 1}+B${row}-C${row})`;
+      // جمع سود: جمع انباشته‌ی سود هر ردیف تا همان تاریخ.
+      const profitFormula = row === 2
+        ? '=IF(E2="","",E2)'
+        : `=IF(E${row}="","",F${row - 1}+E${row})`;
+      cells[`D${row}`] = { v: principalFormula };
+      cells[`F${row}`] = { v: profitFormula };
+    }
+
+    if (template === "gold-trade") {
+      // مانده‌ی طلا از وزن خرید منهای وزن فروش به‌صورت انباشته محاسبه می‌شود.
+      const balanceFormula = row === 2
+        ? '=IF(AND(C2="",E2=""),"",C2-E2)'
+        : `=IF(AND(C${row}="",E${row}=""),"",F${row - 1}+C${row}-E${row})`;
+      cells[`F${row}`] = { v: balanceFormula };
+    }
+
+    if (template === "investment") {
+      // جمع کل سرمایه‌ی ثبت‌شده تا ردیف جاری.
+      const totalFormula = row === 2
+        ? '=IF(C2="","",C2)'
+        : `=IF(C${row}="","",D${row - 1}+C${row})`;
+      cells[`D${row}`] = { v: totalFormula };
+    }
   }
   return cells;
 }
 
-function ensureLedgerTemplate(sheet: SheetDoc): SheetDoc {
-  if (sheet.template !== "ledger") return sheet;
+function defaultColumnWidths(template: SheetTemplate): number[] {
+  const headers = TEMPLATE_HEADERS[template];
+  return headers.map((_, col) => {
+    if (col === headers.length - 1) return NOTES_COL_WIDTH;
+    if (template === "investment" && col === 1) return 190;
+    if (template === "gold-trade" && (col === 1 || col === 3)) return 145;
+    return DEFAULT_W;
+  });
+}
+
+function ensureTemplate(sheet: SheetDoc, template: SheetTemplate): SheetDoc {
+  if (sheet.template !== template) return sheet;
   const cells = { ...sheet.cells };
-  const templateCells = ledgerTemplateCells(sheet.rows);
-  for (const key of Object.keys(templateCells)) {
-    cells[key] = { ...cells[key], v: templateCells[key].v };
+  const cellsForTemplate = templateCells(template, sheet.rows);
+  for (const key of Object.keys(cellsForTemplate)) {
+    cells[key] = { ...cells[key], v: cellsForTemplate[key].v };
   }
-  const cols = Math.max(sheet.cols, DEFAULT_COLS);
+  const headers = TEMPLATE_HEADERS[template];
+  const cols = Math.max(sheet.cols, headers.length);
   const colWidths = [...sheet.colWidths];
   while (colWidths.length < cols) colWidths.push(DEFAULT_W);
-  colWidths[LEDGER_HEADERS.length - 1] = Math.max(colWidths[LEDGER_HEADERS.length - 1], NOTES_COL_WIDTH);
+  const initialWidths = defaultColumnWidths(template);
+  initialWidths.forEach((width, col) => {
+    colWidths[col] = Math.max(colWidths[col] ?? DEFAULT_W, width);
+  });
   return { ...sheet, cols, colWidths, cells };
 }
 
-export function makeSheet(name: string): SheetDoc {
+export function makeSheet(name: string, template: SheetTemplate = "ledger"): SheetDoc {
+  const headers = TEMPLATE_HEADERS[template];
   return {
     id: "sh-" + Math.random().toString(36).slice(2, 9) + "-" + name.length,
     name,
     rows: DEFAULT_ROWS,
-    cols: DEFAULT_COLS,
-    colWidths: Array.from({ length: DEFAULT_COLS }, (_, col) =>
-      col === LEDGER_HEADERS.length - 1 ? NOTES_COL_WIDTH : DEFAULT_W
-    ),
-    cells: ledgerTemplateCells(DEFAULT_ROWS),
-    template: "ledger"
+    cols: headers.length,
+    colWidths: defaultColumnWidths(template),
+    cells: templateCells(template, DEFAULT_ROWS),
+    template
   };
 }
 
@@ -90,13 +125,15 @@ const norm = (s: Sel) => ({
 interface Props {
   sheets?: SheetDoc[];
   onChange: (sheets: SheetDoc[]) => void;
+  template?: SheetTemplate;
+  title?: string;
 }
 
-export default function SpreadsheetTab({ sheets: initialSheets, onChange }: Props) {
+export default function SpreadsheetTab({ sheets: initialSheets, onChange, template = "ledger", title = "صفحه گسترده (اکسل داخلی)" }: Props) {
   const [sheets, setSheets] = useState<SheetDoc[]>(() =>
     initialSheets && initialSheets.length
-      ? initialSheets.map(ensureLedgerTemplate)
-      : [makeSheet("برگه ۱")]
+      ? initialSheets.map(sheet => ensureTemplate(sheet, template))
+      : [makeSheet("برگه ۱", template)]
   );
   const [activeId, setActiveId] = useState<string>(() =>
     (initialSheets && initialSheets.length ? initialSheets[0].id : "")
@@ -178,8 +215,8 @@ export default function SpreadsheetTab({ sheets: initialSheets, onChange }: Prop
   }, [sheets]);
 
   const updateSheet = useCallback((mut: (s: SheetDoc) => SheetDoc) => {
-    commit(sheets.map(s => (s.id === sheet.id ? ensureLedgerTemplate(mut(s)) : s)));
-  }, [commit, sheets, sheet]);
+    commit(sheets.map(s => (s.id === sheet.id ? ensureTemplate(mut(s), template) : s)));
+  }, [commit, sheets, sheet, template]);
 
   const undo = () => {
     if (!past.length) return;
@@ -689,7 +726,7 @@ export default function SpreadsheetTab({ sheets: initialSheets, onChange }: Prop
 
   // ---------- برگه‌ها ----------
   const addSheet = () => {
-    const s = makeSheet("برگه " + (sheets.length + 1));
+    const s = makeSheet("برگه " + (sheets.length + 1), template);
     commit([...sheets, s]);
     setActiveId(s.id);
     setSel({ r: 0, c: 0, r2: 0, c2: 0 });
@@ -869,7 +906,7 @@ export default function SpreadsheetTab({ sheets: initialSheets, onChange }: Prop
         <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-3">
           <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
             <BrandIcon name="spreadsheet" size={20} />
-            صفحه گسترده (اکسل داخلی)
+            {title}
           </h3>
           <div className="flex items-center gap-2">
             {saveState === "saving" && (
