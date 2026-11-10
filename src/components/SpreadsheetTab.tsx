@@ -13,8 +13,9 @@ import { toPersianDigits } from "../utils";
 import { buildXlsx, downloadBlob, toExcelFormula } from "../xlsx";
 
 const DEFAULT_ROWS = 30;
-const DEFAULT_COLS = 6;
+const DEFAULT_COLS = 7;
 const DEFAULT_W = 112;
+const NOTES_COL_WIDTH = 280;
 const MIN_W = 56;
 const MAX_ROWS = 2000;
 const MAX_COLS = 60;
@@ -29,7 +30,7 @@ const FILL_COLORS = [
   { label: "نارنجی", value: "#ffedd5" }
 ];
 
-const LEDGER_HEADERS = ["تاریخ", "واریز وجه", "برداشت وجه", "مانده اصل", "سود", "جمع سود"];
+const LEDGER_HEADERS = ["تاریخ", "واریز وجه", "برداشت وجه", "مانده اصل", "سود", "جمع سود", "توضیحات"];
 
 function ledgerTemplateCells(rows: number): Record<string, SheetCell> {
   const cells: Record<string, SheetCell> = {};
@@ -56,7 +57,11 @@ function ensureLedgerTemplate(sheet: SheetDoc): SheetDoc {
   for (const key of Object.keys(templateCells)) {
     cells[key] = { ...cells[key], v: templateCells[key].v };
   }
-  return { ...sheet, cols: Math.max(sheet.cols, DEFAULT_COLS), cells };
+  const cols = Math.max(sheet.cols, DEFAULT_COLS);
+  const colWidths = [...sheet.colWidths];
+  while (colWidths.length < cols) colWidths.push(DEFAULT_W);
+  colWidths[LEDGER_HEADERS.length - 1] = Math.max(colWidths[LEDGER_HEADERS.length - 1], NOTES_COL_WIDTH);
+  return { ...sheet, cols, colWidths, cells };
 }
 
 export function makeSheet(name: string): SheetDoc {
@@ -65,7 +70,9 @@ export function makeSheet(name: string): SheetDoc {
     name,
     rows: DEFAULT_ROWS,
     cols: DEFAULT_COLS,
-    colWidths: Array(DEFAULT_COLS).fill(DEFAULT_W),
+    colWidths: Array.from({ length: DEFAULT_COLS }, (_, col) =>
+      col === LEDGER_HEADERS.length - 1 ? NOTES_COL_WIDTH : DEFAULT_W
+    ),
     cells: ledgerTemplateCells(DEFAULT_ROWS),
     template: "ledger"
   };
@@ -87,7 +94,9 @@ interface Props {
 
 export default function SpreadsheetTab({ sheets: initialSheets, onChange }: Props) {
   const [sheets, setSheets] = useState<SheetDoc[]>(() =>
-    initialSheets && initialSheets.length ? initialSheets : [makeSheet("برگه ۱")]
+    initialSheets && initialSheets.length
+      ? initialSheets.map(ensureLedgerTemplate)
+      : [makeSheet("برگه ۱")]
   );
   const [activeId, setActiveId] = useState<string>(() =>
     (initialSheets && initialSheets.length ? initialSheets[0].id : "")
